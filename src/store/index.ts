@@ -1,0 +1,227 @@
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import type { OpenAPIV3 } from 'openapi-types';
+import type { EditorView } from '@codemirror/view';
+
+export interface EditorFile {
+  id: string;
+  name: string;
+  content: string;
+  path?: string;
+  isDirty: boolean;
+  language: 'yaml' | 'json';
+}
+
+export interface ValidationError {
+  line: number;
+  column: number;
+  endLine?: number;
+  endColumn?: number;
+  message: string;
+  path: string;
+  severity: 'error' | 'warning' | 'info';
+  rule?: string;
+}
+
+export interface SourcePosition {
+  line: number;
+  column: number;
+}
+
+export interface SourceMap {
+  [jsonPath: string]: SourcePosition;
+}
+
+interface EditorState {
+  // File state
+  file: EditorFile | null;
+
+  // Parsed state
+  parsedSpec: OpenAPIV3.Document | null;
+  sourceMap: SourceMap;
+
+  // Validation state
+  isValidating: boolean;
+  syntaxValid: boolean;
+  schemaValid: boolean;
+  errors: ValidationError[];
+  warnings: ValidationError[];
+
+  // UI state
+  showPreview: boolean;
+  showOutline: boolean;
+
+  // Editor reference (not persisted)
+  editorView: EditorView | null;
+}
+
+interface EditorActions {
+  // File actions
+  setFile: (file: EditorFile | null) => void;
+  updateContent: (content: string) => void;
+  markClean: () => void;
+
+  // Parsed state actions
+  setParsedSpec: (spec: OpenAPIV3.Document | null, sourceMap: SourceMap) => void;
+
+  // Validation actions
+  setValidating: (isValidating: boolean) => void;
+  setValidationResult: (result: {
+    syntaxValid: boolean;
+    schemaValid: boolean;
+    errors: ValidationError[];
+    warnings: ValidationError[];
+  }) => void;
+  clearValidation: () => void;
+
+  // UI actions
+  togglePreview: () => void;
+  toggleOutline: () => void;
+
+  // Editor actions
+  setEditorView: (view: EditorView | null) => void;
+  goToLine: (line: number, column?: number) => void;
+  goToPosition: (pos: number) => void;
+}
+
+type EditorStore = EditorState & EditorActions;
+
+const DEFAULT_SPEC = `openapi: 3.0.3
+info:
+  title: Sample API
+  description: A sample OpenAPI specification
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /users:
+    get:
+      summary: List users
+      operationId: listUsers
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - id
+        - email
+      properties:
+        id:
+          type: integer
+          format: int64
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+`;
+
+export const useEditorStore = create<EditorStore>()(
+  persist(
+    (set, get) => ({
+      // Initial state
+      file: {
+        id: 'default',
+        name: 'openapi.yaml',
+        content: DEFAULT_SPEC,
+        isDirty: false,
+        language: 'yaml',
+      },
+      parsedSpec: null,
+      sourceMap: {},
+      isValidating: false,
+      syntaxValid: true,
+      schemaValid: true,
+      errors: [],
+      warnings: [],
+      showPreview: true,
+      showOutline: true,
+      editorView: null,
+
+      // File actions
+      setFile: (file) => set({ file, parsedSpec: null, sourceMap: {}, errors: [], warnings: [] }),
+
+      updateContent: (content) => set((state) => ({
+        file: state.file ? { ...state.file, content, isDirty: true } : null,
+      })),
+
+      markClean: () => set((state) => ({
+        file: state.file ? { ...state.file, isDirty: false } : null,
+      })),
+
+      // Parsed state actions
+      setParsedSpec: (spec, sourceMap) => set({ parsedSpec: spec, sourceMap }),
+
+      // Validation actions
+      setValidating: (isValidating) => set({ isValidating }),
+
+      setValidationResult: (result) => set({
+        syntaxValid: result.syntaxValid,
+        schemaValid: result.schemaValid,
+        errors: result.errors,
+        warnings: result.warnings,
+        isValidating: false,
+      }),
+
+      clearValidation: () => set({
+        errors: [],
+        warnings: [],
+        syntaxValid: true,
+        schemaValid: true,
+      }),
+
+      // UI actions
+      togglePreview: () => set((state) => ({ showPreview: !state.showPreview })),
+      toggleOutline: () => set((state) => ({ showOutline: !state.showOutline })),
+
+      // Editor actions
+      setEditorView: (view) => set({ editorView: view }),
+
+      goToLine: (line, column = 1) => {
+        const { editorView } = get();
+        if (!editorView) return;
+
+        try {
+          const lineInfo = editorView.state.doc.line(line);
+          const pos = lineInfo.from + Math.max(0, column - 1);
+
+          editorView.dispatch({
+            selection: { anchor: pos },
+            scrollIntoView: true,
+          });
+          editorView.focus();
+        } catch {
+          // Line out of range
+        }
+      },
+
+      goToPosition: (pos) => {
+        const { editorView } = get();
+        if (!editorView) return;
+
+        editorView.dispatch({
+          selection: { anchor: pos },
+          scrollIntoView: true,
+        });
+        editorView.focus();
+      },
+    }),
+    {
+      name: 'specable-editor',
+      partialize: (state) => ({
+        showPreview: state.showPreview,
+        showOutline: state.showOutline,
+        file: state.file,
+      }),
+    }
+  )
+);

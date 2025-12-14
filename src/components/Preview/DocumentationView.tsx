@@ -1,0 +1,394 @@
+import { useCallback, useState, useMemo } from 'react';
+import { useEditorStore } from '../../store';
+import type { OpenAPIV3 } from 'openapi-types';
+import {
+  CollapsibleSection,
+  ParameterRow,
+  RequestBodySection,
+  ResponseSection,
+  SecuritySection,
+} from './components';
+
+const METHOD_STYLES: Record<string, { bg: string; text: string }> = {
+  get: { bg: 'bg-emerald-900/50', text: 'text-emerald-400' },
+  post: { bg: 'bg-blue-900/50', text: 'text-blue-400' },
+  put: { bg: 'bg-orange-900/50', text: 'text-orange-400' },
+  patch: { bg: 'bg-yellow-900/50', text: 'text-yellow-400' },
+  delete: { bg: 'bg-red-900/50', text: 'text-red-400' },
+  options: { bg: 'bg-gray-800', text: 'text-gray-400' },
+  head: { bg: 'bg-purple-900/50', text: 'text-purple-400' },
+};
+
+export function DocumentationView() {
+  const parsedSpec = useEditorStore((state) => state.parsedSpec);
+  const sourceMap = useEditorStore((state) => state.sourceMap);
+  const goToLine = useEditorStore((state) => state.goToLine);
+  const [filter, setFilter] = useState('');
+
+  const navigateToPath = useCallback((path: string) => {
+    const position = sourceMap[path];
+    if (position) {
+      goToLine(position.line, position.column);
+    }
+  }, [sourceMap, goToLine]);
+
+  const filteredPaths = useMemo(() => {
+    if (!parsedSpec?.paths) return [];
+    const entries = Object.entries(parsedSpec.paths);
+    if (!filter) return entries;
+
+    const lowerFilter = filter.toLowerCase();
+    return entries.filter(([path, pathItem]) => {
+      if (path.toLowerCase().includes(lowerFilter)) return true;
+
+      const item = pathItem as OpenAPIV3.PathItemObject;
+      const methods = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head'] as const;
+      for (const method of methods) {
+        const operation = (item as Record<string, unknown>)[method] as OpenAPIV3.OperationObject | undefined;
+        if (operation) {
+          if (operation.summary?.toLowerCase().includes(lowerFilter)) return true;
+          if (operation.description?.toLowerCase().includes(lowerFilter)) return true;
+          if (operation.operationId?.toLowerCase().includes(lowerFilter)) return true;
+        }
+      }
+      return false;
+    });
+  }, [parsedSpec?.paths, filter]);
+
+  const filteredSchemas = useMemo(() => {
+    if (!parsedSpec?.components?.schemas) return [];
+    const entries = Object.entries(parsedSpec.components.schemas);
+    if (!filter) return entries;
+
+    const lowerFilter = filter.toLowerCase();
+    return entries.filter(([name, schema]) => {
+      if (name.toLowerCase().includes(lowerFilter)) return true;
+      const schemaObj = schema as OpenAPIV3.SchemaObject;
+      if (schemaObj.description?.toLowerCase().includes(lowerFilter)) return true;
+      return false;
+    });
+  }, [parsedSpec?.components?.schemas, filter]);
+
+  if (!parsedSpec) {
+    return (
+      <div className="h-full flex items-center justify-center bg-zinc-900 text-zinc-400">
+        No valid specification to preview
+      </div>
+    );
+  }
+
+  const hasResults = filteredPaths.length > 0 || filteredSchemas.length > 0;
+
+  return (
+    <div className="h-full flex flex-col bg-zinc-900">
+      {/* API Info Header with Search */}
+      <header className="sticky top-0 z-10 bg-zinc-900 border-b border-zinc-700 p-4">
+        <h1 className="text-xl font-semibold text-zinc-100">
+          {parsedSpec.info.title}
+        </h1>
+        {parsedSpec.info.description && (
+          <p className="mt-1 text-sm text-zinc-400">
+            {parsedSpec.info.description}
+          </p>
+        )}
+        <div className="flex gap-4 mt-2 text-xs">
+          <span className="text-blue-400">
+            Version: {parsedSpec.info.version}
+          </span>
+          {parsedSpec.servers?.[0] && (
+            <span className="text-teal-400">
+              {parsedSpec.servers[0].url}
+            </span>
+          )}
+        </div>
+        <div className="mt-3">
+          <input
+            type="text"
+            placeholder="Filter endpoints and schemas..."
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="w-full px-3 py-1.5 text-sm bg-zinc-800 border border-zinc-700 rounded text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-blue-500"
+            aria-label="Filter preview"
+          />
+        </div>
+      </header>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {!hasResults && filter && (
+          <div className="text-center text-zinc-500 py-8">
+            No matches found for "{filter}"
+          </div>
+        )}
+
+        {/* Endpoints */}
+        {filteredPaths.map(([path, pathItem]) => (
+          <PathSection
+            key={path}
+            path={path}
+            pathItem={pathItem as OpenAPIV3.PathItemObject}
+            spec={parsedSpec}
+            onNavigate={navigateToPath}
+          />
+        ))}
+
+        {/* Schemas */}
+        {filteredSchemas.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-lg font-semibold text-zinc-100 mb-4 pb-2 border-b border-zinc-700">
+              Schemas ({filteredSchemas.length})
+            </h2>
+            <div className="space-y-3">
+              {filteredSchemas.map(([name, schema]) => (
+                <SchemaCard
+                  key={name}
+                  name={name}
+                  schema={schema as OpenAPIV3.SchemaObject}
+                  spec={parsedSpec}
+                  onNavigate={() => navigateToPath(`components.schemas.${name}`)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PathSection({
+  path,
+  pathItem,
+  spec,
+  onNavigate,
+}: {
+  path: string;
+  pathItem: OpenAPIV3.PathItemObject;
+  spec: OpenAPIV3.Document;
+  onNavigate: (path: string) => void;
+}) {
+  const methods = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head'] as const;
+
+  const operations = methods
+    .filter((method) => (pathItem as Record<string, unknown>)[method])
+    .map((method) => ({
+      method,
+      operation: (pathItem as Record<string, unknown>)[method] as OpenAPIV3.OperationObject,
+    }));
+
+  if (operations.length === 0) return null;
+
+  return (
+    <div className="rounded border border-zinc-700 overflow-hidden">
+      {operations.map(({ method, operation }) => (
+        <OperationCard
+          key={method}
+          method={method}
+          path={path}
+          operation={operation}
+          spec={spec}
+          onNavigate={() => onNavigate(`paths.${path}.${method}`)}
+        />
+      ))}
+    </div>
+  );
+}
+
+function OperationCard({
+  method,
+  path,
+  operation,
+  spec,
+  onNavigate,
+}: {
+  method: string;
+  path: string;
+  operation: OpenAPIV3.OperationObject;
+  spec: OpenAPIV3.Document;
+  onNavigate: () => void;
+}) {
+  const style = METHOD_STYLES[method] ?? METHOD_STYLES.get;
+  const parameters = operation.parameters as OpenAPIV3.ParameterObject[] | undefined;
+  const hasParameters = parameters && parameters.length > 0;
+
+  return (
+    <div
+      className={`p-3 border-b border-zinc-800 last:border-b-0 ${
+        operation.deprecated ? 'opacity-60' : ''
+      }`}
+    >
+      <div
+        className="cursor-pointer hover:bg-zinc-800/50 -m-3 p-3 transition-colors"
+        onClick={onNavigate}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onNavigate();
+          }
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${style.bg} ${style.text}`}>
+            {method}
+          </span>
+          <code className="text-sm text-zinc-200 font-mono">
+            {path}
+          </code>
+          {operation.deprecated && (
+            <span className="px-1.5 py-0.5 bg-red-900/50 text-red-400 text-xs rounded">
+              Deprecated
+            </span>
+          )}
+        </div>
+
+        {operation.summary && (
+          <p className="mt-2 text-sm text-zinc-200">
+            {operation.summary}
+          </p>
+        )}
+
+        {operation.description && (
+          <p className="mt-1 text-xs text-zinc-400 whitespace-pre-wrap">
+            {operation.description}
+          </p>
+        )}
+      </div>
+
+      {/* Parameters */}
+      {hasParameters && (
+        <CollapsibleSection
+          title="Parameters"
+          defaultExpanded={parameters.length <= 3}
+          badge={
+            <span className="ml-2 px-1.5 py-0.5 bg-zinc-700 text-zinc-400 text-xs rounded">
+              {parameters.length}
+            </span>
+          }
+        >
+          <div className="bg-zinc-800/50 rounded p-2">
+            {parameters.map((param) => (
+              <ParameterRow key={`${param.in}-${param.name}`} param={param} spec={spec} />
+            ))}
+          </div>
+        </CollapsibleSection>
+      )}
+
+      {/* Request Body */}
+      {operation.requestBody && (
+        <RequestBodySection
+          requestBody={operation.requestBody as OpenAPIV3.RequestBodyObject}
+          spec={spec}
+        />
+      )}
+
+      {/* Responses */}
+      {operation.responses && (
+        <ResponseSection responses={operation.responses} spec={spec} />
+      )}
+
+      {/* Security */}
+      {operation.security && operation.security.length > 0 && (
+        <SecuritySection
+          security={operation.security}
+          securitySchemes={spec.components?.securitySchemes}
+          spec={spec}
+        />
+      )}
+    </div>
+  );
+}
+
+function SchemaCard({
+  name,
+  schema,
+  spec,
+  onNavigate,
+}: {
+  name: string;
+  schema: OpenAPIV3.SchemaObject;
+  spec: OpenAPIV3.Document;
+  onNavigate: () => void;
+}) {
+  const properties = schema.properties ? Object.entries(schema.properties) : [];
+  const required = schema.required ?? [];
+
+  return (
+    <div className="rounded border border-zinc-700 overflow-hidden">
+      <div
+        className="p-3 cursor-pointer hover:bg-zinc-800 transition-colors"
+        onClick={onNavigate}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onNavigate();
+          }
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <span className="font-medium text-zinc-200">{name}</span>
+          <span className="text-xs text-zinc-500">
+            {schema.type ?? 'object'}
+          </span>
+        </div>
+
+        {schema.description && (
+          <p className="mt-1 text-xs text-zinc-400 whitespace-pre-wrap">
+            {schema.description}
+          </p>
+        )}
+      </div>
+
+      {properties.length > 0 && (
+        <div className="border-t border-zinc-700 p-3 bg-zinc-800/30">
+          <div className="text-xs text-zinc-500 mb-2">Properties ({properties.length})</div>
+          <div className="space-y-2">
+            {properties.map(([propName, propSchema]) => {
+              const propObj = propSchema as OpenAPIV3.SchemaObject;
+              const isRequired = required.includes(propName);
+              const type = getPropertyType(propObj, spec);
+
+              return (
+                <div key={propName} className="flex items-start gap-2">
+                  <span className="font-mono text-xs text-zinc-300 shrink-0">
+                    {propName}
+                    {isRequired && <span className="text-red-500">*</span>}
+                  </span>
+                  <span className="text-xs text-zinc-500">{type}</span>
+                  {propObj.description && (
+                    <span className="text-xs text-zinc-400 flex-1">
+                      {propObj.description}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function getPropertyType(schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject, spec: OpenAPIV3.Document): string {
+  if ('$ref' in schema) {
+    const refPath = schema.$ref;
+    const parts = refPath.split('/');
+    return parts[parts.length - 1];
+  }
+
+  if (schema.type === 'array' && schema.items) {
+    const itemType = getPropertyType(schema.items as OpenAPIV3.SchemaObject, spec);
+    return `array<${itemType}>`;
+  }
+
+  const baseType = schema.type ?? 'object';
+  if (schema.format) {
+    return `${baseType} (${schema.format})`;
+  }
+
+  return baseType as string;
+}
