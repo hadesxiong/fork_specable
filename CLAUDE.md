@@ -16,6 +16,12 @@ pnpm preview      # Preview production build
 pnpm test         # Run tests in watch mode
 pnpm test:run     # Run tests once
 pnpm test:coverage # Run tests with coverage report
+
+# Run a single test file
+pnpm test src/utils/source-map.test.ts
+
+# Run tests matching a pattern
+pnpm test -t "source map"
 ```
 
 ## Architecture
@@ -26,10 +32,12 @@ pnpm test:coverage # Run tests with coverage report
 
 ### Validation Pipeline
 - **Web Workers** offload validation from the main thread:
-  - `validator.worker.ts`: YAML/JSON parsing, OpenAPI schema validation (using swagger-parser + ajv)
+  - `validator.worker.ts`: YAML/JSON parsing, OpenAPI schema validation (swagger-parser)
   - `linter.worker.ts`: Spectral linting for best practices
-- **ValidationPipeline** (`src/services/validation-pipeline.ts`): Coordinates workers with debouncing and cancellation
+- **ValidationPipeline** (`src/services/validation-pipeline.ts`): Coordinates workers with debouncing (300ms) and cancellation
 - Workers communicate via Comlink for typed RPC
+- **Data flow**: Content change → `useValidation` hook → debounced `ValidationPipeline.validate()` → worker → store update
+- **Limitation**: OpenAPI 3.1.x specs only get syntax validation (swagger-parser doesn't support 3.1 schema validation)
 
 ### Editor
 - **CodeMirror 6** (`src/components/Editor/`):
@@ -59,3 +67,10 @@ pnpm test:coverage # Run tests with coverage report
 - **React Compiler** is enabled (babel-plugin-react-compiler) for automatic memoisation
 - **Source maps** track YAML/JSON positions back to original content for accurate error locations
 - **Node polyfills** (vite-plugin-node-polyfills) allow swagger-parser to run in browser
+
+## Testing
+
+- **Vitest** with jsdom environment and React Testing Library
+- Test files: `src/**/*.test.{ts,tsx}`
+- Setup file (`src/test/setup.ts`) mocks `matchMedia`, `ResizeObserver`, and `scrollIntoView` for jsdom compatibility
+- Worker tests may require mocking Comlink or testing worker logic in isolation

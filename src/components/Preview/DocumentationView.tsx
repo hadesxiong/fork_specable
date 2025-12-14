@@ -7,7 +7,9 @@ import {
   RequestBodySection,
   ResponseSection,
   SecuritySection,
+  SchemaDisplay,
 } from './components';
+import { getComposition, type SchemaObject } from './schema-utils';
 
 const METHOD_STYLES: Record<string, { bg: string; text: string }> = {
   get: { bg: 'bg-emerald-900/50', text: 'text-emerald-400' },
@@ -313,6 +315,10 @@ function SchemaCard({
 }) {
   const properties = schema.properties ? Object.entries(schema.properties) : [];
   const required = schema.required ?? [];
+  const composition = getComposition(schema);
+  const schemaType = composition
+    ? composition.type
+    : (schema.type ?? 'object');
 
   return (
     <div className="rounded border border-zinc-700 overflow-hidden">
@@ -331,7 +337,7 @@ function SchemaCard({
         <div className="flex items-center gap-2">
           <span className="font-medium text-zinc-200">{name}</span>
           <span className="text-xs text-zinc-500">
-            {schema.type ?? 'object'}
+            {schemaType}
           </span>
         </div>
 
@@ -342,31 +348,43 @@ function SchemaCard({
         )}
       </div>
 
-      {properties.length > 0 && (
+      {(properties.length > 0 || composition) && (
         <div className="border-t border-zinc-700 p-3 bg-zinc-800/30">
-          <div className="text-xs text-zinc-500 mb-2">Properties ({properties.length})</div>
-          <div className="space-y-2">
-            {properties.map(([propName, propSchema]) => {
-              const propObj = propSchema as OpenAPIV3.SchemaObject;
-              const isRequired = required.includes(propName);
-              const type = getPropertyType(propObj, spec);
+          {composition && (
+            <SchemaDisplay
+              schema={schema as SchemaObject}
+              spec={spec}
+              depth={0}
+              maxDepth={3}
+            />
+          )}
+          {properties.length > 0 && !composition && (
+            <>
+              <div className="text-xs text-zinc-500 mb-2">Properties ({properties.length})</div>
+              <div className="space-y-2">
+                {properties.map(([propName, propSchema]) => {
+                  const propObj = propSchema as OpenAPIV3.SchemaObject;
+                  const isRequired = required.includes(propName);
+                  const type = getPropertyType(propObj, spec);
 
-              return (
-                <div key={propName} className="flex items-start gap-2">
-                  <span className="font-mono text-xs text-zinc-300 shrink-0">
-                    {propName}
-                    {isRequired && <span className="text-red-500">*</span>}
-                  </span>
-                  <span className="text-xs text-zinc-500">{type}</span>
-                  {propObj.description && (
-                    <span className="text-xs text-zinc-400 flex-1">
-                      {propObj.description}
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                  return (
+                    <div key={propName} className="flex items-start gap-2">
+                      <span className="font-mono text-xs text-zinc-300 shrink-0">
+                        {propName}
+                        {isRequired && <span className="text-red-500">*</span>}
+                      </span>
+                      <span className="text-xs text-zinc-500">{type}</span>
+                      {propObj.description && (
+                        <span className="text-xs text-zinc-400 flex-1">
+                          {propObj.description}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
@@ -383,6 +401,21 @@ function getPropertyType(schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObj
   if (schema.type === 'array' && schema.items) {
     const itemType = getPropertyType(schema.items as OpenAPIV3.SchemaObject, spec);
     return `array<${itemType}>`;
+  }
+
+  if (schema.allOf) {
+    const types = schema.allOf.map((s) => getPropertyType(s as OpenAPIV3.SchemaObject, spec));
+    return types.join(' & ');
+  }
+
+  if (schema.oneOf) {
+    const types = schema.oneOf.map((s) => getPropertyType(s as OpenAPIV3.SchemaObject, spec));
+    return types.join(' | ');
+  }
+
+  if (schema.anyOf) {
+    const types = schema.anyOf.map((s) => getPropertyType(s as OpenAPIV3.SchemaObject, spec));
+    return types.join(' | ');
   }
 
   const baseType = schema.type ?? 'object';

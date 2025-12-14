@@ -77,15 +77,18 @@ export function getSchemaType(
   }
 
   if (schema.allOf) {
-    return 'allOf';
+    const types = schema.allOf.map((s) => getSchemaType(s as SchemaObject, spec));
+    return types.join(' & ');
   }
 
   if (schema.oneOf) {
-    return 'oneOf';
+    const types = schema.oneOf.map((s) => getSchemaType(s as SchemaObject, spec));
+    return types.join(' | ');
   }
 
   if (schema.anyOf) {
-    return 'anyOf';
+    const types = schema.anyOf.map((s) => getSchemaType(s as SchemaObject, spec));
+    return types.join(' | ');
   }
 
   const baseType = schema.type ?? 'object';
@@ -94,6 +97,32 @@ export function getSchemaType(
   }
 
   return baseType as string;
+}
+
+/**
+ * Check if a schema uses composition (oneOf, anyOf, allOf)
+ */
+export function hasComposition(schema: OpenAPIV3.SchemaObject): boolean {
+  return Boolean(schema.oneOf || schema.anyOf || schema.allOf);
+}
+
+/**
+ * Get the composition type and variants from a schema
+ */
+export function getComposition(schema: OpenAPIV3.SchemaObject): {
+  type: 'oneOf' | 'anyOf' | 'allOf';
+  variants: SchemaObject[];
+} | null {
+  if (schema.oneOf) {
+    return { type: 'oneOf', variants: schema.oneOf as SchemaObject[] };
+  }
+  if (schema.anyOf) {
+    return { type: 'anyOf', variants: schema.anyOf as SchemaObject[] };
+  }
+  if (schema.allOf) {
+    return { type: 'allOf', variants: schema.allOf as SchemaObject[] };
+  }
+  return null;
 }
 
 /**

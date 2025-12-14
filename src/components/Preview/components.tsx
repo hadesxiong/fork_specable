@@ -8,6 +8,7 @@ import {
   getConstraints,
   formatConstraints,
   getRefName,
+  getComposition,
   type SchemaObject,
 } from './schema-utils';
 
@@ -175,11 +176,12 @@ export function SchemaDisplay({
   }
 
   const schemaObj = schema;
+  const composition = getComposition(schemaObj);
   const properties = schemaObj.properties ?? {};
   const required = schemaObj.required ?? [];
   const propertyEntries = Object.entries(properties);
 
-  if (propertyEntries.length === 0 && !schemaObj.type) {
+  if (propertyEntries.length === 0 && !schemaObj.type && !composition) {
     return null;
   }
 
@@ -188,11 +190,21 @@ export function SchemaDisplay({
       {name && (
         <div className="flex items-center gap-2 mb-2">
           <span className="font-medium text-zinc-300 text-sm">{name}</span>
-          <span className="text-xs text-zinc-500">{schemaObj.type ?? 'object'}</span>
+          <span className="text-xs text-zinc-500">
+            {composition ? composition.type : (schemaObj.type ?? 'object')}
+          </span>
         </div>
       )}
       {schemaObj.description && (
         <p className="text-xs text-zinc-400 mb-2">{schemaObj.description}</p>
+      )}
+      {composition && (
+        <CompositionDisplay
+          composition={composition}
+          spec={spec}
+          depth={depth}
+          maxDepth={maxDepth}
+        />
       )}
       {propertyEntries.length > 0 && (
         <div className="space-y-1">
@@ -237,9 +249,10 @@ function PropertyRow({ name, schema, required, spec, depth, maxDepth }: Property
   const type = getSchemaType(schema, spec);
   const isObject = !isRef(schema) && (schema.type === 'object' || schema.properties);
   const isArray = !isRef(schema) && schema.type === 'array';
+  const hasCompositionSchema = !isRef(schema) && getComposition(schema) !== null;
   const [expanded, setExpanded] = useState(false);
 
-  const showExpandButton = (isObject || isArray) && depth < maxDepth;
+  const showExpandButton = (isObject || isArray || hasCompositionSchema) && depth < maxDepth;
 
   return (
     <div>
@@ -280,6 +293,127 @@ function PropertyRow({ name, schema, required, spec, depth, maxDepth }: Property
             depth={depth + 1}
             maxDepth={maxDepth}
           />
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface CompositionDisplayProps {
+  composition: {
+    type: 'oneOf' | 'anyOf' | 'allOf';
+    variants: SchemaObject[];
+  };
+  spec: OpenAPIV3.Document;
+  depth: number;
+  maxDepth: number;
+}
+
+const COMPOSITION_STYLES: Record<string, { bg: string; border: string; text: string; label: string }> = {
+  oneOf: { bg: 'bg-amber-900/20', border: 'border-amber-800/50', text: 'text-amber-400', label: 'One of' },
+  anyOf: { bg: 'bg-cyan-900/20', border: 'border-cyan-800/50', text: 'text-cyan-400', label: 'Any of' },
+  allOf: { bg: 'bg-violet-900/20', border: 'border-violet-800/50', text: 'text-violet-400', label: 'All of' },
+};
+
+function CompositionDisplay({ composition, spec, depth, maxDepth }: CompositionDisplayProps) {
+  const style = COMPOSITION_STYLES[composition.type];
+
+  return (
+    <div className="space-y-2 mb-2">
+      <div className={`text-xs font-medium ${style.text}`}>
+        {style.label}:
+      </div>
+      {composition.variants.map((variant, index) => (
+        <CompositionVariant
+          key={index}
+          variant={variant}
+          index={index}
+          style={style}
+          spec={spec}
+          depth={depth}
+          maxDepth={maxDepth}
+        />
+      ))}
+    </div>
+  );
+}
+
+interface CompositionVariantProps {
+  variant: SchemaObject;
+  index: number;
+  style: { bg: string; border: string; text: string };
+  spec: OpenAPIV3.Document;
+  depth: number;
+  maxDepth: number;
+}
+
+function CompositionVariant({ variant, index, style, spec, depth, maxDepth }: CompositionVariantProps) {
+  const variantType = getSchemaType(variant, spec);
+  const resolved = isRef(variant) ? resolveRef(variant, spec) : null;
+  const resolvedName = resolved?.name;
+  const variantSchema = resolved?.schema ?? (isRef(variant) ? null : variant);
+
+  const properties = variantSchema?.properties ? Object.entries(variantSchema.properties) : [];
+  const required = variantSchema?.required ?? [];
+  const nestedComposition = variantSchema ? getComposition(variantSchema) : null;
+  const hasStructure = properties.length > 0 || nestedComposition;
+
+  return (
+    <div className={`rounded border ${style.border} ${style.bg} overflow-hidden`}>
+      <div className="flex items-center gap-2 px-2 py-1.5">
+        <span className={`px-1.5 py-0.5 text-xs rounded bg-zinc-800 ${style.text} font-medium`}>
+          {index + 1}
+        </span>
+        <span className="text-xs text-zinc-200 font-mono font-medium">
+          {resolvedName ?? variantType}
+        </span>
+        {resolvedName && variantSchema?.type && (
+          <span className="text-xs text-zinc-500">
+            {variantSchema.type}
+          </span>
+        )}
+      </div>
+
+      {variantSchema?.description && (
+        <div className="px-2 pb-1.5 text-xs text-zinc-400">
+          {variantSchema.description}
+        </div>
+      )}
+
+      {hasStructure && depth < maxDepth && (
+        <div className="border-t border-zinc-700/50 px-2 py-2 bg-zinc-900/30">
+          {nestedComposition && (
+            <CompositionDisplay
+              composition={nestedComposition}
+              spec={spec}
+              depth={depth + 1}
+              maxDepth={maxDepth}
+            />
+          )}
+          {properties.length > 0 && (
+            <div className="space-y-1">
+              {properties.map(([propName, propSchema]) => {
+                const propType = getSchemaType(propSchema as SchemaObject, spec);
+                const isRequired = required.includes(propName);
+                const propSchemaObj = propSchema as OpenAPIV3.SchemaObject;
+
+                return (
+                  <div key={propName} className="flex items-start gap-2">
+                    <span className="font-mono text-xs text-zinc-300">
+                      {propName}
+                      {isRequired && <span className="text-red-500">*</span>}
+                    </span>
+                    <span className="text-xs text-zinc-500">{propType}</span>
+                    {propSchemaObj.description && (
+                      <span className="text-xs text-zinc-500 truncate">
+                        {propSchemaObj.description}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>
