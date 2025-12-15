@@ -1,66 +1,43 @@
 # OpenAPI Editor: Future Phases
 
-This document outlines features excluded from the MVP, organised into logical phases for post-launch development.
+This document outlines features planned for post-launch development.
 
 ---
 
-## Phase 2: Enhanced Visualisation
+## Implemented Features
 
-### Graph View
+The following features from the original roadmap have been implemented:
+
+### Graph View ✓
 Interactive force-directed graph showing schema relationships.
-
-**Features**
-- D3.js force-directed layout with zoom/pan
-- Node types: schemas, endpoints (optional toggle)
-- Edge types: $ref (solid), allOf (dashed), oneOf/anyOf (dotted), items (arrow)
-- Colour coding: referenced schemas (blue), orphaned schemas (grey)
-- Filtering: all / referenced only / orphaned only
+- PixiJS + d3-force layout with zoom/pan
+- Node types: schemas with property previews
+- Edge types: `$ref`, `allOf`, `anyOf`, `oneOf`, `items`
+- Filtering: all / referenced / orphaned
 - Click node to navigate to source
-- Hover to highlight connected nodes and edges
+- Graph computation in dedicated worker
 
-**Technical Considerations**
-- Move graph computation to a worker for specs with 100+ schemas
-- Debounce graph rebuild on spec changes (500ms)
-- Use incremental simulation updates rather than full restart on filter change
-- Consider WebGL renderer (e.g., `@pixi/graphics`) for very large graphs
-
-**Keyboard Shortcut**: `Ctrl+Shift+2`
-
----
-
-### Minimap Enhancements
-Visual overview of document structure in the scrollbar area.
-
-**Features**
-- Colour-coded sections: paths (blue), schemas (green), info (grey), security (red)
-- Error/warning markers visible at document scale
-- Click to navigate
-- Region markers from `# region` comments
-
----
-
-## Phase 3: Interactive Testing
-
-### Try It Out Playground
+### Try It Out ✓
 Send requests to API endpoints directly from the editor.
-
-**Features**
 - Server selector (from spec's `servers` array)
 - Auto-populated parameter inputs from operation definition
-- Request body editor with schema-based validation
-- Authentication header configuration (Bearer, API Key, Basic)
-- Response display: status, headers, body (formatted JSON)
-- Response time measurement
-- Request history (last 20 requests per session)
+- Request body editor
+- Authentication: Bearer, API Key, Basic
+- Response display with status, headers, body, and timing
+- CORS limitation noted in UI
 
-**Technical Considerations**
-- CORS: requests must go through a proxy or the API must allow browser origins
-- Consider optional backend proxy service for users who need it
-- Store auth tokens securely (sessionStorage, not localStorage)
-
-**Keyboard Shortcut**: `Ctrl+Shift+3`
+### Diff View ✓
+Compare current spec against another version with breaking change detection.
+- Load comparison file via file picker
+- Categorise changes: added, removed, modified
+- Breaking change detection and flagging
+- Filter: all / breaking / non-breaking
+- Click to navigate to source in either spec
+- Diff computation in dedicated worker
 
 ---
+
+## Phase 2: Code Generation
 
 ### Code Snippet Generation
 Generate client code for the active endpoint.
@@ -79,50 +56,9 @@ Generate client code for the active endpoint.
 - Auto-include example request body from spec
 - Configurable: include/exclude headers, auth placeholder
 
-**Keyboard Shortcut**: `Ctrl+Shift+5`
-
 ---
 
-## Phase 4: Version Control Integration
-
-### Diff View
-Compare current spec against a previous version with breaking change detection.
-
-**Features**
-- Load comparison file via file picker or drag-and-drop
-- Categorise changes: added, removed, modified
-- Flag breaking changes:
-  - Removed endpoint
-  - Removed operation
-  - New required parameter
-  - Removed success response (2xx)
-  - Changed parameter type (narrowing)
-  - Removed schema property
-- Filter: all / breaking only / non-breaking only
-- Click change to navigate to source
-- Export changelog as Markdown
-
-**Breaking Change Detection Logic**
-```
-Breaking:
-- DELETE paths.{path}
-- DELETE paths.{path}.{method}
-- ADD paths.{path}.{method}.parameters.{name} WHERE required=true
-- DELETE paths.{path}.{method}.responses.2xx
-- DELETE components.schemas.{name} WHERE referenced
-- MODIFY parameter.type (string → integer, etc.)
-
-Non-breaking:
-- ADD paths.{path}
-- ADD paths.{path}.{method}
-- ADD paths.{path}.{method}.parameters.{name} WHERE required=false
-- ADD components.schemas.{name}
-- MODIFY description, summary, examples
-```
-
-**Keyboard Shortcut**: `Ctrl+Shift+4`
-
----
+## Phase 3: Version Control Integration
 
 ### Version History
 Track specification changes over time using IndexedDB.
@@ -154,11 +90,11 @@ Direct integration with Git repositories.
 
 **Limitations**
 - Full Git operations require a backend or CLI bridge
-- MVP: read-only status display; writes via external Git client
+- Initial implementation: read-only status display; writes via external Git client
 
 ---
 
-## Phase 5: Multi-File Support
+## Phase 4: Multi-File Support
 
 ### Workspace Mode
 Open a directory containing multiple OpenAPI files with $ref resolution across files.
@@ -189,7 +125,7 @@ Combine multi-file specs into a single output file.
 
 ---
 
-## Phase 6: AI Assistance
+## Phase 5: AI Assistance
 
 ### Schema Generation from JSON
 Paste a JSON sample, generate OpenAPI schema.
@@ -233,7 +169,7 @@ AI-suggested fixes for validation errors.
 
 ---
 
-## Phase 7: Ecosystem Integration
+## Phase 6: Ecosystem Integration
 
 ### CLI Tool
 Command-line interface for CI/CD integration.
@@ -287,7 +223,7 @@ First-class VS Code integration.
 
 ---
 
-## Phase 8: Collaboration
+## Phase 7: Collaboration
 
 ### Comments and Annotations
 Add comments to specific locations in the spec.
@@ -319,7 +255,7 @@ Multiple users editing simultaneously.
 
 ---
 
-## Phase 9: Enterprise Features
+## Phase 8: Enterprise Features
 
 ### Custom Rulesets
 User-defined Spectral rulesets.
@@ -355,29 +291,29 @@ Track all changes for compliance.
 
 ## Priority Matrix
 
-| Phase | Features | User Value | Complexity |
-|-------|----------|------------|------------|
-| 2 | Graph View, Minimap | High | Medium |
-| 3 | Try It Out, Code Snippets | High | Medium |
-| 4 | Diff View, Version History | High | Medium |
-| 5 | Multi-File, Bundling | Medium | High |
-| 6 | AI Assistance | Medium | Medium |
-| 7 | CLI, Exports, VS Code | High | High |
-| 8 | Comments, Real-time Collab | Low | Very High |
-| 9 | Enterprise Features | Low | Medium |
+| Phase | Features | User Value | Complexity | Status |
+|-------|----------|------------|------------|--------|
+| — | Graph View | High | Medium | ✓ Done |
+| — | Try It Out | High | Medium | ✓ Done |
+| — | Diff View | High | Medium | ✓ Done |
+| 2 | Code Snippets | High | Low | Planned |
+| 3 | Version History, Git | Medium | Medium | Planned |
+| 4 | Multi-File, Bundling | Medium | High | Planned |
+| 5 | AI Assistance | Medium | Medium | Planned |
+| 6 | CLI, Exports, VS Code | High | High | Planned |
+| 7 | Collaboration | Low | Very High | Planned |
+| 8 | Enterprise Features | Low | Medium | Planned |
 
-**Recommended order**: 2 → 3 → 4 → 7 (CLI) → 5 → 6 → 7 (VS Code) → 9 → 8
+**Recommended order**: 2 (Code Snippets) → 3 (Version History) → 6 (CLI) → 4 (Multi-File) → 5 (AI) → 6 (VS Code) → 8 → 7
 
 ---
 
-## Technical Debt to Address
+## Technical Considerations
 
-Before expanding scope, address issues identified in the original implementation plan:
+Items to address as features are added:
 
-1. **Worker pool complexity** - Start with single workers; add pooling only if profiling shows benefit
-2. **Source map as plain object** - Avoid `Map` in serialised state
-3. **Cache eviction** - Implement LRU with max size for all caches
-4. **Path regex fragility** - Handle paths with dots, special characters
-5. **Consistent line numbering** - Standardise on 1-indexed throughout
-6. **Missing `useMemo` dependencies** - Audit all hooks for correctness
-7. **Duplicated utilities** - Extract `generateExample`, path parsing to shared modules
+1. **Worker pool complexity** — Single workers are sufficient; add pooling only if profiling shows benefit
+2. **OpenAPI 3.1 support** — swagger-parser limitation means 3.1 specs only get syntax validation
+3. **Source map accuracy** — Edge cases with multi-line strings, anchors, aliases may need refinement
+4. **Type duplication** — Graph and diff types exist in both `src/workers/types.ts` and `src/store/index.ts`
+5. **IndexedDB migration** — Plan schema versioning before adding version history feature

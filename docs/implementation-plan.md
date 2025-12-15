@@ -1,5 +1,7 @@
 # OpenAPI Editor: Technical Implementation Plan
 
+> **Note**: This is a historical planning document from the initial design phase. For the current implementation state, see [mvp.md](./mvp.md). Some architectural decisions described here were modified during implementation—notably, the store uses a single file rather than slices, and worker pool complexity was deferred in favour of single workers.
+
 ## Executive Summary
 
 This document outlines the technical architecture and implementation roadmap for a high-performance, web-based OpenAPI specification editor targeting individual developers. The editor prioritizes sub-100ms validation feedback, keyboard-first workflows, and intelligent navigation for complex specifications—addressing the critical failures of existing tools like Swagger Editor, Stoplight, and Redocly.

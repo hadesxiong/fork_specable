@@ -1,18 +1,24 @@
-# OpenAPI Editor: MVP Implementation Plan
+# OpenAPI Editor: Implementation Summary
 
-## Scope
+## What Was Built
 
-The MVP delivers a fast, keyboard-driven OpenAPI editor targeting individual developers. It includes:
+Specable delivers a fast, keyboard-driven OpenAPI editor targeting individual developers. The implementation includes:
 
-- **CodeMirror 6 editor** with YAML/JSON support
-- **Tiered validation pipeline** (syntax → schema → lint) via Web Workers
-- **Documentation preview** with endpoint cards and schema display
-- **Outline view** with filtering and navigation
-- **Command palette** and keyboard shortcuts
-- **$ref navigation** (go-to-definition, find references)
-- **File System Access API** with fallback
+**Core Editor**
+- CodeMirror 6 editor with YAML/JSON support
+- Tiered validation pipeline (syntax → schema → lint) via Web Workers
+- Documentation preview with endpoint cards and schema display
+- Outline view with filtering and navigation
+- Command palette and keyboard shortcuts
+- `$ref` navigation (go-to-definition, Ctrl+Click)
+- File System Access API with fallback
 
-Excluded from MVP: Graph visualisation, Try It Out playground, Diff view, Code Snippets, AI assistance, CLI, multi-file workspaces.
+**Beyond Original MVP Scope**
+- Graph visualisation of schema relationships (PixiJS + d3-force)
+- Try It Out playground for API testing
+- Diff view with breaking change detection
+
+**Not Yet Implemented**: Code snippets, AI assistance, CLI, multi-file workspaces, version history.
 
 ---
 
@@ -37,10 +43,15 @@ Excluded from MVP: Graph visualisation, Try It Out playground, Diff view, Code S
 ┌─────────────────────────────┴───────────────────────────────────────┐
 │                         Web Workers                                  │
 ├─────────────────────────────────────────────────────────────────────┤
-│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐   │
-│  │  Parser Worker   │  │ Validator Worker │  │  Linter Worker   │   │
-│  │  (Lezer YAML)    │  │ (swagger-parser) │  │   (Spectral)     │   │
-│  └──────────────────┘  └──────────────────┘  └──────────────────┘   │
+│  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐         │
+│  │   Validator    │  │    Linter      │  │     Graph      │         │
+│  │ (swagger-parser│  │  (Spectral)    │  │  (d3-force)    │         │
+│  │    + js-yaml)  │  │                │  │                │         │
+│  └────────────────┘  └────────────────┘  └────────────────┘         │
+│  ┌────────────────┐                                                  │
+│  │      Diff      │                                                  │
+│  │  (deep-diff)   │                                                  │
+│  └────────────────┘                                                  │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -49,224 +60,130 @@ Excluded from MVP: Graph visualisation, Try It Out playground, Diff view, Code S
 | Layer | Technology | Rationale |
 |-------|------------|-----------|
 | Editor Core | CodeMirror 6 | Viewport-only rendering, ~150KB bundle, excellent extensibility |
-| UI Framework | React 19 | Concurrent rendering, Suspense for code splitting |
-| State Management | Zustand | Minimal boilerplate, built-in persistence (localStorage only for MVP) |
+| UI Framework | React 19 | Concurrent rendering, React Compiler for automatic memoisation |
+| State Management | Zustand | Minimal boilerplate, built-in persistence (localStorage) |
 | Worker Communication | Comlink | Type-safe RPC, transparent async |
-| Parsing | Lezer (YAML grammar) | Incremental parsing, error recovery |
-| Validation | Ajv + @apidevtools/swagger-parser | Fast JSON Schema, comprehensive OpenAPI validation |
+| Parsing | js-yaml | YAML parsing in validator worker |
+| Validation | @apidevtools/swagger-parser | Comprehensive OpenAPI validation |
 | Linting | Spectral | Industry standard, extensible rulesets |
-| Styling | Tailwind CSS | Utility-first, tree-shakeable |
-| Build | Vite | Fast HMR, native ES modules |
-| Testing | Vitest + Playwright | Unit and E2E coverage |
+| Graph Layout | d3-force + PixiJS | Force-directed layout with WebGL rendering |
+| Diff | deep-diff | Structural comparison for breaking change detection |
+| Styling | Tailwind CSS 4 | Utility-first, tree-shakeable |
+| Build | Vite 7 | Fast HMR, native ES modules |
+| Testing | Vitest | Unit tests with React Testing Library |
 
 ---
 
-## Implementation Breakdown
+## Implementation Details
 
-### Phase 1: Project Foundation
+### Project Foundation
 
 **Project Setup**
-- Initialise Vite + React 19 + TypeScript project
-- Configure Tailwind CSS with dark theme tokens
-- Set up ESLint, Prettier, Husky pre-commit hooks
-- Create directory structure:
-  ```
-  src/
-  ├── components/
-  │   ├── Editor/
-  │   ├── Preview/
-  │   ├── Outline/
-  │   ├── CommandPalette/
-  │   └── common/
-  ├── workers/
-  ├── services/
-  ├── store/
-  ├── hooks/
-  └── utils/
-  ```
+- Vite 7 + React 19 + TypeScript
+- Tailwind CSS 4 with dark theme tokens
+- ESLint with React Compiler plugin
+- React Compiler (babel-plugin-react-compiler) for automatic memoisation
 
-**CodeMirror Integration**
-- Install and configure CodeMirror 6 with extensions:
-  - `@codemirror/lang-yaml`
-  - `@codemirror/lang-json`
-  - `@codemirror/language` (folding)
-  - `@codemirror/search`
-  - `@codemirror/lint`
-- Implement language auto-detection (YAML vs JSON)
-- Add line numbers, active line highlight, selection matches
-- Configure fold gutter with semantic folding markers
-- Create custom keymap for OpenAPI-specific shortcuts
+**CodeMirror Integration** (`src/components/Editor/`)
+- Extensions: `@codemirror/lang-yaml`, `@codemirror/lang-json`, folding, search, lint
+- Language auto-detection (YAML vs JSON based on file extension and content)
+- Custom theme (`theme.ts`) with purple accent colours
+- `$ref` navigation via `ref-navigation.ts` (F12, Ctrl+Click)
+- Diagnostics integration (`diagnostics.ts`)
 
-**State Management**
-- Create Zustand store with slices:
-  - `fileSlice`: active file content, dirty state, file metadata
-  - `validationSlice`: errors, warnings, validation status
-  - `uiSlice`: panel visibility, theme preference
-- Implement localStorage persistence for UI preferences only
-- Note: Do not persist `EditorView` or `Map` objects
+**State Management** (`src/store/index.ts`)
+- Single Zustand store (not split into slices)
+- State includes: file, parsedSpec, sourceMap, validation, UI, graph, diff, tryIt
+- localStorage persistence for UI preferences and current file
+- Note: `EditorView` reference stored but not persisted
 
----
+### Validation Pipeline
 
-### Phase 2: Validation Pipeline
+**Workers** (`src/workers/`)
+- `validator.worker.ts`: YAML/JSON parsing via js-yaml, OpenAPI validation via swagger-parser
+- `linter.worker.ts`: Spectral with default OAS ruleset
+- `graph.worker.ts`: Builds schema relationship graph from parsed spec
+- `diff.worker.ts`: Computes API differences using deep-diff with breaking change detection
+- Worker types defined in `types.ts`
 
-**Worker Infrastructure**
-- Set up Comlink for type-safe worker communication
-- Create single validation worker (not a pool for MVP)
-- Implement message batching to reduce overhead
-
-**Validation Worker**
-- Integrate `@apidevtools/swagger-parser` for OpenAPI validation
-- Implement content hashing for cache invalidation
-- Add LRU cache (max 10 entries) for validation results
-- Return structured errors with line/column positions
-
-**Linter Worker**
-- Integrate Spectral with default OAS ruleset
-- Map Spectral severity levels to editor diagnostics
-- Return diagnostics with JSON path for navigation
-
-**Pipeline Orchestration**
-- Implement tiered validation:
-  1. Syntax check (immediate, <50ms) - native YAML/JSON parse
-  2. Schema validation (debounced 300ms) - swagger-parser
-  3. Linting (debounced 500ms) - Spectral
-- Add `AbortController` for cancellation on new edits
-- Create progress callback for incremental UI updates
+**Pipeline Orchestration** (`src/services/validation-pipeline.ts`)
+- `ValidationPipeline` singleton coordinates validator and linter workers
+- Debounced validation (300ms) with `AbortController` for cancellation
+- Source map built during validation for accurate error positions
+- Limitation: OpenAPI 3.1.x specs only get syntax validation (swagger-parser limitation)
 
 **Editor Integration**
-- Display errors/warnings in gutter via `@codemirror/lint`
-- Show inline diagnostics on hover
-- Add status bar indicator: "Validating..." / "Valid" / "3 errors, 2 warnings"
+- Errors/warnings displayed in gutter via `@codemirror/lint`
+- Inline diagnostics on hover
+- Status bar shows validation status and counts
 
----
+### Navigation & Commands
 
-### Phase 3: Navigation & Commands
+**Source Map** (`src/utils/source-map.ts`)
+- Builds JSON path to line/column mapping during YAML/JSON parsing
+- Plain object structure (not `Map`) for serialisation safety
+- Handles nested structures, arrays, and special characters
 
-**Source Map Builder**
-- Parse YAML/JSON to build path-to-position mapping
-- Store in a plain object (not `Map`) for serialisation safety
-- Run in validation worker, return alongside validation results
-- Handle edge cases: multi-line strings, anchors, aliases
+**$ref Navigation** (`src/components/Editor/ref-navigation.ts`)
+- F12 / Ctrl+Click: Navigate to `$ref` target
+- Detects reference under cursor, resolves via source map
+- Scrolls to target with brief highlight animation
 
-**$ref Resolution**
-- Implement `resolveRef(ref: string): { line, column } | null`
-- Build reference graph: which paths reference which targets
-- Handle circular references gracefully
+**Command Palette** (`src/components/CommandPalette/`)
+- Fuzzy search via Fuse.js
+- Commands registered with id, label, shortcut, category, action
+- Categories: Navigation, Edit, View
+- Keyboard: `Ctrl+Shift+P` to open, arrows to navigate, Enter to execute
 
-**Go-to-Definition (F12)**
-- Detect $ref under cursor using CodeMirror syntax tree
-- Look up target position in source map
-- Scroll to target line, centre in viewport, flash highlight
+### UI Components
 
-**Find All References (Shift+F12)**
-- Search reference graph for all paths pointing to current location
-- Display results in a dropdown or bottom panel
-- Click to navigate
-
-**Command Palette**
-- Build palette component with fuzzy search (using `fuse.js`)
-- Register commands with metadata: id, label, shortcut, category, action
-- Categories: Navigation, Edit, View, OpenAPI
-- Keyboard navigation: arrow keys, Enter to execute, Escape to close
-- Trigger with `Ctrl+Shift+P`
-
-**Core Commands**
-- Go to Line (`Ctrl+G`)
-- Go to Symbol (`Ctrl+Shift+O`) - list paths, operations, schemas
-- Toggle Preview (`Ctrl+\`)
-- Toggle Outline (`Ctrl+Shift+E`)
-- Fold All / Unfold All (`Ctrl+K Ctrl+0` / `Ctrl+K Ctrl+J`)
-
----
-
-### Phase 4: UI Components
-
-**Layout**
-- Three-column resizable layout: Outline | Editor | Preview
+**Layout** (`src/components/Layout/`)
+- Three-panel resizable layout: Outline | Editor | Right Panel
+- Right panel switchable: Preview, Graph, Diff, Try It Out
 - Collapsible panels with keyboard toggles
-- Persistent splitter positions in localStorage
+- `StatusBar.tsx`: File info, validation status, cursor position
 
-**Outline View**
-- Tree structure: Paths → Operations, Schemas, Security Schemes
-- Method badges with colour coding (GET=green, POST=blue, etc.)
-- Filter input with fuzzy matching
-- Click to navigate; sync selection with cursor position
-- Expand/collapse with chevron icons
+**Outline View** (`src/components/Outline/OutlineView.tsx`)
+- Hierarchical tree: Info, Paths → Operations, Components → Schemas
+- Method badges with HTTP verb colours
+- Filter input for fuzzy search
+- Click to navigate to source
 
-**Documentation Preview**
-- Render parsed spec as API documentation
-- Components:
-  - API info header (title, version, description)
-  - Server selector (if multiple servers defined)
-  - Endpoint cards grouped by path
-  - Operation details: method badge, summary, description
-  - Parameters table with type, required indicator
-  - Response codes with schema preview
-  - Schema definitions with property list
-- Click endpoint/schema to navigate to source
-- Debounce preview updates (500ms after validation completes)
+**Documentation Preview** (`src/components/Preview/`)
+- `DocumentationView.tsx`: Rendered API documentation
+- API info header, server list, endpoint cards
+- Schema viewer with property tables
+- Click to navigate to source
 
-**Status Bar**
-- Left: File name, dirty indicator, cursor position (Ln X, Col Y)
-- Centre: Validation status with error/warning counts
-- Right: Language mode (YAML/JSON), OpenAPI version
+**Graph View** (`src/components/GraphView/`)
+- Interactive force-directed graph (PixiJS + d3-force)
+- Nodes: schemas (with property previews)
+- Edges: `$ref`, `allOf`, `anyOf`, `oneOf`, `items`
+- Filtering: all / referenced / orphaned schemas
+- Click node to navigate to source
 
----
+**Diff View** (`src/components/DiffView/`)
+- Load comparison spec via file picker
+- Breaking change detection with categorisation
+- Filtering: all / breaking / non-breaking
+- Click to navigate to source in either spec
 
-### Phase 5: File System
+**Try It Out** (`src/components/TryItOut/`)
+- Send requests to API endpoints from the editor
+- Server selector, parameter inputs, request body editor
+- Authentication: Bearer, API Key, Basic
+- Response display with timing
 
-**File System Access API**
-- Implement `openFile()` with file picker
-- Implement `saveFile()` with write access
-- Store file handles for re-saving without picker
-- Detect external changes via polling (1s interval)
+### File System
 
-**Fallback for Unsupported Browsers**
-- `<input type="file">` for opening
-- Blob download for saving
-- Display browser compatibility notice
+**File System Access API** (`src/services/file-system.ts`)
+- Native file open/save via `showOpenFilePicker` / `showSaveFilePicker`
+- File handle stored for re-saving without picker
+- Fallback: `<input type="file">` for open, Blob download for save
 
 **File State**
-- Track dirty state (content differs from last save)
-- Warn on close/navigate away if unsaved changes
-- Show asterisk in tab/title for dirty files
-
----
-
-### Phase 6: Polish & Testing
-
-**Performance**
-- Profile with Chrome DevTools on 5,000+ line spec
-- Target metrics:
-  - Keystroke latency: <16ms
-  - Syntax validation: <50ms
-  - Full validation: <300ms
-  - Memory usage: <100MB
-- Optimise if needed: reduce re-renders, batch state updates
-
-**Accessibility**
-- Keyboard navigation for all interactive elements
-- ARIA labels for buttons, panels, tree items
-- Focus management for modals (command palette, dialogs)
-- Sufficient colour contrast (WCAG AA)
-
-**Testing**
-- Unit tests (Vitest):
-  - Validation pipeline logic
-  - Source map builder
-  - $ref resolver
-  - Command registration
-- E2E tests (Playwright):
-  - Load file, edit, save
-  - Validation error display
-  - Go-to-definition navigation
-  - Command palette interaction
-  - Outline navigation
-
-**Error Handling**
-- Graceful degradation if worker fails to load
-- User-friendly messages for parse errors
-- Recovery from corrupted localStorage state
+- Dirty state tracking (asterisk in title)
+- `beforeunload` warning for unsaved changes
 
 ---
 
@@ -275,47 +192,79 @@ Excluded from MVP: Graph visualisation, Try It Out playground, Diff view, Code S
 ```
 src/
 ├── components/
-│   ├── Editor/
-│   │   ├── Editor.tsx           # Main CodeMirror wrapper
-│   │   ├── extensions/          # Custom CM extensions
-│   │   └── keymaps.ts           # Keyboard shortcuts
-│   ├── Preview/
-│   │   ├── PreviewPane.tsx      # Container
-│   │   └── DocumentationView.tsx
-│   ├── Outline/
-│   │   └── OutlineView.tsx
 │   ├── CommandPalette/
-│   │   └── CommandPalette.tsx
+│   │   ├── CommandPalette.tsx
+│   │   ├── useCommandPalette.ts
+│   │   └── index.ts
+│   ├── DiffView/
+│   │   ├── DiffView.tsx
+│   │   ├── DiffList.tsx
+│   │   ├── DiffSummary.tsx
+│   │   ├── DiffToolbar.tsx
+│   │   └── index.ts
+│   ├── Editor/
+│   │   ├── Editor.tsx
+│   │   ├── extensions.ts
+│   │   ├── theme.ts
+│   │   ├── diagnostics.ts
+│   │   ├── ref-navigation.ts
+│   │   └── index.ts
+│   ├── GraphView/
+│   │   ├── GraphView.tsx
+│   │   ├── GraphCanvas.tsx
+│   │   ├── GraphLegend.tsx
+│   │   ├── GraphToolbar.tsx
+│   │   └── index.ts
 │   ├── Layout/
 │   │   ├── MainLayout.tsx
 │   │   ├── StatusBar.tsx
-│   │   └── ResizablePanels.tsx
-│   └── common/
-│       ├── Button.tsx
-│       ├── Input.tsx
-│       └── Modal.tsx
+│   │   ├── DiagnosticsPanel.tsx
+│   │   ├── AboutModal.tsx
+│   │   ├── KeyboardShortcutsModal.tsx
+│   │   └── index.ts
+│   ├── Outline/
+│   │   ├── OutlineView.tsx
+│   │   └── index.ts
+│   ├── Preview/
+│   │   ├── DocumentationView.tsx
+│   │   ├── components.tsx
+│   │   ├── schema-utils.ts
+│   │   ├── Markdown.tsx
+│   │   └── index.ts
+│   └── TryItOut/
+│       ├── TryItOutView.tsx
+│       ├── OperationSelector.tsx
+│       ├── ServerSelector.tsx
+│       ├── AuthConfig.tsx
+│       ├── ParameterForm.tsx
+│       ├── RequestBodyEditor.tsx
+│       ├── ResponseDisplay.tsx
+│       ├── request-execution.ts
+│       └── index.ts
+├── hooks/
+│   ├── useFileSystem.ts
+│   └── useValidation.ts
+├── services/
+│   ├── validation-pipeline.ts
+│   ├── diff-engine.ts
+│   ├── graph-builder.ts
+│   └── file-system.ts
+├── store/
+│   └── index.ts              # Single Zustand store
+├── test/
+│   └── setup.ts
+├── types/
+│   ├── file-system-access.d.ts
+│   └── fonts.d.ts
+├── utils/
+│   ├── format.ts
+│   └── source-map.ts
 ├── workers/
 │   ├── validator.worker.ts
 │   ├── linter.worker.ts
+│   ├── graph.worker.ts
+│   ├── diff.worker.ts
 │   └── types.ts
-├── services/
-│   ├── validation-pipeline.ts
-│   ├── ref-resolver.ts
-│   ├── source-map.ts
-│   └── file-system.ts
-├── store/
-│   ├── index.ts
-│   ├── fileSlice.ts
-│   ├── validationSlice.ts
-│   └── uiSlice.ts
-├── hooks/
-│   ├── useValidation.ts
-│   ├── useCommands.ts
-│   └── useFileSystem.ts
-├── utils/
-│   ├── yaml.ts
-│   ├── json-path.ts
-│   └── debounce.ts
 ├── App.tsx
 ├── main.tsx
 └── index.css
@@ -336,14 +285,13 @@ src/
 
 ---
 
-## Out of Scope for MVP
+## Not Yet Implemented
 
 See [future.md](./future.md) for planned features:
-- Graph visualisation of schema relationships
-- Try It Out API playground
-- Diff view with breaking change detection
 - Code snippet generation
 - AI-assisted editing
 - Multi-file workspace support
 - CLI for CI/CD
 - IndexedDB persistence and version history
+- VS Code extension
+- Real-time collaboration
