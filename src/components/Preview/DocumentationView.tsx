@@ -1,4 +1,5 @@
 import { useCallback, useState, useMemo } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useEditorStore } from '../../store';
 import type { OpenAPIV3 } from 'openapi-types';
 import {
@@ -27,6 +28,7 @@ export function DocumentationView() {
   const sourceMap = useEditorStore((state) => state.sourceMap);
   const goToLine = useEditorStore((state) => state.goToLine);
   const [filter, setFilter] = useState('');
+  const [headerExpanded, setHeaderExpanded] = useState(true);
 
   const navigateToPath = useCallback((path: string) => {
     const position = sourceMap[path];
@@ -82,29 +84,58 @@ export function DocumentationView() {
 
   const hasResults = filteredPaths.length > 0 || filteredSchemas.length > 0;
 
+  const hasHeaderContent = parsedSpec.info.description || parsedSpec.servers?.[0];
+
   return (
     <div className="h-full flex flex-col bg-zinc-950">
-      {/* API Info Header with Search */}
       <header className="sticky top-0 z-10 bg-zinc-950 border-b border-zinc-800 p-4">
-        <h1 className="text-lg font-medium text-zinc-100 tracking-tight">
-          {parsedSpec.info.title}
-        </h1>
-        {parsedSpec.info.description && (
-          <div className="mt-2 text-sm text-zinc-400 leading-relaxed">
-            <Markdown>{parsedSpec.info.description}</Markdown>
-          </div>
-        )}
-        <div className="flex gap-4 mt-3 text-xs">
-          <span className="text-purple-400">
-            v{parsedSpec.info.version}
-          </span>
-          {parsedSpec.servers?.[0] && (
-            <span className="text-zinc-500 font-mono">
-              {parsedSpec.servers[0].url}
-            </span>
+        <div className="flex items-start justify-between gap-2">
+          <h1 className="text-lg font-medium text-zinc-100 tracking-tight">
+            {parsedSpec.info.title}
+          </h1>
+          {hasHeaderContent && (
+            <button
+              onClick={() => setHeaderExpanded(!headerExpanded)}
+              className="p-1 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded transition-colors shrink-0"
+              aria-label={headerExpanded ? 'Collapse header' : 'Expand header'}
+              aria-expanded={headerExpanded}
+            >
+              {headerExpanded ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
+            </button>
           )}
         </div>
-        <div className="mt-4">
+
+        {headerExpanded && (
+          <>
+            {parsedSpec.info.description && (
+              <div className="mt-2 text-sm text-zinc-400 leading-relaxed">
+                <Markdown>{parsedSpec.info.description}</Markdown>
+              </div>
+            )}
+            <div className="flex gap-4 mt-3 text-xs">
+              <span className="text-purple-400">
+                v{parsedSpec.info.version}
+              </span>
+              {parsedSpec.servers?.[0] && (
+                <span className="text-zinc-500 font-mono">
+                  {parsedSpec.servers[0].url}
+                </span>
+              )}
+            </div>
+          </>
+        )}
+
+        {!headerExpanded && (
+          <span className="text-xs text-purple-400 mt-1 block">
+            v{parsedSpec.info.version}
+          </span>
+        )}
+
+        <div className="mt-3">
           <input
             type="text"
             placeholder="Filter endpoints and schemas..."
