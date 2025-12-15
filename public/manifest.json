@@ -1,0 +1,41 @@
+{
+  "name": "Specable",
+  "short_name": "Specable",
+  "description": "A fast, keyboard-first OpenAPI editor for power users",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#a855f7",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["developer tools", "productivity"],
+  "screenshots": [],
+  "file_handlers": [
+    {
+      "action": "/",
+      "accept": {
+        "application/x-yaml": [".yaml", ".yml"],
+        "application/json": [".json"]
+      }
+    }
+  ]
+}
