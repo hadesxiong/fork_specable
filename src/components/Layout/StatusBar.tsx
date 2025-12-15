@@ -22,6 +22,7 @@ export function StatusBar({ onDiagnosticsClick }: StatusBarProps) {
 
   const errorCount = errors.length;
   const warningCount = warnings.length;
+  const hasProblems = errorCount > 0 || warningCount > 0;
   const isValid = syntaxValid && schemaValid && errorCount === 0;
 
   const openApiVersion = parsedSpec?.openapi ?? '';
@@ -53,12 +54,7 @@ export function StatusBar({ onDiagnosticsClick }: StatusBarProps) {
             <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" />
             Validating...
           </span>
-        ) : isValid ? (
-          <span className="flex items-center gap-1.5 text-emerald-400" role="status">
-            <CheckCircle className="w-3 h-3" aria-hidden="true" />
-            Valid
-          </span>
-        ) : (
+        ) : hasProblems ? (
           <button
             onClick={onDiagnosticsClick}
             className="flex items-center gap-3 hover:bg-zinc-800 px-2 py-0.5 rounded transition-colors"
@@ -77,6 +73,16 @@ export function StatusBar({ onDiagnosticsClick }: StatusBarProps) {
               </span>
             )}
           </button>
+        ) : isValid ? (
+          <span className="flex items-center gap-1.5 text-emerald-400" role="status">
+            <CheckCircle className="w-3 h-3" aria-hidden="true" />
+            Valid
+          </span>
+        ) : (
+          <span className="flex items-center gap-1.5 text-red-400" role="status">
+            <AlertCircle className="w-3 h-3" aria-hidden="true" />
+            Invalid
+          </span>
         )}
       </div>
 
