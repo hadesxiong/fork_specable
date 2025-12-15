@@ -42,7 +42,6 @@ export interface SourceMap {
   [jsonPath: string]: SourcePosition;
 }
 
-// Graph types
 export type RightPanelView = 'preview' | 'graph' | 'diff' | 'tryit' | 'history';
 export type GraphFilter = 'all' | 'referenced' | 'orphaned';
 export type GraphEdgeType = 'ref' | 'allOf' | 'anyOf' | 'oneOf' | 'items';
@@ -76,7 +75,6 @@ export interface GraphData {
   edges: GraphEdge[];
 }
 
-// Diff types
 export type DiffFilter = 'all' | 'breaking' | 'non-breaking';
 export type DiffChangeType = 'added' | 'removed' | 'modified';
 
@@ -111,7 +109,6 @@ export interface ComparisonSpec {
   name: string;
 }
 
-// Try It Out types
 export type AuthType = 'none' | 'bearer' | 'apiKey' | 'basic';
 
 export interface AuthConfig {
@@ -147,62 +144,39 @@ export interface TryItState {
 }
 
 interface EditorState {
-  // File state
   file: EditorFile | null;
-
-  // Parsed state
   parsedSpec: OpenAPIV3.Document | null;
   sourceMap: SourceMap;
-
-  // Validation state
   isValidating: boolean;
   syntaxValid: boolean;
   schemaValid: boolean;
   errors: ValidationError[];
   warnings: ValidationError[];
-
-  // UI state
   showPreview: boolean;
   showOutline: boolean;
+  showMinimap: boolean;
   rightPanelView: RightPanelView;
-
-  // Graph state
   graphData: GraphData | null;
   graphFilter: GraphFilter;
   isGraphLoading: boolean;
-
-  // Diff state
   comparisonSpec: ComparisonSpec | null;
   diffResult: DiffResult | null;
   diffFilter: DiffFilter;
   isDiffLoading: boolean;
-
-  // Try It Out state
   tryIt: TryItState;
-
-  // Version History state
   versionHistory: VersionSnapshot[];
   selectedSnapshotId: string | null;
   isHistoryLoading: boolean;
-
-  // Toast state
   toasts: Toast[];
-
-  // Editor reference (not persisted)
   editorView: EditorView | null;
 }
 
 interface EditorActions {
-  // File actions
   setFile: (file: EditorFile | null) => void;
   updateContent: (content: string) => void;
   markClean: () => void;
   updateFileIdentity: (file: EditorFile) => void;
-
-  // Parsed state actions
   setParsedSpec: (spec: OpenAPIV3.Document | null, sourceMap: SourceMap) => void;
-
-  // Validation actions
   setValidating: (isValidating: boolean) => void;
   setValidationResult: (result: {
     syntaxValid: boolean;
@@ -211,25 +185,18 @@ interface EditorActions {
     warnings: ValidationError[];
   }) => void;
   clearValidation: () => void;
-
-  // UI actions
   togglePreview: () => void;
   toggleOutline: () => void;
+  toggleMinimap: () => void;
   setRightPanelView: (view: RightPanelView) => void;
-
-  // Graph actions
   setGraphData: (data: GraphData | null) => void;
   setGraphFilter: (filter: GraphFilter) => void;
   setGraphLoading: (loading: boolean) => void;
-
-  // Diff actions
   setComparisonSpec: (spec: ComparisonSpec | null) => void;
   setDiffResult: (result: DiffResult | null) => void;
   setDiffFilter: (filter: DiffFilter) => void;
   setDiffLoading: (loading: boolean) => void;
   clearComparison: () => void;
-
-  // Try It Out actions
   setTryItOperation: (operationId: string | null) => void;
   setTryItServer: (server: string | null) => void;
   setTryItCustomServer: (url: string) => void;
@@ -240,19 +207,13 @@ interface EditorActions {
   setTryItExecuting: (executing: boolean) => void;
   setTryItResponse: (response: TryItResponse | null) => void;
   resetTryItParameters: () => void;
-
-  // Version History actions
   setVersionHistory: (history: VersionSnapshot[]) => void;
   addSnapshot: (snapshot: VersionSnapshot) => void;
   removeSnapshot: (id: string) => void;
   setSelectedSnapshot: (id: string | null) => void;
   setHistoryLoading: (loading: boolean) => void;
-
-  // Toast actions
   showToast: (type: Toast['type'], message: string, duration?: number) => void;
   dismissToast: (id: string) => void;
-
-  // Editor actions
   setEditorView: (view: EditorView | null) => void;
   goToLine: (line: number, column?: number) => void;
   goToPosition: (pos: number) => void;
@@ -683,7 +644,6 @@ components:
 export const useEditorStore = create<EditorStore>()(
   persist(
     (set, get) => ({
-      // Initial state
       file: {
         id: 'default',
         name: 'openapi.yaml',
@@ -700,6 +660,7 @@ export const useEditorStore = create<EditorStore>()(
       warnings: [],
       showPreview: true,
       showOutline: true,
+      showMinimap: true,
       rightPanelView: 'preview',
       graphData: null,
       graphFilter: 'all',
@@ -733,7 +694,6 @@ export const useEditorStore = create<EditorStore>()(
       toasts: [],
       editorView: null,
 
-      // File actions
       setFile: (file) => set({
         file,
         parsedSpec: null,
@@ -753,11 +713,7 @@ export const useEditorStore = create<EditorStore>()(
       })),
 
       updateFileIdentity: (file) => set({ file }),
-
-      // Parsed state actions
       setParsedSpec: (spec, sourceMap) => set({ parsedSpec: spec, sourceMap }),
-
-      // Validation actions
       setValidating: (isValidating) => set({ isValidating }),
 
       setValidationResult: (result) => set({
@@ -775,24 +731,18 @@ export const useEditorStore = create<EditorStore>()(
         schemaValid: true,
       }),
 
-      // UI actions
       togglePreview: () => set((state) => ({ showPreview: !state.showPreview })),
       toggleOutline: () => set((state) => ({ showOutline: !state.showOutline })),
+      toggleMinimap: () => set((state) => ({ showMinimap: !state.showMinimap })),
       setRightPanelView: (view) => set({ rightPanelView: view }),
-
-      // Graph actions
       setGraphData: (data) => set({ graphData: data }),
       setGraphFilter: (filter) => set({ graphFilter: filter }),
       setGraphLoading: (loading) => set({ isGraphLoading: loading }),
-
-      // Diff actions
       setComparisonSpec: (spec) => set({ comparisonSpec: spec }),
       setDiffResult: (result) => set({ diffResult: result }),
       setDiffFilter: (filter) => set({ diffFilter: filter }),
       setDiffLoading: (loading) => set({ isDiffLoading: loading }),
       clearComparison: () => set({ comparisonSpec: null, diffResult: null }),
-
-      // Try It Out actions
       setTryItOperation: (operationId) => set((state) => ({
         tryIt: { ...state.tryIt, selectedOperationId: operationId, parameterValues: {}, requestBody: '', lastResponse: null },
       })),
@@ -824,7 +774,6 @@ export const useEditorStore = create<EditorStore>()(
         tryIt: { ...state.tryIt, parameterValues: {}, requestBody: '' },
       })),
 
-      // Version History actions
       setVersionHistory: (history) => set({ versionHistory: history }),
       addSnapshot: (snapshot) => set((state) => ({
         versionHistory: [snapshot, ...state.versionHistory],
@@ -836,7 +785,6 @@ export const useEditorStore = create<EditorStore>()(
       setSelectedSnapshot: (id) => set({ selectedSnapshotId: id }),
       setHistoryLoading: (loading) => set({ isHistoryLoading: loading }),
 
-      // Toast actions
       showToast: (type, message, duration = 4000) => set((state) => ({
         toasts: [
           ...state.toasts,
@@ -847,7 +795,6 @@ export const useEditorStore = create<EditorStore>()(
         toasts: state.toasts.filter((t) => t.id !== id),
       })),
 
-      // Editor actions
       setEditorView: (view) => set({ editorView: view }),
 
       goToLine: (line, column = 1) => {
@@ -864,7 +811,7 @@ export const useEditorStore = create<EditorStore>()(
           });
           editorView.focus();
         } catch {
-          // Line out of range
+          // Silently ignore invalid line numbers
         }
       },
 
@@ -884,6 +831,7 @@ export const useEditorStore = create<EditorStore>()(
       partialize: (state) => ({
         showPreview: state.showPreview,
         showOutline: state.showOutline,
+        showMinimap: state.showMinimap,
         rightPanelView: state.rightPanelView,
         graphFilter: state.graphFilter,
         diffFilter: state.diffFilter,

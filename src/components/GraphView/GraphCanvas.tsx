@@ -67,7 +67,6 @@ function layoutNodes(nodes: GraphNode[], edges: GraphEdge[]): Map<string, NodePo
   const schemaNodes = nodes.filter((n) => n.type === 'schema');
   const endpointNodes = nodes.filter((n) => n.type === 'endpoint');
 
-  // Build adjacency for topological-ish ordering
   const outgoing = new Map<string, Set<string>>();
   const incoming = new Map<string, Set<string>>();
 
@@ -83,18 +82,15 @@ function layoutNodes(nodes: GraphNode[], edges: GraphEdge[]): Map<string, NodePo
     }
   }
 
-  // Simple layered layout: schemas with no incoming refs first
   const layers: GraphNode[][] = [];
   const placed = new Set<string>();
 
-  // First layer: schemas with no incoming edges from other schemas
   const firstLayer = schemaNodes.filter((n) => incoming.get(n.id)!.size === 0);
   if (firstLayer.length > 0) {
     layers.push(firstLayer);
     firstLayer.forEach((n) => placed.add(n.id));
   }
 
-  // Build subsequent layers
   while (placed.size < schemaNodes.length) {
     const nextLayer = schemaNodes.filter((n) => {
       if (placed.has(n.id)) return false;
@@ -103,7 +99,6 @@ function layoutNodes(nodes: GraphNode[], edges: GraphEdge[]): Map<string, NodePo
     });
 
     if (nextLayer.length === 0) {
-      // Remaining nodes have circular deps, just add them
       const remaining = schemaNodes.filter((n) => !placed.has(n.id));
       layers.push(remaining);
       remaining.forEach((n) => placed.add(n.id));
@@ -113,7 +108,6 @@ function layoutNodes(nodes: GraphNode[], edges: GraphEdge[]): Map<string, NodePo
     }
   }
 
-  // Position nodes in grid
   let currentX = 50;
 
   for (const layer of layers) {
@@ -130,7 +124,6 @@ function layoutNodes(nodes: GraphNode[], edges: GraphEdge[]): Map<string, NodePo
     currentX += maxWidth + GRID_GAP_X;
   }
 
-  // Position endpoints in a separate column to the left
   if (endpointNodes.length > 0) {
     let endpointY = 50;
     for (const node of endpointNodes) {
@@ -170,11 +163,9 @@ export function GraphCanvas({ data, onNodeClick }: GraphCanvasProps) {
         const color = EDGE_COLORS[edge.type];
         const lineWidth = isHighlighted ? 2 : 1;
 
-        // Calculate connection points
         let startX = sourcePos.x + sourcePos.width;
         let startY = sourcePos.y + HEADER_HEIGHT / 2;
 
-        // If edge has sourceProperty, connect from that row
         if (edge.sourceProperty) {
           const node = data.nodes.find((n) => n.id === edge.source);
           if (node?.properties) {
@@ -188,26 +179,22 @@ export function GraphCanvas({ data, onNodeClick }: GraphCanvasProps) {
         let endX = targetPos.x;
         let endY = targetPos.y + HEADER_HEIGHT / 2;
 
-        // Determine if target is to the left
         if (targetPos.x + targetPos.width < sourcePos.x) {
           startX = sourcePos.x;
           endX = targetPos.x + targetPos.width;
         }
 
-        // Draw curved line
         const midX = (startX + endX) / 2;
 
         g.moveTo(startX, startY);
         g.bezierCurveTo(midX, startY, midX, endY, endX, endY);
         g.stroke({ width: lineWidth, color, alpha });
 
-        // Draw arrow at end
         const arrowSize = 6;
         const angle = Math.atan2(endY - startY, endX - startX);
         const arrowAngle = Math.PI / 6;
 
         if (endX > startX) {
-          // Arrow pointing right
           g.moveTo(endX, endY);
           g.lineTo(
             endX - arrowSize * Math.cos(angle - arrowAngle),
@@ -220,7 +207,6 @@ export function GraphCanvas({ data, onNodeClick }: GraphCanvasProps) {
           );
           g.stroke({ width: lineWidth, color, alpha });
         } else {
-          // Arrow pointing left
           g.moveTo(endX, endY);
           g.lineTo(
             endX + arrowSize * Math.cos(arrowAngle),
@@ -240,7 +226,6 @@ export function GraphCanvas({ data, onNodeClick }: GraphCanvasProps) {
 
   const updateHighlight = useCallback(
     (highlighted: string | null) => {
-      // Update node visuals
       for (const node of data.nodes) {
         const container = nodeContainersRef.current.get(node.id);
         if (!container) continue;
@@ -250,7 +235,6 @@ export function GraphCanvas({ data, onNodeClick }: GraphCanvasProps) {
 
         container.alpha = alpha;
 
-        // Update box stroke color
         const boxGraphics = container.children[0] as Graphics | undefined;
         if (boxGraphics instanceof Graphics) {
           const pos = nodePositionsRef.current.get(node.id);
@@ -262,19 +246,16 @@ export function GraphCanvas({ data, onNodeClick }: GraphCanvasProps) {
                 ? COLORS.boxStroke
                 : COLORS.orphanStroke;
 
-            // Box background
             boxGraphics.roundRect(0, 0, pos.width, pos.height, 6);
             boxGraphics.fill({ color: COLORS.boxFill });
             boxGraphics.stroke({ width: isHighlighted ? 2 : 1, color: strokeColor });
 
-            // Header background
             boxGraphics.roundRect(0, 0, pos.width, HEADER_HEIGHT, 6);
             boxGraphics.fill({ color: COLORS.headerFill });
           }
         }
       }
 
-      // Update edges
       drawEdges(data.edges, nodePositionsRef.current, highlighted);
     },
     [data.nodes, data.edges, drawEdges]
@@ -287,7 +268,6 @@ export function GraphCanvas({ data, onNodeClick }: GraphCanvasProps) {
     const width = container.clientWidth;
     const height = container.clientHeight;
 
-    // Clear any existing canvas elements from previous renders
     while (container.firstChild) {
       container.removeChild(container.firstChild);
     }
@@ -305,7 +285,6 @@ export function GraphCanvas({ data, onNodeClick }: GraphCanvasProps) {
         autoDensity: true,
       });
 
-      // Abort if effect was cleaned up during async init
       if (cancelled) {
         app.destroy(true, { children: true });
         return;
@@ -327,16 +306,13 @@ export function GraphCanvas({ data, onNodeClick }: GraphCanvasProps) {
       app.stage.addChild(viewport);
       viewportRef.current = viewport;
 
-      // Calculate layout
       const positions = layoutNodes(data.nodes, data.edges);
       nodePositionsRef.current = positions;
 
-      // Create edge graphics layer
       const edgeGraphics = new Graphics();
       viewport.addChild(edgeGraphics);
       edgeGraphicsRef.current = edgeGraphics;
 
-      // Create text styles
       const headerStyle = new TextStyle({
         fontFamily: 'system-ui, -apple-system, sans-serif',
         fontSize: 12,
@@ -356,7 +332,6 @@ export function GraphCanvas({ data, onNodeClick }: GraphCanvasProps) {
         fill: COLORS.typeText,
       });
 
-      // Create node containers
       for (const node of data.nodes) {
         const pos = positions.get(node.id);
         if (!pos) continue;
@@ -370,7 +345,6 @@ export function GraphCanvas({ data, onNodeClick }: GraphCanvasProps) {
         nodeContainer.on('pointerout', () => setHoveredNode(null));
         nodeContainer.on('pointertap', () => onNodeClick(node.id, node.jsonPath));
 
-        // Box graphics
         const boxGraphics = new Graphics();
         const strokeColor = node.referenced ? COLORS.boxStroke : COLORS.orphanStroke;
 
@@ -378,35 +352,29 @@ export function GraphCanvas({ data, onNodeClick }: GraphCanvasProps) {
         boxGraphics.fill({ color: COLORS.boxFill });
         boxGraphics.stroke({ width: 1, color: strokeColor });
 
-        // Header background
         boxGraphics.roundRect(0, 0, pos.width, HEADER_HEIGHT, 6);
         boxGraphics.fill({ color: COLORS.headerFill });
 
         nodeContainer.addChild(boxGraphics);
 
-        // Header text
         const headerText = new Text({ text: node.id, style: headerStyle });
         headerText.position.set(BOX_PADDING, (HEADER_HEIGHT - headerText.height) / 2);
         nodeContainer.addChild(headerText);
 
-        // Properties
         const properties = node.properties ?? [];
         const displayProps = properties.slice(0, MAX_PROPERTIES);
 
         displayProps.forEach((prop, index) => {
           const y = HEADER_HEIGHT + index * ROW_HEIGHT + (ROW_HEIGHT - 11) / 2;
 
-          // Property name
           const propText = new Text({ text: prop.name, style: propertyStyle });
           propText.position.set(BOX_PADDING, y);
           nodeContainer.addChild(propText);
 
-          // Type
           const typeText = new Text({ text: `: ${prop.type}`, style: typeStyle });
           typeText.position.set(BOX_PADDING + propText.width, y);
           nodeContainer.addChild(typeText);
 
-          // Required badge
           if (prop.required) {
             const badge = new Graphics();
             badge.roundRect(0, 0, 8, 8, 2);
@@ -415,7 +383,6 @@ export function GraphCanvas({ data, onNodeClick }: GraphCanvasProps) {
             nodeContainer.addChild(badge);
           }
 
-          // Ref indicator
           if (prop.refTarget) {
             const indicator = new Graphics();
             indicator.circle(0, 0, 3);
@@ -425,7 +392,6 @@ export function GraphCanvas({ data, onNodeClick }: GraphCanvasProps) {
           }
         });
 
-        // "More" indicator
         if (properties.length > MAX_PROPERTIES) {
           const moreText = new Text({
             text: `... ${properties.length - MAX_PROPERTIES} more`,
@@ -442,10 +408,8 @@ export function GraphCanvas({ data, onNodeClick }: GraphCanvasProps) {
         nodeContainersRef.current.set(node.id, nodeContainer);
       }
 
-      // Draw initial edges
       drawEdges(data.edges, positions, null);
 
-      // Center viewport on content
       const bounds = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
       for (const pos of positions.values()) {
         bounds.minX = Math.min(bounds.minX, pos.x);
@@ -458,7 +422,6 @@ export function GraphCanvas({ data, onNodeClick }: GraphCanvasProps) {
       const centerY = (bounds.minY + bounds.maxY) / 2;
       viewport.moveCenter(centerX, centerY);
 
-      // Fit to screen with padding
       const contentWidth = bounds.maxX - bounds.minX + 100;
       const contentHeight = bounds.maxY - bounds.minY + 100;
       const scaleX = width / contentWidth;

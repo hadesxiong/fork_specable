@@ -157,72 +157,59 @@ export function MainLayout() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Toggle outline: Ctrl+Shift+E
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "E") {
         e.preventDefault();
         toggleOutline();
       }
-      // Toggle preview: Ctrl+\
       if ((e.ctrlKey || e.metaKey) && e.key === "\\") {
         e.preventDefault();
         togglePreview();
       }
-      // New file: Ctrl+N
       if ((e.ctrlKey || e.metaKey) && e.key === "n") {
         e.preventDefault();
         newFile();
       }
-      // Open file: Ctrl+O
       if ((e.ctrlKey || e.metaKey) && e.key === "o") {
         e.preventDefault();
         openFile();
       }
-      // Save file: Ctrl+S
       if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === "s") {
         e.preventDefault();
         saveFile();
       }
-      // Save as: Ctrl+Shift+S
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "S") {
         e.preventDefault();
         saveFileAs();
       }
-      // Keyboard shortcuts: F1
       if (e.key === "F1") {
         e.preventDefault();
         setShowKeyboardShortcuts((prev) => !prev);
       }
-      // Switch to Docs: Ctrl+1
       if ((e.ctrlKey || e.metaKey) && e.key === "1") {
         e.preventDefault();
         setRightPanelView("preview");
         if (!showPreview) togglePreview();
       }
-      // Switch to Graph: Ctrl+2
       if ((e.ctrlKey || e.metaKey) && e.key === "2") {
         e.preventDefault();
         setRightPanelView("graph");
         if (!showPreview) togglePreview();
       }
-      // Switch to Diff: Ctrl+3
       if ((e.ctrlKey || e.metaKey) && e.key === "3") {
         e.preventDefault();
         setRightPanelView("diff");
         if (!showPreview) togglePreview();
       }
-      // Switch to Try It: Ctrl+4
       if ((e.ctrlKey || e.metaKey) && e.key === "4") {
         e.preventDefault();
         setRightPanelView("tryit");
         if (!showPreview) togglePreview();
       }
-      // Switch to History: Ctrl+5
       if ((e.ctrlKey || e.metaKey) && e.key === "5") {
         e.preventDefault();
         setRightPanelView("history");
         if (!showPreview) togglePreview();
       }
-      // Format document: Shift+Alt+F
       if (e.shiftKey && e.altKey && e.key === "F") {
         e.preventDefault();
         formatEditorContent();
@@ -381,9 +368,11 @@ export function MainLayout() {
               <OutlineView />
             </aside>
             <div
-              className="w-px bg-zinc-800 hover:bg-purple-500 cursor-col-resize transition-colors"
+              className="w-2 flex items-center justify-center cursor-col-resize group"
               onMouseDown={startDraggingOutline}
-            />
+            >
+              <div className="w-px h-full bg-zinc-800 group-hover:bg-purple-500 transition-colors" />
+            </div>
           </>
         )}
 
@@ -394,9 +383,11 @@ export function MainLayout() {
         {showPreview && (
           <>
             <div
-              className="w-px bg-zinc-800 hover:bg-purple-500 cursor-col-resize transition-colors"
+              className="w-2 flex items-center justify-center cursor-col-resize group"
               onMouseDown={startDraggingPreview}
-            />
+            >
+              <div className="w-px h-full bg-zinc-800 group-hover:bg-purple-500 transition-colors" />
+            </div>
             <aside
               style={{ width: previewWidth }}
               className="shrink-0 flex flex-col"

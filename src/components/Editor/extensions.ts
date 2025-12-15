@@ -9,9 +9,11 @@ import { yaml } from '@codemirror/lang-yaml';
 import { json } from '@codemirror/lang-json';
 
 import { darkTheme } from './theme';
+import { createMinimapExtension } from './minimap';
 
 export interface EditorConfig {
   language: 'yaml' | 'json';
+  showMinimap?: boolean;
   onUpdate?: (content: string) => void;
 }
 
@@ -69,5 +71,8 @@ export function createExtensions(config: EditorConfig): Extension[] {
       ...lintKeymap,
       indentWithTab,
     ]),
+
+    // Optional extensions
+    ...(config.showMinimap !== false ? [createMinimapExtension()] : []),
   ];
 }

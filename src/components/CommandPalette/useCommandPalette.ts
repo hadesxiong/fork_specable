@@ -1,12 +1,14 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useEditorStore } from '../../store';
 import { formatEditorContent } from '../../utils/format';
+import { sortEditorContent } from '../../utils/sort';
 import type { Command } from './CommandPalette';
 
 export function useCommandPalette(additionalCommands: Command[] = []) {
   const [isOpen, setIsOpen] = useState(false);
   const togglePreview = useEditorStore((state) => state.togglePreview);
   const toggleOutline = useEditorStore((state) => state.toggleOutline);
+  const toggleMinimap = useEditorStore((state) => state.toggleMinimap);
   const showPreview = useEditorStore((state) => state.showPreview);
   const setRightPanelView = useEditorStore((state) => state.setRightPanelView);
   const setGraphFilter = useEditorStore((state) => state.setGraphFilter);
@@ -17,7 +19,6 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
 
   const baseCommands: Command[] = useMemo(
     () => [
-      // Navigation
       {
         id: 'goto.line',
         label: 'Go to Line...',
@@ -48,8 +49,6 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
         },
         when: () => editorView !== null,
       },
-
-      // View
       {
         id: 'view.togglePreview',
         label: 'Toggle Preview Panel',
@@ -63,6 +62,12 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
         shortcut: 'Ctrl+Shift+E',
         category: 'view',
         action: toggleOutline,
+      },
+      {
+        id: 'view.toggleMinimap',
+        label: 'Toggle Minimap',
+        category: 'view',
+        action: toggleMinimap,
       },
       {
         id: 'view.showDocs',
@@ -104,8 +109,6 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
           if (!showPreview) togglePreview();
         },
       },
-
-      // Graph commands
       {
         id: 'graph.showAll',
         label: 'Graph: Show All Schemas',
@@ -124,8 +127,6 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
         category: 'view',
         action: () => setGraphFilter('orphaned'),
       },
-
-      // Diff commands
       {
         id: 'diff.showAll',
         label: 'Diff: Show All Changes',
@@ -150,8 +151,6 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
         category: 'view',
         action: clearComparison,
       },
-
-      // Edit
       {
         id: 'edit.undo',
         label: 'Undo',
@@ -198,8 +197,12 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
         category: 'edit',
         action: formatEditorContent,
       },
-
-      // OpenAPI
+      {
+        id: 'edit.sortPathsAndSchemas',
+        label: 'Sort Paths and Schemas',
+        category: 'edit',
+        action: sortEditorContent,
+      },
       {
         id: 'openapi.foldAll',
         label: 'Fold All',
@@ -227,7 +230,7 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
         },
       },
     ],
-    [togglePreview, toggleOutline, showPreview, setRightPanelView, setGraphFilter, setDiffFilter, clearComparison, goToLine, editorView]
+    [togglePreview, toggleOutline, toggleMinimap, showPreview, setRightPanelView, setGraphFilter, setDiffFilter, clearComparison, goToLine, editorView]
   );
 
   const allCommands = useMemo(
@@ -239,7 +242,6 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
   const close = useCallback(() => setIsOpen(false), []);
   const toggle = useCallback(() => setIsOpen((prev) => !prev), []);
 
-  // Global keyboard shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'p') {

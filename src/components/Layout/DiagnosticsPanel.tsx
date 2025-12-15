@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { AlertCircle, AlertTriangle, Info, X, GripHorizontal, Download } from 'lucide-react';
-import { useEditorStore, type ValidationError } from '../../store';
+import { useState } from "react";
+import { AlertCircle, AlertTriangle, Info, X, Download } from "lucide-react";
+import { useEditorStore, type ValidationError } from "../../store";
 
-type FilterType = 'all' | 'errors' | 'warnings';
+type FilterType = "all" | "errors" | "warnings";
 
 interface DiagnosticsPanelProps {
   isOpen: boolean;
@@ -18,26 +18,37 @@ const SEVERITY_ICONS = {
 };
 
 const SEVERITY_COLOURS = {
-  error: 'text-red-400',
-  warning: 'text-amber-400',
-  info: 'text-purple-400',
+  error: "text-red-400",
+  warning: "text-amber-400",
+  info: "text-purple-400",
 };
 
 const FILTER_OPTIONS: { value: FilterType; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'errors', label: 'Errors' },
-  { value: 'warnings', label: 'Warnings' },
+  { value: "all", label: "All" },
+  { value: "errors", label: "Errors" },
+  { value: "warnings", label: "Warnings" },
 ];
 
-export function DiagnosticsPanel({ isOpen, onClose, height, onResizeStart }: DiagnosticsPanelProps) {
-  const [filter, setFilter] = useState<FilterType>('all');
+export function DiagnosticsPanel({
+  isOpen,
+  onClose,
+  height,
+  onResizeStart,
+}: DiagnosticsPanelProps) {
+  const [filter, setFilter] = useState<FilterType>("all");
   const errors = useEditorStore((state) => state.errors);
   const warnings = useEditorStore((state) => state.warnings);
   const goToLine = useEditorStore((state) => state.goToLine);
 
   const allDiagnostics = [
-    ...errors.map((e) => ({ ...e, severity: e.severity || 'error' as const })),
-    ...warnings.map((w) => ({ ...w, severity: w.severity || 'warning' as const })),
+    ...errors.map((e) => ({
+      ...e,
+      severity: e.severity || ("error" as const),
+    })),
+    ...warnings.map((w) => ({
+      ...w,
+      severity: w.severity || ("warning" as const),
+    })),
   ].sort((a, b) => {
     if (a.line !== b.line) return a.line - b.line;
     const severityOrder = { error: 0, warning: 1, info: 2 };
@@ -45,9 +56,12 @@ export function DiagnosticsPanel({ isOpen, onClose, height, onResizeStart }: Dia
   });
 
   const filteredDiagnostics = allDiagnostics.filter((diagnostic) => {
-    if (filter === 'all') return true;
-    if (filter === 'errors') return diagnostic.severity === 'error';
-    if (filter === 'warnings') return diagnostic.severity === 'warning' || diagnostic.severity === 'info';
+    if (filter === "all") return true;
+    if (filter === "errors") return diagnostic.severity === "error";
+    if (filter === "warnings")
+      return (
+        diagnostic.severity === "warning" || diagnostic.severity === "info"
+      );
     return true;
   });
 
@@ -65,11 +79,13 @@ export function DiagnosticsPanel({ isOpen, onClose, height, onResizeStart }: Dia
       rule: d.rule,
     }));
 
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+      type: "application/json",
+    });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.download = 'diagnostics.json';
+    link.download = "diagnostics.json";
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -85,29 +101,35 @@ export function DiagnosticsPanel({ isOpen, onClose, height, onResizeStart }: Dia
     >
       {/* Resize handle */}
       <div
-        className="h-1.5 cursor-row-resize flex items-center justify-center hover:bg-purple-500/20 transition-colors group"
+        className="h-2 cursor-row-resize hover:bg-purple-500/20 transition-colors"
         onMouseDown={onResizeStart}
         role="separator"
         aria-label="Resize problems panel"
-      >
-        <GripHorizontal className="w-4 h-3 text-zinc-700 group-hover:text-purple-400" aria-hidden="true" />
-      </div>
+      />
 
       {/* Header */}
-      <div className="h-9 flex items-center justify-between px-4 border-b border-zinc-800 shrink-0">
+      <div className="h-9 flex items-center justify-between pb-2 px-4 border-b border-zinc-800 shrink-0">
         <div className="flex items-center gap-4">
-          <h2 id="diagnostics-heading" className="text-xs font-medium text-zinc-300">
-            Problems ({filteredDiagnostics.length}{filter !== 'all' ? ` of ${allDiagnostics.length}` : ''})
+          <h2
+            id="diagnostics-heading"
+            className="text-xs font-medium text-zinc-300"
+          >
+            Problems ({filteredDiagnostics.length}
+            {filter !== "all" ? ` of ${allDiagnostics.length}` : ""})
           </h2>
-          <div className="flex items-center gap-1" role="group" aria-label="Filter problems">
+          <div
+            className="flex items-center gap-1"
+            role="group"
+            aria-label="Filter problems"
+          >
             {FILTER_OPTIONS.map((option) => (
               <button
                 key={option.value}
                 onClick={() => setFilter(option.value)}
                 className={`px-2 py-1 text-xs rounded-md transition-colors ${
                   filter === option.value
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                    ? "bg-purple-600 text-white"
+                    : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
                 }`}
                 aria-pressed={filter === option.value}
               >
@@ -143,8 +165,13 @@ export function DiagnosticsPanel({ isOpen, onClose, height, onResizeStart }: Dia
         role="list"
       >
         {filteredDiagnostics.length === 0 ? (
-          <li className="px-4 py-6 text-sm text-zinc-600 text-center" role="status">
-            {allDiagnostics.length === 0 ? 'No problems detected' : 'No matching problems'}
+          <li
+            className="px-4 py-6 text-sm text-zinc-600 text-center"
+            role="status"
+          >
+            {allDiagnostics.length === 0
+              ? "No problems detected"
+              : "No matching problems"}
           </li>
         ) : (
           filteredDiagnostics.map((diagnostic, index) => {
@@ -161,15 +188,22 @@ export function DiagnosticsPanel({ isOpen, onClose, height, onResizeStart }: Dia
                   className="w-full px-4 py-2.5 flex items-start gap-3 hover:bg-zinc-800/50 text-left transition-colors"
                   aria-label={`${diagnostic.severity}: ${diagnostic.message} at line ${diagnostic.line}, column ${diagnostic.column}`}
                 >
-                  <Icon className={`w-4 h-4 shrink-0 mt-0.5 ${colourClass}`} aria-hidden="true" />
+                  <Icon
+                    className={`w-4 h-4 shrink-0 mt-0.5 ${colourClass}`}
+                    aria-hidden="true"
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="text-sm text-zinc-300 break-words leading-relaxed">
                       {diagnostic.message}
                     </div>
                     <div className="flex items-center gap-2 mt-1 text-xs text-zinc-500">
-                      <span>Ln {diagnostic.line}, Col {diagnostic.column}</span>
+                      <span>
+                        Ln {diagnostic.line}, Col {diagnostic.column}
+                      </span>
                       {diagnostic.path && (
-                        <span className="font-mono truncate text-zinc-600">{diagnostic.path}</span>
+                        <span className="font-mono truncate text-zinc-600">
+                          {diagnostic.path}
+                        </span>
                       )}
                       {diagnostic.rule && (
                         <span className="px-1.5 py-0.5 bg-zinc-800 rounded text-zinc-500">

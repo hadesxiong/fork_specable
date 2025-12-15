@@ -16,6 +16,7 @@ export function Editor() {
   const updateContent = useEditorStore((state) => state.updateContent);
   const errors = useEditorStore((state) => state.errors);
   const warnings = useEditorStore((state) => state.warnings);
+  const showMinimap = useEditorStore((state) => state.showMinimap);
 
   const handleDocChange = useCallback((content: string) => {
     if (!isUpdatingRef.current) {
@@ -30,6 +31,7 @@ export function Editor() {
 
     const extensions = createExtensions({
       language: file.language,
+      showMinimap,
       onUpdate: handleDocChange,
     });
 
@@ -66,7 +68,7 @@ export function Editor() {
       viewRef.current = null;
       setEditorView(null);
     };
-  }, [file?.id, file?.language]);
+  }, [file?.id, file?.language, showMinimap]);
 
   // Sync content from store to editor when it changes externally
   useEffect(() => {

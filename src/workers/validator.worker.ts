@@ -14,7 +14,6 @@ class ValidatorWorker implements ValidatorWorkerApi {
     let syntaxValid = true;
     let schemaValid = true;
 
-    // Step 1: Parse YAML/JSON to check syntax
     let parsed: unknown;
     try {
       if (content.trim().startsWith('{')) {
@@ -102,7 +101,6 @@ class ValidatorWorker implements ValidatorWorkerApi {
       };
     }
 
-    // Step 2: Validate against OpenAPI schema
     const validateStart = performance.now();
 
     // Check OpenAPI version - swagger-parser only supports 3.0.x
