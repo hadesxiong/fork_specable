@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import Fuse from "fuse.js";
+import { useViewport } from "../../hooks/useViewport";
 
 export interface Command {
   id: string;
@@ -21,6 +22,7 @@ export function CommandPalette({
   onClose,
   commands,
 }: CommandPaletteProps) {
+  const { isMobile } = useViewport();
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -109,17 +111,27 @@ export function CommandPalette({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]"
+      className={`fixed inset-0 z-50 flex ${
+        isMobile
+          ? "items-end justify-center"
+          : "items-start justify-center pt-[15vh]"
+      }`}
       role="dialog"
       aria-modal="true"
       aria-label="Command palette"
     >
       <div
-        className="absolute inset-0 bg-black/10 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="relative w-125 max-w-[90vw] bg-zinc-900 rounded-xl shadow-2xl border border-zinc-800 overflow-hidden">
+      <div
+        className={`relative bg-zinc-900 shadow-2xl border border-zinc-800 overflow-hidden ${
+          isMobile
+            ? "w-full rounded-t-xl max-h-[80vh]"
+            : "w-125 max-w-[90vw] rounded-xl"
+        }`}
+      >
         <input
           ref={inputRef}
           type="text"
@@ -127,7 +139,9 @@ export function CommandPalette({
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type a command..."
-          className="w-full px-4 py-3.5 bg-transparent text-zinc-200 text-sm outline-none border-b border-zinc-800 placeholder-zinc-600"
+          className={`w-full bg-transparent text-zinc-200 text-sm outline-none border-b border-zinc-800 placeholder-zinc-600 ${
+            isMobile ? "px-4 py-4" : "px-4 py-3.5"
+          }`}
           aria-label="Search commands"
           aria-autocomplete="list"
           aria-controls="command-list"
@@ -138,7 +152,7 @@ export function CommandPalette({
         <div
           ref={listRef}
           id="command-list"
-          className="max-h-80 overflow-y-auto py-1"
+          className={`overflow-y-auto py-1 ${isMobile ? "max-h-[60vh]" : "max-h-80"}`}
           role="listbox"
           aria-label="Available commands"
         >
@@ -157,7 +171,9 @@ export function CommandPalette({
                 data-selected={index === selectedIndex}
                 role="option"
                 aria-selected={index === selectedIndex}
-                className={`mx-1 px-3 py-2.5 flex items-center justify-between cursor-pointer rounded-lg transition-colors ${
+                className={`mx-1 px-3 flex items-center justify-between cursor-pointer rounded-lg transition-colors ${
+                  isMobile ? "py-3.5 min-h-12" : "py-2.5"
+                } ${
                   index === selectedIndex
                     ? "bg-purple-500/20 text-zinc-100"
                     : "text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200"
@@ -165,8 +181,10 @@ export function CommandPalette({
                 onClick={() => executeCommand(cmd)}
                 onMouseEnter={() => setSelectedIndex(index)}
               >
-                <span className="text-sm">{cmd.label}</span>
-                {cmd.shortcut && (
+                <span className={isMobile ? "text-base" : "text-sm"}>
+                  {cmd.label}
+                </span>
+                {!isMobile && cmd.shortcut && (
                   <kbd
                     className={`px-2 py-1 text-xs rounded-md font-mono ${
                       index === selectedIndex

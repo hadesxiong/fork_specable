@@ -13,6 +13,7 @@ import { StatusBar } from "./StatusBar";
 import { DiagnosticsPanel } from "./DiagnosticsPanel";
 import { KeyboardShortcutsModal } from "./KeyboardShortcutsModal";
 import { AboutModal } from "./AboutModal";
+import { MobileLayout } from "./MobileLayout";
 import {
   CommandPalette,
   useCommandPalette,
@@ -21,6 +22,7 @@ import {
 import { useValidation } from "../../hooks/useValidation";
 import { useFileSystem } from "../../hooks/useFileSystem";
 import { useVersionHistory } from "../../hooks/useVersionHistory";
+import { useViewport } from "../../hooks/useViewport";
 import { formatEditorContent } from "../../utils/format";
 
 const MIN_PANEL_WIDTH = 150;
@@ -31,6 +33,7 @@ const MAX_DIAGNOSTICS_HEIGHT = 600;
 const DEFAULT_DIAGNOSTICS_HEIGHT = 300;
 
 export function MainLayout() {
+  const { isMobile } = useViewport();
   const showOutline = useEditorStore((state) => state.showOutline);
   const showPreview = useEditorStore((state) => state.showPreview);
   const toggleOutline = useEditorStore((state) => state.toggleOutline);
@@ -229,7 +232,7 @@ export function MainLayout() {
     showPreview,
   ]);
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
+  const handlePointerMove = useCallback((e: PointerEvent) => {
     if (!containerRef.current) return;
 
     const rect = containerRef.current.getBoundingClientRect();
@@ -263,7 +266,7 @@ export function MainLayout() {
     }
   }, []);
 
-  const handleMouseUp = useCallback(() => {
+  const handlePointerUp = useCallback(() => {
     isDraggingOutline.current = false;
     isDraggingPreview.current = false;
     isDraggingDiagnostics.current = false;
@@ -272,13 +275,13 @@ export function MainLayout() {
   }, []);
 
   useEffect(() => {
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
+    document.addEventListener("pointermove", handlePointerMove);
+    document.addEventListener("pointerup", handlePointerUp);
     return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("pointermove", handlePointerMove);
+      document.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [handleMouseMove, handleMouseUp]);
+  }, [handlePointerMove, handlePointerUp]);
 
   const startDraggingOutline = useCallback(() => {
     isDraggingOutline.current = true;
@@ -303,6 +306,21 @@ export function MainLayout() {
     [diagnosticsHeight],
   );
 
+  if (isMobile) {
+    return (
+      <>
+        <MobileLayout onShowAbout={() => setShowAbout(true)} />
+        <CommandPalette
+          isOpen={isCommandPaletteOpen}
+          onClose={closeCommandPalette}
+          commands={commands}
+        />
+        <AboutModal isOpen={showAbout} onClose={() => setShowAbout(false)} />
+        <ToastContainer />
+      </>
+    );
+  }
+
   return (
     <div className="h-screen flex flex-col bg-zinc-950 relative">
       <header className="h-12 flex items-center justify-between px-4 bg-zinc-900 border-b border-zinc-800">
@@ -322,15 +340,15 @@ export function MainLayout() {
         <div className="flex items-center gap-1">
           <button
             onClick={() => setShowKeyboardShortcuts(true)}
-            className="p-2 rounded-md text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50"
+            className="p-3 rounded-md text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 min-w-[44px] min-h-[44px] flex items-center justify-center"
             title="Keyboard Shortcuts (F1)"
             aria-label="Keyboard Shortcuts"
           >
-            <Keyboard className="w-4 h-4" aria-hidden="true" />
+            <Keyboard className="w-5 h-5" aria-hidden="true" />
           </button>
           <button
             onClick={toggleOutline}
-            className={`p-2 rounded-md ${
+            className={`p-3 rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center ${
               showOutline
                 ? "bg-purple-500/20 text-purple-400"
                 : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50"
@@ -339,11 +357,11 @@ export function MainLayout() {
             aria-label="Toggle Outline"
             aria-pressed={showOutline}
           >
-            <PanelLeft className="w-4 h-4" aria-hidden="true" />
+            <PanelLeft className="w-5 h-5" aria-hidden="true" />
           </button>
           <button
             onClick={togglePreview}
-            className={`p-2 rounded-md ${
+            className={`p-3 rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center ${
               showPreview
                 ? "bg-purple-500/20 text-purple-400"
                 : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50"
@@ -352,7 +370,7 @@ export function MainLayout() {
             aria-label="Toggle Preview"
             aria-pressed={showPreview}
           >
-            <PanelRight className="w-4 h-4" aria-hidden="true" />
+            <PanelRight className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
       </header>
@@ -368,10 +386,10 @@ export function MainLayout() {
               <OutlineView />
             </aside>
             <div
-              className="w-2 flex items-center justify-center cursor-col-resize group"
-              onMouseDown={startDraggingOutline}
+              className="w-3 flex items-center justify-center cursor-col-resize group touch-none"
+              onPointerDown={startDraggingOutline}
             >
-              <div className="w-px h-full bg-zinc-800 group-hover:bg-purple-500 transition-colors" />
+              <div className="w-px h-full bg-zinc-800 group-hover:bg-purple-500 group-active:bg-purple-500 transition-colors" />
             </div>
           </>
         )}
@@ -383,10 +401,10 @@ export function MainLayout() {
         {showPreview && (
           <>
             <div
-              className="w-2 flex items-center justify-center cursor-col-resize group"
-              onMouseDown={startDraggingPreview}
+              className="w-3 flex items-center justify-center cursor-col-resize group touch-none"
+              onPointerDown={startDraggingPreview}
             >
-              <div className="w-px h-full bg-zinc-800 group-hover:bg-purple-500 transition-colors" />
+              <div className="w-px h-full bg-zinc-800 group-hover:bg-purple-500 group-active:bg-purple-500 transition-colors" />
             </div>
             <aside
               style={{ width: previewWidth }}

@@ -5,8 +5,10 @@ import { useEditorStore } from '../../store';
 import { createExtensions } from './extensions';
 import { createRefNavigationExtension, goToDefinition } from './ref-navigation';
 import { setEditorDiagnostics } from './diagnostics';
+import { useViewport } from '../../hooks/useViewport';
 
 export function Editor() {
+  const { isMobile } = useViewport();
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const isUpdatingRef = useRef(false);
@@ -17,6 +19,8 @@ export function Editor() {
   const errors = useEditorStore((state) => state.errors);
   const warnings = useEditorStore((state) => state.warnings);
   const showMinimap = useEditorStore((state) => state.showMinimap);
+
+  const effectiveShowMinimap = showMinimap && !isMobile;
 
   const handleDocChange = useCallback((content: string) => {
     if (!isUpdatingRef.current) {
@@ -31,7 +35,7 @@ export function Editor() {
 
     const extensions = createExtensions({
       language: file.language,
-      showMinimap,
+      showMinimap: effectiveShowMinimap,
       onUpdate: handleDocChange,
     });
 
@@ -68,7 +72,7 @@ export function Editor() {
       viewRef.current = null;
       setEditorView(null);
     };
-  }, [file?.id, file?.language, showMinimap]);
+  }, [file?.id, file?.language, effectiveShowMinimap]);
 
   // Sync content from store to editor when it changes externally
   useEffect(() => {
