@@ -32,7 +32,7 @@ export function useValidation() {
 
     pipeline
       .validateDebounced(content, (stage, result) => {
-        if (stage === "validating" && result.validation) {
+        if (stage === "validating" && result.validation?.parsedSpec) {
           // Update parsed spec immediately when available
           setParsedSpec(
             result.validation.parsedSpec,
@@ -67,7 +67,10 @@ export function useValidation() {
             warnings: allWarnings,
           });
 
-          setParsedSpec(validation.parsedSpec, validation.sourceMap);
+          // Only update parsed spec if we have a valid one (preserve last valid on syntax errors)
+          if (validation.parsedSpec) {
+            setParsedSpec(validation.parsedSpec, validation.sourceMap);
+          }
         }
 
         setValidating(false);

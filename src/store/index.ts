@@ -2,6 +2,16 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { OpenAPIV3 } from 'openapi-types';
 import type { EditorView } from '@codemirror/view';
+import type { VersionSnapshot } from '../services/version-history-db';
+
+export type { VersionSnapshot } from '../services/version-history-db';
+
+export interface Toast {
+  id: string;
+  type: 'success' | 'error' | 'info';
+  message: string;
+  duration: number;
+}
 
 export interface EditorFile {
   id: string;
@@ -33,7 +43,7 @@ export interface SourceMap {
 }
 
 // Graph types
-export type RightPanelView = 'preview' | 'graph' | 'diff' | 'tryit';
+export type RightPanelView = 'preview' | 'graph' | 'diff' | 'tryit' | 'history';
 export type GraphFilter = 'all' | 'referenced' | 'orphaned';
 export type GraphEdgeType = 'ref' | 'allOf' | 'anyOf' | 'oneOf' | 'items';
 
@@ -170,6 +180,14 @@ interface EditorState {
   // Try It Out state
   tryIt: TryItState;
 
+  // Version History state
+  versionHistory: VersionSnapshot[];
+  selectedSnapshotId: string | null;
+  isHistoryLoading: boolean;
+
+  // Toast state
+  toasts: Toast[];
+
   // Editor reference (not persisted)
   editorView: EditorView | null;
 }
@@ -179,6 +197,7 @@ interface EditorActions {
   setFile: (file: EditorFile | null) => void;
   updateContent: (content: string) => void;
   markClean: () => void;
+  updateFileIdentity: (file: EditorFile) => void;
 
   // Parsed state actions
   setParsedSpec: (spec: OpenAPIV3.Document | null, sourceMap: SourceMap) => void;
@@ -221,6 +240,17 @@ interface EditorActions {
   setTryItExecuting: (executing: boolean) => void;
   setTryItResponse: (response: TryItResponse | null) => void;
   resetTryItParameters: () => void;
+
+  // Version History actions
+  setVersionHistory: (history: VersionSnapshot[]) => void;
+  addSnapshot: (snapshot: VersionSnapshot) => void;
+  removeSnapshot: (id: string) => void;
+  setSelectedSnapshot: (id: string | null) => void;
+  setHistoryLoading: (loading: boolean) => void;
+
+  // Toast actions
+  showToast: (type: Toast['type'], message: string, duration?: number) => void;
+  dismissToast: (id: string) => void;
 
   // Editor actions
   setEditorView: (view: EditorView | null) => void;
@@ -697,10 +727,22 @@ export const useEditorStore = create<EditorStore>()(
         isExecuting: false,
         lastResponse: null,
       },
+      versionHistory: [],
+      selectedSnapshotId: null,
+      isHistoryLoading: false,
+      toasts: [],
       editorView: null,
 
       // File actions
-      setFile: (file) => set({ file, parsedSpec: null, sourceMap: {}, errors: [], warnings: [] }),
+      setFile: (file) => set({
+        file,
+        parsedSpec: null,
+        sourceMap: {},
+        errors: [],
+        warnings: [],
+        versionHistory: [],
+        selectedSnapshotId: null,
+      }),
 
       updateContent: (content) => set((state) => ({
         file: state.file ? { ...state.file, content, isDirty: true } : null,
@@ -709,6 +751,8 @@ export const useEditorStore = create<EditorStore>()(
       markClean: () => set((state) => ({
         file: state.file ? { ...state.file, isDirty: false } : null,
       })),
+
+      updateFileIdentity: (file) => set({ file }),
 
       // Parsed state actions
       setParsedSpec: (spec, sourceMap) => set({ parsedSpec: spec, sourceMap }),
@@ -778,6 +822,29 @@ export const useEditorStore = create<EditorStore>()(
       })),
       resetTryItParameters: () => set((state) => ({
         tryIt: { ...state.tryIt, parameterValues: {}, requestBody: '' },
+      })),
+
+      // Version History actions
+      setVersionHistory: (history) => set({ versionHistory: history }),
+      addSnapshot: (snapshot) => set((state) => ({
+        versionHistory: [snapshot, ...state.versionHistory],
+      })),
+      removeSnapshot: (id) => set((state) => ({
+        versionHistory: state.versionHistory.filter((s) => s.id !== id),
+        selectedSnapshotId: state.selectedSnapshotId === id ? null : state.selectedSnapshotId,
+      })),
+      setSelectedSnapshot: (id) => set({ selectedSnapshotId: id }),
+      setHistoryLoading: (loading) => set({ isHistoryLoading: loading }),
+
+      // Toast actions
+      showToast: (type, message, duration = 4000) => set((state) => ({
+        toasts: [
+          ...state.toasts,
+          { id: crypto.randomUUID(), type, message, duration },
+        ],
+      })),
+      dismissToast: (id) => set((state) => ({
+        toasts: state.toasts.filter((t) => t.id !== id),
       })),
 
       // Editor actions

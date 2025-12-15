@@ -7,6 +7,8 @@ import { DocumentationView } from "../Preview";
 import { GraphView } from "../GraphView";
 import { DiffView } from "../DiffView";
 import { TryItOutView } from "../TryItOut";
+import { HistoryView } from "../HistoryView";
+import { ToastContainer } from "../Toast";
 import { StatusBar } from "./StatusBar";
 import { DiagnosticsPanel } from "./DiagnosticsPanel";
 import { KeyboardShortcutsModal } from "./KeyboardShortcutsModal";
@@ -18,6 +20,7 @@ import {
 } from "../CommandPalette";
 import { useValidation } from "../../hooks/useValidation";
 import { useFileSystem } from "../../hooks/useFileSystem";
+import { useVersionHistory } from "../../hooks/useVersionHistory";
 import { formatEditorContent } from "../../utils/format";
 
 const MIN_PANEL_WIDTH = 150;
@@ -61,6 +64,8 @@ export function MainLayout() {
     exportAsJson,
     exportAsYaml,
   } = useFileSystem();
+
+  const { createSnapshot } = useVersionHistory();
 
   const fileCommands: Command[] = useMemo(
     () => [
@@ -120,8 +125,26 @@ export function MainLayout() {
         category: "file",
         action: exportAsYaml,
       },
+      {
+        id: "history.show",
+        label: "Show Version History",
+        shortcut: "Ctrl+5",
+        category: "view",
+        action: () => {
+          setRightPanelView("history");
+          if (!showPreview) togglePreview();
+        },
+      },
+      {
+        id: "history.createSnapshot",
+        label: "Create Snapshot",
+        category: "edit",
+        action: () => {
+          createSnapshot("Manual snapshot");
+        },
+      },
     ],
-    [newFile, openFile, importFromFile, importFromUrl, saveFile, saveFileAs, exportAsJson, exportAsYaml],
+    [newFile, openFile, importFromFile, importFromUrl, saveFile, saveFileAs, exportAsJson, exportAsYaml, setRightPanelView, showPreview, togglePreview, createSnapshot],
   );
 
   const {
@@ -191,6 +214,12 @@ export function MainLayout() {
       if ((e.ctrlKey || e.metaKey) && e.key === "4") {
         e.preventDefault();
         setRightPanelView("tryit");
+        if (!showPreview) togglePreview();
+      }
+      // Switch to History: Ctrl+5
+      if ((e.ctrlKey || e.metaKey) && e.key === "5") {
+        e.preventDefault();
+        setRightPanelView("history");
         if (!showPreview) togglePreview();
       }
       // Format document: Shift+Alt+F
@@ -382,6 +411,7 @@ export function MainLayout() {
                 {rightPanelView === "graph" && <GraphView />}
                 {rightPanelView === "diff" && <DiffView />}
                 {rightPanelView === "tryit" && <TryItOutView />}
+                {rightPanelView === "history" && <HistoryView />}
               </div>
             </aside>
           </>
@@ -411,6 +441,8 @@ export function MainLayout() {
       />
 
       <AboutModal isOpen={showAbout} onClose={() => setShowAbout(false)} />
+
+      <ToastContainer />
     </div>
   );
 }
@@ -425,6 +457,7 @@ const VIEW_TABS: { id: RightPanelView; label: string; shortcut: string }[] = [
   { id: "graph", label: "Graph", shortcut: "Ctrl+2" },
   { id: "diff", label: "Diff", shortcut: "Ctrl+3" },
   { id: "tryit", label: "Try It", shortcut: "Ctrl+4" },
+  { id: "history", label: "History", shortcut: "Ctrl+5" },
 ];
 
 function RightPanelTabs({ activeView, onViewChange }: RightPanelTabsProps) {

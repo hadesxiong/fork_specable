@@ -14,8 +14,8 @@ function detectLanguage(filename: string, content: string): 'yaml' | 'json' {
 
 export function useFileSystem() {
   const setFile = useEditorStore((state) => state.setFile);
+  const updateFileIdentity = useEditorStore((state) => state.updateFileIdentity);
   const file = useEditorStore((state) => state.file);
-  const markClean = useEditorStore((state) => state.markClean);
 
   const openFile = useCallback(async () => {
     const fs = getFileSystem();
@@ -101,12 +101,12 @@ export function useFileSystem() {
     if (!currentFile) return false;
 
     const fs = getFileSystem();
-    const success = await fs.saveFile(currentFile);
-    if (success) {
-      markClean();
+    const savedFile = await fs.saveFile(currentFile);
+    if (savedFile) {
+      updateFileIdentity(savedFile);
     }
-    return success;
-  }, [file, markClean]);
+    return savedFile !== null;
+  }, [file, updateFileIdentity]);
 
   const saveFileAs = useCallback(async () => {
     if (!file) return false;
@@ -114,10 +114,10 @@ export function useFileSystem() {
     const fs = getFileSystem();
     const savedFile = await fs.saveFileAs(file);
     if (savedFile) {
-      setFile(savedFile);
+      updateFileIdentity(savedFile);
     }
     return savedFile !== null;
-  }, [file, setFile]);
+  }, [file, updateFileIdentity]);
 
   const newFile = useCallback(() => {
     const defaultContent = `openapi: 3.0.3

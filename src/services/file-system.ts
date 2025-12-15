@@ -3,7 +3,7 @@ import type { EditorFile } from '../store';
 
 export interface FileSystemService {
   openFile(): Promise<EditorFile | null>;
-  saveFile(file: EditorFile): Promise<boolean>;
+  saveFile(file: EditorFile): Promise<EditorFile | null>;
   saveFileAs(file: EditorFile): Promise<EditorFile | null>;
   exportAsJson(content: string, suggestedName: string): Promise<boolean>;
   exportAsYaml(content: string, suggestedName: string): Promise<boolean>;
@@ -76,15 +76,15 @@ class NativeFileSystem implements FileSystemService {
     }
   }
 
-  async saveFile(file: EditorFile): Promise<boolean> {
+  async saveFile(file: EditorFile): Promise<EditorFile | null> {
     const handle = this.fileHandles.get(file.id);
 
     if (!handle) {
-      const newFile = await this.saveFileAs(file);
-      return newFile !== null;
+      return this.saveFileAs(file);
     }
 
-    return this.writeToHandle(handle, file.content);
+    const success = await this.writeToHandle(handle, file.content);
+    return success ? { ...file, isDirty: false } : null;
   }
 
   async saveFileAs(file: EditorFile): Promise<EditorFile | null> {
@@ -206,9 +206,9 @@ class FallbackFileSystem implements FileSystemService {
     });
   }
 
-  async saveFile(file: EditorFile): Promise<boolean> {
+  async saveFile(file: EditorFile): Promise<EditorFile | null> {
     this.downloadFile(file.name, file.content);
-    return true;
+    return { ...file, isDirty: false };
   }
 
   async saveFileAs(file: EditorFile): Promise<EditorFile | null> {

@@ -147,3 +147,36 @@ button, a, input {
 input::placeholder {
   color: #52525b; /* zinc-600 */
 }
+
+/* Toast animations */
+@keyframes slide-in-from-bottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-in {
+  animation-fill-mode: both;
+}
+
+.slide-in-from-bottom-2 {
+  animation: slide-in-from-bottom 200ms ease-out;
+}
+
+.fade-in {
+  animation: fade-in 200ms ease-out;
+}
