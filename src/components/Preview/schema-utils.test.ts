@@ -6,6 +6,10 @@ import {
   hasComposition,
   resolveRef,
   isRef,
+  getConstraints,
+  getDiscriminatorValue,
+  isRecursiveRef,
+  collectRefs,
 } from './schema-utils';
 
 const createSpec = (schemas: Record<string, OpenAPIV3.SchemaObject> = {}): OpenAPIV3.Document => ({
@@ -195,5 +199,186 @@ describe('isRef', () => {
   it('identifies non-reference objects', () => {
     expect(isRef({ type: 'string' })).toBe(false);
     expect(isRef({ type: 'object', properties: {} })).toBe(false);
+  });
+});
+
+describe('getComposition with discriminator', () => {
+  it('extracts discriminator from oneOf schema', () => {
+    const schema: OpenAPIV3.SchemaObject = {
+      oneOf: [
+        { $ref: '#/components/schemas/Cat' },
+        { $ref: '#/components/schemas/Dog' },
+      ],
+      discriminator: {
+        propertyName: 'petType',
+        mapping: {
+          cat: '#/components/schemas/Cat',
+          dog: '#/components/schemas/Dog',
+        },
+      },
+    };
+    const result = getComposition(schema);
+    expect(result?.discriminator).toEqual({
+      propertyName: 'petType',
+      mapping: {
+        cat: '#/components/schemas/Cat',
+        dog: '#/components/schemas/Dog',
+      },
+    });
+  });
+
+  it('returns undefined discriminator when not present', () => {
+    const schema: OpenAPIV3.SchemaObject = {
+      oneOf: [{ type: 'string' }, { type: 'integer' }],
+    };
+    const result = getComposition(schema);
+    expect(result?.discriminator).toBeUndefined();
+  });
+});
+
+describe('getDiscriminatorValue', () => {
+  it('returns discriminator value for matching ref', () => {
+    const variant = { $ref: '#/components/schemas/CreditCard' };
+    const discriminator = {
+      propertyName: 'type',
+      mapping: {
+        credit_card: '#/components/schemas/CreditCard',
+        bank_transfer: '#/components/schemas/BankTransfer',
+      },
+    };
+    expect(getDiscriminatorValue(variant, discriminator)).toBe('credit_card');
+  });
+
+  it('returns undefined for non-matching ref', () => {
+    const variant = { $ref: '#/components/schemas/Unknown' };
+    const discriminator = {
+      propertyName: 'type',
+      mapping: {
+        credit_card: '#/components/schemas/CreditCard',
+      },
+    };
+    expect(getDiscriminatorValue(variant, discriminator)).toBeUndefined();
+  });
+
+  it('returns undefined when discriminator has no mapping', () => {
+    const variant = { $ref: '#/components/schemas/CreditCard' };
+    const discriminator = { propertyName: 'type' };
+    expect(getDiscriminatorValue(variant, discriminator)).toBeUndefined();
+  });
+
+  it('returns undefined for non-ref schemas', () => {
+    const variant: OpenAPIV3.SchemaObject = { type: 'string' };
+    const discriminator = {
+      propertyName: 'type',
+      mapping: { str: '#/components/schemas/String' },
+    };
+    expect(getDiscriminatorValue(variant, discriminator)).toBeUndefined();
+  });
+});
+
+describe('getConstraints', () => {
+  it('extracts const value', () => {
+    const schema = { type: 'string', const: 'credit_card' } as OpenAPIV3.SchemaObject;
+    const constraints = getConstraints(schema);
+    expect(constraints.const).toBe('credit_card');
+  });
+
+  it('extracts readOnly flag', () => {
+    const schema: OpenAPIV3.SchemaObject = { type: 'string', readOnly: true };
+    const constraints = getConstraints(schema);
+    expect(constraints.readOnly).toBe(true);
+  });
+
+  it('extracts writeOnly flag', () => {
+    const schema: OpenAPIV3.SchemaObject = { type: 'string', writeOnly: true };
+    const constraints = getConstraints(schema);
+    expect(constraints.writeOnly).toBe(true);
+  });
+
+  it('does not include readOnly when false', () => {
+    const schema: OpenAPIV3.SchemaObject = { type: 'string', readOnly: false };
+    const constraints = getConstraints(schema);
+    expect(constraints.readOnly).toBeUndefined();
+  });
+});
+
+describe('isRecursiveRef', () => {
+  it('detects recursive reference', () => {
+    const variant = { $ref: '#/components/schemas/FilterGroup' };
+    const ancestors = new Set(['#/components/schemas/FilterGroup']);
+    expect(isRecursiveRef(variant, ancestors)).toBe(true);
+  });
+
+  it('returns false for non-recursive reference', () => {
+    const variant = { $ref: '#/components/schemas/TextFilter' };
+    const ancestors = new Set(['#/components/schemas/FilterGroup']);
+    expect(isRecursiveRef(variant, ancestors)).toBe(false);
+  });
+
+  it('returns false for non-ref schemas', () => {
+    const variant: OpenAPIV3.SchemaObject = { type: 'string' };
+    const ancestors = new Set(['#/components/schemas/FilterGroup']);
+    expect(isRecursiveRef(variant, ancestors)).toBe(false);
+  });
+});
+
+describe('collectRefs', () => {
+  it('collects refs from properties', () => {
+    const schema: OpenAPIV3.SchemaObject = {
+      type: 'object',
+      properties: {
+        user: { $ref: '#/components/schemas/User' },
+        address: { $ref: '#/components/schemas/Address' },
+      },
+    };
+    const refs = collectRefs(schema);
+    expect(refs).toEqual(new Set([
+      '#/components/schemas/User',
+      '#/components/schemas/Address',
+    ]));
+  });
+
+  it('collects refs from array items', () => {
+    const schema: OpenAPIV3.SchemaObject = {
+      type: 'array',
+      items: { $ref: '#/components/schemas/Item' },
+    };
+    const refs = collectRefs(schema);
+    expect(refs).toEqual(new Set(['#/components/schemas/Item']));
+  });
+
+  it('collects refs from oneOf variants', () => {
+    const schema: OpenAPIV3.SchemaObject = {
+      oneOf: [
+        { $ref: '#/components/schemas/Cat' },
+        { $ref: '#/components/schemas/Dog' },
+      ],
+    };
+    const refs = collectRefs(schema);
+    expect(refs).toEqual(new Set([
+      '#/components/schemas/Cat',
+      '#/components/schemas/Dog',
+    ]));
+  });
+
+  it('collects refs from additionalProperties', () => {
+    const schema: OpenAPIV3.SchemaObject = {
+      type: 'object',
+      additionalProperties: { $ref: '#/components/schemas/Value' },
+    };
+    const refs = collectRefs(schema);
+    expect(refs).toEqual(new Set(['#/components/schemas/Value']));
+  });
+
+  it('returns empty set for schema without refs', () => {
+    const schema: OpenAPIV3.SchemaObject = {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        age: { type: 'integer' },
+      },
+    };
+    const refs = collectRefs(schema);
+    expect(refs.size).toBe(0);
   });
 });

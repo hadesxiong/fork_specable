@@ -1,10 +1,37 @@
+import * as yaml from 'yaml';
 import type { EditorFile } from '../store';
 
 export interface FileSystemService {
   openFile(): Promise<EditorFile | null>;
   saveFile(file: EditorFile): Promise<boolean>;
   saveFileAs(file: EditorFile): Promise<EditorFile | null>;
+  exportAsJson(content: string, suggestedName: string): Promise<boolean>;
+  exportAsYaml(content: string, suggestedName: string): Promise<boolean>;
   isSupported(): boolean;
+}
+
+function parseContent(content: string): unknown {
+  const trimmed = content.trim();
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+    return JSON.parse(content);
+  }
+  return yaml.parse(content);
+}
+
+function convertToJson(content: string): string {
+  const parsed = parseContent(content);
+  return JSON.stringify(parsed, null, 2);
+}
+
+function convertToYaml(content: string): string {
+  const parsed = parseContent(content);
+  return yaml.stringify(parsed);
+}
+
+function changeExtension(filename: string, newExt: string): string {
+  const lastDot = filename.lastIndexOf('.');
+  const baseName = lastDot > 0 ? filename.slice(0, lastDot) : filename;
+  return `${baseName}.${newExt}`;
 }
 
 class NativeFileSystem implements FileSystemService {
@@ -97,6 +124,44 @@ class NativeFileSystem implements FileSystemService {
     }
   }
 
+  async exportAsJson(content: string, suggestedName: string): Promise<boolean> {
+    try {
+      const jsonContent = convertToJson(content);
+      const handle = await window.showSaveFilePicker({
+        suggestedName: changeExtension(suggestedName, 'json'),
+        types: [
+          {
+            description: 'JSON Files',
+            accept: { 'application/json': ['.json'] },
+          },
+        ],
+      });
+      return this.writeToHandle(handle, jsonContent);
+    } catch (e) {
+      if ((e as Error).name === 'AbortError') return false;
+      throw e;
+    }
+  }
+
+  async exportAsYaml(content: string, suggestedName: string): Promise<boolean> {
+    try {
+      const yamlContent = convertToYaml(content);
+      const handle = await window.showSaveFilePicker({
+        suggestedName: changeExtension(suggestedName, 'yaml'),
+        types: [
+          {
+            description: 'YAML Files',
+            accept: { 'application/x-yaml': ['.yaml', '.yml'] },
+          },
+        ],
+      });
+      return this.writeToHandle(handle, yamlContent);
+    } catch (e) {
+      if ((e as Error).name === 'AbortError') return false;
+      throw e;
+    }
+  }
+
   private async writeToHandle(handle: FileSystemFileHandle, content: string): Promise<boolean> {
     try {
       const writable = await handle.createWritable();
@@ -159,6 +224,24 @@ class FallbackFileSystem implements FileSystemService {
       isDirty: false,
       language: name.endsWith('.json') ? 'json' : 'yaml',
     };
+  }
+
+  async exportAsJson(content: string, suggestedName: string): Promise<boolean> {
+    const name = prompt('Export as JSON:', changeExtension(suggestedName, 'json'));
+    if (!name) return false;
+
+    const jsonContent = convertToJson(content);
+    this.downloadFile(name, jsonContent);
+    return true;
+  }
+
+  async exportAsYaml(content: string, suggestedName: string): Promise<boolean> {
+    const name = prompt('Export as YAML:', changeExtension(suggestedName, 'yaml'));
+    if (!name) return false;
+
+    const yamlContent = convertToYaml(content);
+    this.downloadFile(name, yamlContent);
+    return true;
   }
 
   private downloadFile(name: string, content: string): void {

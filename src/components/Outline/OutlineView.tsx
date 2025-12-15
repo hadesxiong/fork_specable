@@ -1,12 +1,26 @@
-import { useMemo, useState, useCallback } from 'react';
-import { ChevronRight, ChevronDown, Globe, Box, Shield, Server } from 'lucide-react';
-import { useEditorStore } from '../../store';
-import type { OpenAPIV3 } from 'openapi-types';
+import { useMemo, useState, useCallback } from "react";
+import {
+  ChevronRight,
+  ChevronDown,
+  Globe,
+  Box,
+  Shield,
+  Server,
+} from "lucide-react";
+import { useEditorStore } from "../../store";
+import type { OpenAPIV3 } from "openapi-types";
 
 interface OutlineNode {
   id: string;
   label: string;
-  kind: 'paths' | 'path' | 'operation' | 'schemas' | 'schema' | 'security' | 'servers';
+  kind:
+    | "paths"
+    | "path"
+    | "operation"
+    | "schemas"
+    | "schema"
+    | "security"
+    | "servers";
   children?: OutlineNode[];
   line?: number;
   method?: string;
@@ -14,16 +28,19 @@ interface OutlineNode {
 }
 
 const METHOD_COLOURS: Record<string, string> = {
-  get: 'text-teal-400',
-  post: 'text-blue-400',
-  put: 'text-orange-400',
-  patch: 'text-yellow-400',
-  delete: 'text-red-500',
-  options: 'text-zinc-600',
-  head: 'text-zinc-600',
+  get: "text-emerald-400",
+  post: "text-purple-400",
+  put: "text-amber-400",
+  patch: "text-yellow-400",
+  delete: "text-red-400",
+  options: "text-zinc-500",
+  head: "text-zinc-500",
 };
 
-const KIND_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+const KIND_ICONS: Record<
+  string,
+  React.ComponentType<{ className?: string }>
+> = {
   paths: Globe,
   schemas: Box,
   security: Shield,
@@ -35,8 +52,10 @@ export function OutlineView() {
   const sourceMap = useEditorStore((state) => state.sourceMap);
   const goToLine = useEditorStore((state) => state.goToLine);
 
-  const [expanded, setExpanded] = useState<Set<string>>(new Set(['paths', 'schemas']));
-  const [filter, setFilter] = useState('');
+  const [expanded, setExpanded] = useState<Set<string>>(
+    new Set(["paths", "schemas"]),
+  );
+  const [filter, setFilter] = useState("");
 
   const outline = useMemo(() => {
     if (!parsedSpec) return [];
@@ -60,14 +79,17 @@ export function OutlineView() {
     });
   }, []);
 
-  const handleClick = useCallback((node: OutlineNode) => {
-    if (node.children && node.children.length > 0) {
-      toggleExpanded(node.id);
-    }
-    if (node.line) {
-      goToLine(node.line);
-    }
-  }, [toggleExpanded, goToLine]);
+  const handleClick = useCallback(
+    (node: OutlineNode) => {
+      if (node.children && node.children.length > 0) {
+        toggleExpanded(node.id);
+      }
+      if (node.line) {
+        goToLine(node.line);
+      }
+    },
+    [toggleExpanded, goToLine],
+  );
 
   const renderNode = (node: OutlineNode, depth: number = 0) => {
     const hasChildren = node.children && node.children.length > 0;
@@ -85,41 +107,55 @@ export function OutlineView() {
           className={`
             flex items-center gap-1 px-2 py-1 cursor-pointer rounded
             hover:bg-zinc-800 transition-colors
-            ${node.deprecated ? 'line-through opacity-60' : ''}
+            ${node.deprecated ? "line-through opacity-60" : ""}
           `}
           style={{ paddingLeft: `${depth * 12 + 8}px` }}
           onClick={() => handleClick(node)}
           role="button"
           tabIndex={0}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
+            if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
               handleClick(node);
             }
           }}
-          aria-label={node.method ? `${node.method.toUpperCase()} ${node.label}` : node.label}
+          aria-label={
+            node.method
+              ? `${node.method.toUpperCase()} ${node.label}`
+              : node.label
+          }
         >
           {hasChildren ? (
             isExpanded ? (
-              <ChevronDown className="w-4 h-4 shrink-0 text-zinc-500" aria-hidden="true" />
+              <ChevronDown
+                className="w-4 h-4 shrink-0 text-zinc-500"
+                aria-hidden="true"
+              />
             ) : (
-              <ChevronRight className="w-4 h-4 shrink-0 text-zinc-500" aria-hidden="true" />
+              <ChevronRight
+                className="w-4 h-4 shrink-0 text-zinc-500"
+                aria-hidden="true"
+              />
             )
           ) : (
             <span className="w-4 shrink-0" aria-hidden="true" />
           )}
 
           {node.method ? (
-            <span className={`text-xs font-mono font-bold shrink-0 w-14 ${METHOD_COLOURS[node.method]}`} aria-hidden="true">
+            <span
+              className={`text-xs font-mono font-bold shrink-0 w-10 ${METHOD_COLOURS[node.method]}`}
+              aria-hidden="true"
+            >
               {node.method.toUpperCase()}
             </span>
           ) : (
-            <Icon className="w-4 h-4 shrink-0 text-zinc-500" aria-hidden="true" />
+            <Icon
+              className="w-4 h-4 shrink-0 text-zinc-500"
+              aria-hidden="true"
+            />
           )}
 
-          <span className="text-sm text-zinc-200 truncate">
-            {node.label}
-          </span>
+          <span className="text-sm text-zinc-200 truncate">{node.label}</span>
         </div>
 
         {hasChildren && isExpanded && (
@@ -133,28 +169,31 @@ export function OutlineView() {
 
   if (!parsedSpec) {
     return (
-      <div className="h-full flex items-center justify-center bg-zinc-900 text-zinc-400 text-sm">
+      <div className="h-full flex items-center justify-center bg-zinc-950 text-zinc-500 text-sm">
         No valid specification
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col bg-zinc-900">
-      <div className="p-2 border-b border-zinc-700">
+    <div className="h-full flex flex-col bg-zinc-950">
+      <div className="p-3 border-b border-zinc-800">
         <input
           type="text"
           placeholder="Filter outline..."
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="w-full px-2 py-1 text-sm bg-zinc-800 border border-zinc-700 rounded text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-blue-500"
+          className="w-full px-3 py-2 text-sm bg-zinc-900 border border-zinc-800 rounded-md text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-purple-500"
           aria-label="Filter outline"
         />
       </div>
-      <nav className="flex-1 overflow-y-auto py-2" aria-label="Specification outline">
+      <nav
+        className="flex-1 overflow-y-auto py-2"
+        aria-label="Specification outline"
+      >
         {filteredOutline.length === 0 ? (
-          <div className="px-4 py-2 text-sm text-zinc-500" role="status">
-            {filter ? 'No matches found' : 'Empty specification'}
+          <div className="px-4 py-4 text-sm text-zinc-600" role="status">
+            {filter ? "No matches found" : "Empty specification"}
           </div>
         ) : (
           <ul role="tree" aria-label="Specification structure">
@@ -166,7 +205,10 @@ export function OutlineView() {
   );
 }
 
-function buildOutlineTree(spec: OpenAPIV3.Document, sourceMap: Record<string, { line: number; column: number }>): OutlineNode[] {
+function buildOutlineTree(
+  spec: OpenAPIV3.Document,
+  sourceMap: Record<string, { line: number; column: number }>,
+): OutlineNode[] {
   const nodes: OutlineNode[] = [];
 
   // Paths section
@@ -177,16 +219,26 @@ function buildOutlineTree(spec: OpenAPIV3.Document, sourceMap: Record<string, { 
       if (!pathItem) continue;
 
       const operations: OutlineNode[] = [];
-      const methods = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head'] as const;
+      const methods = [
+        "get",
+        "post",
+        "put",
+        "patch",
+        "delete",
+        "options",
+        "head",
+      ] as const;
 
       for (const method of methods) {
-        const operation = (pathItem as Record<string, unknown>)[method] as OpenAPIV3.OperationObject | undefined;
+        const operation = (pathItem as Record<string, unknown>)[method] as
+          | OpenAPIV3.OperationObject
+          | undefined;
         if (operation) {
           const opPath = `paths.${pathKey}.${method}`;
           operations.push({
             id: `${pathKey}-${method}`,
             label: operation.summary || operation.operationId || pathKey,
-            kind: 'operation',
+            kind: "operation",
             method,
             line: sourceMap[opPath]?.line,
             deprecated: operation.deprecated,
@@ -198,57 +250,69 @@ function buildOutlineTree(spec: OpenAPIV3.Document, sourceMap: Record<string, { 
       pathNodes.push({
         id: pathKey,
         label: pathKey,
-        kind: 'path',
+        kind: "path",
         children: operations.length > 0 ? operations : undefined,
         line: sourceMap[pathPath]?.line,
       });
     }
 
     nodes.push({
-      id: 'paths',
+      id: "paths",
       label: `Paths (${pathNodes.length})`,
-      kind: 'paths',
+      kind: "paths",
       children: pathNodes,
     });
   }
 
   // Schemas section
-  if (spec.components?.schemas && Object.keys(spec.components.schemas).length > 0) {
-    const schemaNodes: OutlineNode[] = Object.entries(spec.components.schemas).map(([name, schema]) => {
+  if (
+    spec.components?.schemas &&
+    Object.keys(spec.components.schemas).length > 0
+  ) {
+    const schemaNodes: OutlineNode[] = Object.entries(
+      spec.components.schemas,
+    ).map(([name, schema]) => {
       const schemaPath = `components.schemas.${name}`;
       return {
         id: `schema-${name}`,
         label: name,
-        kind: 'schema' as const,
+        kind: "schema" as const,
         line: sourceMap[schemaPath]?.line,
-        deprecated: (schema as Record<string, unknown>).deprecated as boolean | undefined,
+        deprecated: (schema as Record<string, unknown>).deprecated as
+          | boolean
+          | undefined,
       };
     });
 
     nodes.push({
-      id: 'schemas',
+      id: "schemas",
       label: `Schemas (${schemaNodes.length})`,
-      kind: 'schemas',
+      kind: "schemas",
       children: schemaNodes,
     });
   }
 
   // Security schemes
-  if (spec.components?.securitySchemes && Object.keys(spec.components.securitySchemes).length > 0) {
-    const securityNodes: OutlineNode[] = Object.keys(spec.components.securitySchemes).map((name) => {
+  if (
+    spec.components?.securitySchemes &&
+    Object.keys(spec.components.securitySchemes).length > 0
+  ) {
+    const securityNodes: OutlineNode[] = Object.keys(
+      spec.components.securitySchemes,
+    ).map((name) => {
       const secPath = `components.securitySchemes.${name}`;
       return {
         id: `security-${name}`,
         label: name,
-        kind: 'security' as const,
+        kind: "security" as const,
         line: sourceMap[secPath]?.line,
       };
     });
 
     nodes.push({
-      id: 'security',
+      id: "security",
       label: `Security (${securityNodes.length})`,
-      kind: 'security',
+      kind: "security",
       children: securityNodes,
     });
   }
@@ -260,15 +324,15 @@ function buildOutlineTree(spec: OpenAPIV3.Document, sourceMap: Record<string, { 
       return {
         id: `server-${index}`,
         label: server.url,
-        kind: 'servers' as const,
+        kind: "servers" as const,
         line: sourceMap[serverPath]?.line,
       };
     });
 
     nodes.push({
-      id: 'servers',
+      id: "servers",
       label: `Servers (${serverNodes.length})`,
-      kind: 'servers',
+      kind: "servers",
       children: serverNodes,
     });
   }

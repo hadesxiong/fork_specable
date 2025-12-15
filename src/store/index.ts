@@ -32,6 +32,75 @@ export interface SourceMap {
   [jsonPath: string]: SourcePosition;
 }
 
+// Graph types
+export type RightPanelView = 'preview' | 'graph' | 'diff';
+export type GraphFilter = 'all' | 'referenced' | 'orphaned';
+export type GraphEdgeType = 'ref' | 'allOf' | 'anyOf' | 'oneOf' | 'items';
+
+export interface SchemaProperty {
+  name: string;
+  type: string;
+  required: boolean;
+  refTarget?: string;
+}
+
+export interface GraphNode {
+  id: string;
+  type: 'schema' | 'endpoint';
+  label: string;
+  jsonPath: string;
+  referenced: boolean;
+  properties?: SchemaProperty[];
+  description?: string;
+}
+
+export interface GraphEdge {
+  source: string;
+  target: string;
+  type: GraphEdgeType;
+  sourceProperty?: string;
+}
+
+export interface GraphData {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}
+
+// Diff types
+export type DiffFilter = 'all' | 'breaking' | 'non-breaking';
+export type DiffChangeType = 'added' | 'removed' | 'modified';
+
+export interface DiffChange {
+  path: string;
+  type: DiffChangeType;
+  breaking: boolean;
+  breakingReason?: string;
+  oldValue?: unknown;
+  newValue?: unknown;
+  jsonPathOld?: string;
+  jsonPathNew?: string;
+}
+
+export interface DiffSummary {
+  added: number;
+  removed: number;
+  modified: number;
+  breaking: number;
+  nonBreaking: number;
+}
+
+export interface DiffResult {
+  changes: DiffChange[];
+  summary: DiffSummary;
+}
+
+export interface ComparisonSpec {
+  content: string;
+  parsed: OpenAPIV3.Document;
+  sourceMap: SourceMap;
+  name: string;
+}
+
 interface EditorState {
   // File state
   file: EditorFile | null;
@@ -50,6 +119,18 @@ interface EditorState {
   // UI state
   showPreview: boolean;
   showOutline: boolean;
+  rightPanelView: RightPanelView;
+
+  // Graph state
+  graphData: GraphData | null;
+  graphFilter: GraphFilter;
+  isGraphLoading: boolean;
+
+  // Diff state
+  comparisonSpec: ComparisonSpec | null;
+  diffResult: DiffResult | null;
+  diffFilter: DiffFilter;
+  isDiffLoading: boolean;
 
   // Editor reference (not persisted)
   editorView: EditorView | null;
@@ -77,6 +158,19 @@ interface EditorActions {
   // UI actions
   togglePreview: () => void;
   toggleOutline: () => void;
+  setRightPanelView: (view: RightPanelView) => void;
+
+  // Graph actions
+  setGraphData: (data: GraphData | null) => void;
+  setGraphFilter: (filter: GraphFilter) => void;
+  setGraphLoading: (loading: boolean) => void;
+
+  // Diff actions
+  setComparisonSpec: (spec: ComparisonSpec | null) => void;
+  setDiffResult: (result: DiffResult | null) => void;
+  setDiffFilter: (filter: DiffFilter) => void;
+  setDiffLoading: (loading: boolean) => void;
+  clearComparison: () => void;
 
   // Editor actions
   setEditorView: (view: EditorView | null) => void;
@@ -145,6 +239,14 @@ export const useEditorStore = create<EditorStore>()(
       warnings: [],
       showPreview: true,
       showOutline: true,
+      rightPanelView: 'preview',
+      graphData: null,
+      graphFilter: 'all',
+      isGraphLoading: false,
+      comparisonSpec: null,
+      diffResult: null,
+      diffFilter: 'all',
+      isDiffLoading: false,
       editorView: null,
 
       // File actions
@@ -182,6 +284,19 @@ export const useEditorStore = create<EditorStore>()(
       // UI actions
       togglePreview: () => set((state) => ({ showPreview: !state.showPreview })),
       toggleOutline: () => set((state) => ({ showOutline: !state.showOutline })),
+      setRightPanelView: (view) => set({ rightPanelView: view }),
+
+      // Graph actions
+      setGraphData: (data) => set({ graphData: data }),
+      setGraphFilter: (filter) => set({ graphFilter: filter }),
+      setGraphLoading: (loading) => set({ isGraphLoading: loading }),
+
+      // Diff actions
+      setComparisonSpec: (spec) => set({ comparisonSpec: spec }),
+      setDiffResult: (result) => set({ diffResult: result }),
+      setDiffFilter: (filter) => set({ diffFilter: filter }),
+      setDiffLoading: (loading) => set({ isDiffLoading: loading }),
+      clearComparison: () => set({ comparisonSpec: null, diffResult: null }),
 
       // Editor actions
       setEditorView: (view) => set({ editorView: view }),
@@ -220,6 +335,9 @@ export const useEditorStore = create<EditorStore>()(
       partialize: (state) => ({
         showPreview: state.showPreview,
         showOutline: state.showOutline,
+        rightPanelView: state.rightPanelView,
+        graphFilter: state.graphFilter,
+        diffFilter: state.diffFilter,
         file: state.file,
       }),
     }

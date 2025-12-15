@@ -115,11 +115,11 @@ export function CommandPalette({
       aria-label="Command palette"
     >
       <div
-        className="absolute inset-0 bg-black/60"
+        className="absolute inset-0 bg-black/10 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="relative w-125 max-w-[90vw] bg-zinc-800 rounded-lg shadow-2xl border border-zinc-700 overflow-hidden">
+      <div className="relative w-125 max-w-[90vw] bg-zinc-900 rounded-xl shadow-2xl border border-zinc-800 overflow-hidden">
         <input
           ref={inputRef}
           type="text"
@@ -127,7 +127,7 @@ export function CommandPalette({
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type a command..."
-          className="w-full px-4 py-3 bg-transparent text-zinc-300 outline-none border-b border-zinc-700 placeholder-zinc-600"
+          className="w-full px-4 py-3.5 bg-transparent text-zinc-200 text-sm outline-none border-b border-zinc-800 placeholder-zinc-600"
           aria-label="Search commands"
           aria-autocomplete="list"
           aria-controls="command-list"
@@ -138,12 +138,15 @@ export function CommandPalette({
         <div
           ref={listRef}
           id="command-list"
-          className="max-h-75 overflow-y-auto"
+          className="max-h-80 overflow-y-auto py-1"
           role="listbox"
           aria-label="Available commands"
         >
           {filteredCommands.length === 0 ? (
-            <div className="px-4 py-8 text-center text-zinc-600" role="status">
+            <div
+              className="px-4 py-8 text-center text-zinc-600 text-sm"
+              role="status"
+            >
               No matching commands
             </div>
           ) : (
@@ -154,33 +157,21 @@ export function CommandPalette({
                 data-selected={index === selectedIndex}
                 role="option"
                 aria-selected={index === selectedIndex}
-                className={`px-4 py-2 flex items-center justify-between cursor-pointer transition-colors ${
+                className={`mx-1 px-3 py-2.5 flex items-center justify-between cursor-pointer rounded-lg transition-colors ${
                   index === selectedIndex
-                    ? "bg-blue-600 text-white"
-                    : "hover:bg-zinc-700"
+                    ? "bg-purple-500/20 text-zinc-100"
+                    : "text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200"
                 }`}
                 onClick={() => executeCommand(cmd)}
                 onMouseEnter={() => setSelectedIndex(index)}
               >
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`text-xs uppercase w-16 ${
-                      index === selectedIndex
-                        ? "text-white/70"
-                        : "text-zinc-600"
-                    }`}
-                    aria-hidden="true"
-                  >
-                    {cmd.category}
-                  </span>
-                  <span>{cmd.label}</span>
-                </div>
+                <span className="text-sm">{cmd.label}</span>
                 {cmd.shortcut && (
                   <kbd
-                    className={`px-2 py-0.5 text-xs rounded ${
+                    className={`px-2 py-1 text-xs rounded-md font-mono ${
                       index === selectedIndex
-                        ? "bg-white/20 text-white"
-                        : "bg-zinc-700 text-zinc-500"
+                        ? "bg-purple-500/30 text-purple-300"
+                        : "bg-zinc-800 text-zinc-500"
                     }`}
                     aria-label={`Keyboard shortcut: ${cmd.shortcut}`}
                   >

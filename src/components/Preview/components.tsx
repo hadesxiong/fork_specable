@@ -9,15 +9,19 @@ import {
   formatConstraints,
   getRefName,
   getComposition,
+  getDiscriminatorValue,
+  isRecursiveRef,
   type SchemaObject,
+  type CompositionInfo,
+  type DiscriminatorInfo,
 } from './schema-utils';
 
 // Location badge colours
 const LOCATION_STYLES: Record<string, { bg: string; text: string }> = {
-  path: { bg: 'bg-purple-900/50', text: 'text-purple-400' },
-  query: { bg: 'bg-blue-900/50', text: 'text-blue-400' },
-  header: { bg: 'bg-teal-900/50', text: 'text-teal-400' },
-  cookie: { bg: 'bg-orange-900/50', text: 'text-orange-400' },
+  path: { bg: 'bg-purple-500/15', text: 'text-purple-400' },
+  query: { bg: 'bg-cyan-500/15', text: 'text-cyan-400' },
+  header: { bg: 'bg-emerald-500/15', text: 'text-emerald-400' },
+  cookie: { bg: 'bg-amber-500/15', text: 'text-amber-400' },
 };
 
 interface CollapsibleSectionProps {
@@ -254,6 +258,12 @@ function PropertyRow({ name, schema, required, spec, depth, maxDepth }: Property
 
   const showExpandButton = (isObject || isArray || hasCompositionSchema) && depth < maxDepth;
 
+  // Extract readOnly/writeOnly and const from schema
+  const schemaObj = isRef(schema) ? null : schema;
+  const isReadOnly = schemaObj?.readOnly;
+  const isWriteOnly = schemaObj?.writeOnly;
+  const constValue = schemaObj && 'const' in schemaObj ? schemaObj.const : undefined;
+
   return (
     <div>
       <div className="flex items-center gap-2 py-1">
@@ -279,6 +289,21 @@ function PropertyRow({ name, schema, required, spec, depth, maxDepth }: Property
           {required && <span className="text-red-500">*</span>}
         </span>
         <TypeBadge type={type} />
+        {constValue !== undefined && (
+          <span className="px-1 py-0.5 bg-emerald-900/30 text-emerald-400 text-xs rounded font-mono">
+            = {JSON.stringify(constValue)}
+          </span>
+        )}
+        {isReadOnly && (
+          <span className="px-1 py-0.5 bg-zinc-700 text-zinc-400 text-xs rounded">
+            read-only
+          </span>
+        )}
+        {isWriteOnly && (
+          <span className="px-1 py-0.5 bg-zinc-700 text-zinc-400 text-xs rounded">
+            write-only
+          </span>
+        )}
         {!isRef(schema) && schema.description && (
           <span className="text-xs text-zinc-500">
             {schema.description}
@@ -300,13 +325,11 @@ function PropertyRow({ name, schema, required, spec, depth, maxDepth }: Property
 }
 
 interface CompositionDisplayProps {
-  composition: {
-    type: 'oneOf' | 'anyOf' | 'allOf';
-    variants: SchemaObject[];
-  };
+  composition: CompositionInfo;
   spec: OpenAPIV3.Document;
   depth: number;
   maxDepth: number;
+  ancestorRefs?: Set<string>;
 }
 
 const COMPOSITION_STYLES: Record<string, { bg: string; border: string; text: string; label: string }> = {
@@ -315,13 +338,21 @@ const COMPOSITION_STYLES: Record<string, { bg: string; border: string; text: str
   allOf: { bg: 'bg-violet-900/20', border: 'border-violet-800/50', text: 'text-violet-400', label: 'All of' },
 };
 
-function CompositionDisplay({ composition, spec, depth, maxDepth }: CompositionDisplayProps) {
+function CompositionDisplay({ composition, spec, depth, maxDepth, ancestorRefs = new Set() }: CompositionDisplayProps) {
   const style = COMPOSITION_STYLES[composition.type];
+  const { discriminator } = composition;
 
   return (
     <div className="space-y-2 mb-2">
-      <div className={`text-xs font-medium ${style.text}`}>
-        {style.label}:
+      <div className="flex items-center gap-2">
+        <span className={`text-xs font-medium ${style.text}`}>
+          {style.label}:
+        </span>
+        {discriminator && (
+          <span className="px-1.5 py-0.5 bg-zinc-700 text-zinc-300 text-xs rounded font-mono">
+            {discriminator.propertyName}
+          </span>
+        )}
       </div>
       {composition.variants.map((variant, index) => (
         <CompositionVariant
@@ -332,6 +363,8 @@ function CompositionDisplay({ composition, spec, depth, maxDepth }: CompositionD
           spec={spec}
           depth={depth}
           maxDepth={maxDepth}
+          discriminator={discriminator}
+          ancestorRefs={ancestorRefs}
         />
       ))}
     </div>
@@ -345,18 +378,35 @@ interface CompositionVariantProps {
   spec: OpenAPIV3.Document;
   depth: number;
   maxDepth: number;
+  discriminator?: DiscriminatorInfo;
+  ancestorRefs?: Set<string>;
 }
 
-function CompositionVariant({ variant, index, style, spec, depth, maxDepth }: CompositionVariantProps) {
+function CompositionVariant({ variant, index, style, spec, depth, maxDepth, discriminator, ancestorRefs = new Set() }: CompositionVariantProps) {
   const variantType = getSchemaType(variant, spec);
   const resolved = isRef(variant) ? resolveRef(variant, spec) : null;
   const resolvedName = resolved?.name;
   const variantSchema = resolved?.schema ?? (isRef(variant) ? null : variant);
 
+  // Check for recursive reference
+  const isRecursive = isRecursiveRef(variant, ancestorRefs);
+
+  // Get discriminator value if this variant is referenced
+  const discriminatorValue = getDiscriminatorValue(variant, discriminator);
+
+  // Track this ref for nested recursion detection
+  const newAncestorRefs = new Set(ancestorRefs);
+  if (isRef(variant)) {
+    newAncestorRefs.add(variant.$ref);
+  }
+
   const properties = variantSchema?.properties ? Object.entries(variantSchema.properties) : [];
   const required = variantSchema?.required ?? [];
   const nestedComposition = variantSchema ? getComposition(variantSchema) : null;
   const hasStructure = properties.length > 0 || nestedComposition;
+
+  // Get const value from variant schema if present
+  const constValue = variantSchema && 'const' in variantSchema ? variantSchema.const : undefined;
 
   return (
     <div className={`rounded border ${style.border} ${style.bg} overflow-hidden`}>
@@ -367,9 +417,24 @@ function CompositionVariant({ variant, index, style, spec, depth, maxDepth }: Co
         <span className="text-xs text-zinc-200 font-mono font-medium">
           {resolvedName ?? variantType}
         </span>
+        {discriminatorValue && (
+          <span className="px-1.5 py-0.5 bg-emerald-900/30 text-emerald-400 text-xs rounded font-mono">
+            = "{discriminatorValue}"
+          </span>
+        )}
+        {constValue !== undefined && !discriminatorValue && (
+          <span className="px-1.5 py-0.5 bg-emerald-900/30 text-emerald-400 text-xs rounded font-mono">
+            = {JSON.stringify(constValue)}
+          </span>
+        )}
         {resolvedName && variantSchema?.type && (
           <span className="text-xs text-zinc-500">
             {variantSchema.type}
+          </span>
+        )}
+        {isRecursive && (
+          <span className="px-1.5 py-0.5 bg-blue-900/30 text-blue-400 text-xs rounded">
+            recursive
           </span>
         )}
       </div>
@@ -380,7 +445,7 @@ function CompositionVariant({ variant, index, style, spec, depth, maxDepth }: Co
         </div>
       )}
 
-      {hasStructure && depth < maxDepth && (
+      {hasStructure && depth < maxDepth && !isRecursive && (
         <div className="border-t border-zinc-700/50 px-2 py-2 bg-zinc-900/30">
           {nestedComposition && (
             <CompositionDisplay
@@ -388,30 +453,22 @@ function CompositionVariant({ variant, index, style, spec, depth, maxDepth }: Co
               spec={spec}
               depth={depth + 1}
               maxDepth={maxDepth}
+              ancestorRefs={newAncestorRefs}
             />
           )}
           {properties.length > 0 && (
             <div className="space-y-1">
-              {properties.map(([propName, propSchema]) => {
-                const propType = getSchemaType(propSchema as SchemaObject, spec);
-                const isRequired = required.includes(propName);
-                const propSchemaObj = propSchema as OpenAPIV3.SchemaObject;
-
-                return (
-                  <div key={propName} className="flex items-start gap-2">
-                    <span className="font-mono text-xs text-zinc-300">
-                      {propName}
-                      {isRequired && <span className="text-red-500">*</span>}
-                    </span>
-                    <span className="text-xs text-zinc-500">{propType}</span>
-                    {propSchemaObj.description && (
-                      <span className="text-xs text-zinc-500 truncate">
-                        {propSchemaObj.description}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
+              {properties.map(([propName, propSchema]) => (
+                <PropertyRow
+                  key={propName}
+                  name={propName}
+                  schema={propSchema as SchemaObject}
+                  required={required.includes(propName)}
+                  spec={spec}
+                  depth={depth + 1}
+                  maxDepth={maxDepth}
+                />
+              ))}
             </div>
           )}
         </div>
@@ -464,8 +521,8 @@ export function RequestBodySection({ requestBody, spec }: RequestBodySectionProp
                 onClick={() => setSelectedType(ct)}
                 className={`px-2 py-1 text-xs rounded transition-colors ${
                   selectedType === ct
-                    ? 'bg-blue-900/50 text-blue-400'
-                    : 'bg-zinc-700 text-zinc-400 hover:text-zinc-200'
+                    ? 'bg-purple-500/20 text-purple-400'
+                    : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300'
                 }`}
               >
                 {ct}
@@ -561,8 +618,8 @@ function ResponseCard({ code, response, spec }: ResponseCardProps) {
                     onClick={() => setSelectedType(ct)}
                     className={`px-2 py-1 text-xs rounded transition-colors ${
                       selectedType === ct
-                        ? 'bg-blue-900/50 text-blue-400'
-                        : 'bg-zinc-700 text-zinc-400 hover:text-zinc-200'
+                        ? 'bg-purple-500/20 text-purple-400'
+                        : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300'
                     }`}
                   >
                     {ct}

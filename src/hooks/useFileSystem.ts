@@ -130,6 +130,20 @@ paths: {}
     });
   }, [setFile]);
 
+  const exportAsJson = useCallback(async () => {
+    if (!file) return false;
+
+    const fs = getFileSystem();
+    return fs.exportAsJson(file.content, file.name);
+  }, [file]);
+
+  const exportAsYaml = useCallback(async () => {
+    if (!file) return false;
+
+    const fs = getFileSystem();
+    return fs.exportAsYaml(file.content, file.name);
+  }, [file]);
+
   return {
     openFile,
     importFromFile,
@@ -137,5 +151,7 @@ paths: {}
     saveFile,
     saveFileAs,
     newFile,
+    exportAsJson,
+    exportAsYaml,
   };
 }

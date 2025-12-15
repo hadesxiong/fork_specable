@@ -55,3 +55,80 @@ export interface ValidatorWorkerApi {
 export interface LinterWorkerApi {
   lint(content: string): Promise<LintResult>;
 }
+
+// Graph types
+export type GraphEdgeType = 'ref' | 'allOf' | 'anyOf' | 'oneOf' | 'items';
+
+export interface SchemaProperty {
+  name: string;
+  type: string;
+  required: boolean;
+  refTarget?: string;
+}
+
+export interface GraphNode {
+  id: string;
+  type: 'schema' | 'endpoint';
+  label: string;
+  jsonPath: string;
+  referenced: boolean;
+  properties?: SchemaProperty[];
+  description?: string;
+}
+
+export interface GraphEdge {
+  source: string;
+  target: string;
+  type: GraphEdgeType;
+  sourceProperty?: string;
+}
+
+export interface GraphData {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}
+
+export interface GraphResult {
+  data: GraphData;
+  computeTimeMs: number;
+}
+
+export interface GraphWorkerApi {
+  buildGraph(spec: OpenAPIV3.Document, includeEndpoints: boolean): Promise<GraphResult>;
+}
+
+// Diff types
+export type DiffChangeType = 'added' | 'removed' | 'modified';
+
+export interface DiffChange {
+  path: string;
+  type: DiffChangeType;
+  breaking: boolean;
+  breakingReason?: string;
+  oldValue?: unknown;
+  newValue?: unknown;
+  jsonPathOld?: string;
+  jsonPathNew?: string;
+}
+
+export interface DiffSummary {
+  added: number;
+  removed: number;
+  modified: number;
+  breaking: number;
+  nonBreaking: number;
+}
+
+export interface DiffResult {
+  changes: DiffChange[];
+  summary: DiffSummary;
+}
+
+export interface DiffComputeResult {
+  result: DiffResult;
+  computeTimeMs: number;
+}
+
+export interface DiffWorkerApi {
+  computeDiff(oldSpec: OpenAPIV3.Document, newSpec: OpenAPIV3.Document): Promise<DiffComputeResult>;
+}

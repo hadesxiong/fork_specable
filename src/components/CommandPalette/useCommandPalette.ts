@@ -6,6 +6,11 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
   const [isOpen, setIsOpen] = useState(false);
   const togglePreview = useEditorStore((state) => state.togglePreview);
   const toggleOutline = useEditorStore((state) => state.toggleOutline);
+  const showPreview = useEditorStore((state) => state.showPreview);
+  const setRightPanelView = useEditorStore((state) => state.setRightPanelView);
+  const setGraphFilter = useEditorStore((state) => state.setGraphFilter);
+  const setDiffFilter = useEditorStore((state) => state.setDiffFilter);
+  const clearComparison = useEditorStore((state) => state.clearComparison);
   const goToLine = useEditorStore((state) => state.goToLine);
   const editorView = useEditorStore((state) => state.editorView);
 
@@ -57,6 +62,82 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
         shortcut: 'Ctrl+Shift+E',
         category: 'view',
         action: toggleOutline,
+      },
+      {
+        id: 'view.showDocs',
+        label: 'Show Documentation View',
+        shortcut: 'Cmd+1',
+        category: 'view',
+        action: () => {
+          setRightPanelView('preview');
+          if (!showPreview) togglePreview();
+        },
+      },
+      {
+        id: 'view.showGraph',
+        label: 'Show Graph View',
+        shortcut: 'Cmd+2',
+        category: 'view',
+        action: () => {
+          setRightPanelView('graph');
+          if (!showPreview) togglePreview();
+        },
+      },
+      {
+        id: 'view.showDiff',
+        label: 'Show Diff View',
+        shortcut: 'Cmd+3',
+        category: 'view',
+        action: () => {
+          setRightPanelView('diff');
+          if (!showPreview) togglePreview();
+        },
+      },
+
+      // Graph commands
+      {
+        id: 'graph.showAll',
+        label: 'Graph: Show All Schemas',
+        category: 'view',
+        action: () => setGraphFilter('all'),
+      },
+      {
+        id: 'graph.showReferenced',
+        label: 'Graph: Show Referenced Only',
+        category: 'view',
+        action: () => setGraphFilter('referenced'),
+      },
+      {
+        id: 'graph.showOrphaned',
+        label: 'Graph: Show Orphaned Only',
+        category: 'view',
+        action: () => setGraphFilter('orphaned'),
+      },
+
+      // Diff commands
+      {
+        id: 'diff.showAll',
+        label: 'Diff: Show All Changes',
+        category: 'view',
+        action: () => setDiffFilter('all'),
+      },
+      {
+        id: 'diff.showBreaking',
+        label: 'Diff: Show Breaking Only',
+        category: 'view',
+        action: () => setDiffFilter('breaking'),
+      },
+      {
+        id: 'diff.showNonBreaking',
+        label: 'Diff: Show Non-Breaking Only',
+        category: 'view',
+        action: () => setDiffFilter('non-breaking'),
+      },
+      {
+        id: 'diff.clear',
+        label: 'Diff: Clear Comparison',
+        category: 'view',
+        action: clearComparison,
       },
 
       // Edit
@@ -128,7 +209,7 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
         },
       },
     ],
-    [togglePreview, toggleOutline, goToLine, editorView]
+    [togglePreview, toggleOutline, showPreview, setRightPanelView, setGraphFilter, setDiffFilter, clearComparison, goToLine, editorView]
   );
 
   const allCommands = useMemo(

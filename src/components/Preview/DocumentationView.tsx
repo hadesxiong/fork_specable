@@ -9,16 +9,16 @@ import {
   SecuritySection,
   SchemaDisplay,
 } from './components';
-import { getComposition, type SchemaObject } from './schema-utils';
+import { getComposition, resolveRef, type SchemaObject } from './schema-utils';
 
 const METHOD_STYLES: Record<string, { bg: string; text: string }> = {
-  get: { bg: 'bg-emerald-900/50', text: 'text-emerald-400' },
-  post: { bg: 'bg-blue-900/50', text: 'text-blue-400' },
-  put: { bg: 'bg-orange-900/50', text: 'text-orange-400' },
-  patch: { bg: 'bg-yellow-900/50', text: 'text-yellow-400' },
-  delete: { bg: 'bg-red-900/50', text: 'text-red-400' },
-  options: { bg: 'bg-gray-800', text: 'text-gray-400' },
-  head: { bg: 'bg-purple-900/50', text: 'text-purple-400' },
+  get: { bg: 'bg-emerald-500/15', text: 'text-emerald-400' },
+  post: { bg: 'bg-purple-500/15', text: 'text-purple-400' },
+  put: { bg: 'bg-amber-500/15', text: 'text-amber-400' },
+  patch: { bg: 'bg-yellow-500/15', text: 'text-yellow-400' },
+  delete: { bg: 'bg-red-500/15', text: 'text-red-400' },
+  options: { bg: 'bg-zinc-500/15', text: 'text-zinc-400' },
+  head: { bg: 'bg-zinc-500/15', text: 'text-zinc-400' },
 };
 
 export function DocumentationView() {
@@ -73,7 +73,7 @@ export function DocumentationView() {
 
   if (!parsedSpec) {
     return (
-      <div className="h-full flex items-center justify-center bg-zinc-900 text-zinc-400">
+      <div className="h-full flex items-center justify-center bg-zinc-950 text-zinc-500">
         No valid specification to preview
       </div>
     );
@@ -82,34 +82,34 @@ export function DocumentationView() {
   const hasResults = filteredPaths.length > 0 || filteredSchemas.length > 0;
 
   return (
-    <div className="h-full flex flex-col bg-zinc-900">
+    <div className="h-full flex flex-col bg-zinc-950">
       {/* API Info Header with Search */}
-      <header className="sticky top-0 z-10 bg-zinc-900 border-b border-zinc-700 p-4">
-        <h1 className="text-xl font-semibold text-zinc-100">
+      <header className="sticky top-0 z-10 bg-zinc-950 border-b border-zinc-800 p-4">
+        <h1 className="text-lg font-medium text-zinc-100 tracking-tight">
           {parsedSpec.info.title}
         </h1>
         {parsedSpec.info.description && (
-          <p className="mt-1 text-sm text-zinc-400">
+          <p className="mt-2 text-sm text-zinc-400 leading-relaxed">
             {parsedSpec.info.description}
           </p>
         )}
-        <div className="flex gap-4 mt-2 text-xs">
-          <span className="text-blue-400">
-            Version: {parsedSpec.info.version}
+        <div className="flex gap-4 mt-3 text-xs">
+          <span className="text-purple-400">
+            v{parsedSpec.info.version}
           </span>
           {parsedSpec.servers?.[0] && (
-            <span className="text-teal-400">
+            <span className="text-zinc-500 font-mono">
               {parsedSpec.servers[0].url}
             </span>
           )}
         </div>
-        <div className="mt-3">
+        <div className="mt-4">
           <input
             type="text"
             placeholder="Filter endpoints and schemas..."
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="w-full px-3 py-1.5 text-sm bg-zinc-800 border border-zinc-700 rounded text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-blue-500"
+            className="w-full px-3 py-2 text-sm bg-zinc-900 border border-zinc-800 rounded-md text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-purple-500"
             aria-label="Filter preview"
           />
         </div>
@@ -118,7 +118,7 @@ export function DocumentationView() {
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {!hasResults && filter && (
-          <div className="text-center text-zinc-500 py-8">
+          <div className="text-center text-zinc-600 py-8">
             No matches found for "{filter}"
           </div>
         )}
@@ -137,7 +137,7 @@ export function DocumentationView() {
         {/* Schemas */}
         {filteredSchemas.length > 0 && (
           <div className="mt-8">
-            <h2 className="text-lg font-semibold text-zinc-100 mb-4 pb-2 border-b border-zinc-700">
+            <h2 className="text-base font-medium text-zinc-200 mb-4 pb-2 border-b border-zinc-800">
               Schemas ({filteredSchemas.length})
             </h2>
             <div className="space-y-3">
@@ -210,8 +210,22 @@ function OperationCard({
   onNavigate: () => void;
 }) {
   const style = METHOD_STYLES[method] ?? METHOD_STYLES.get;
-  const parameters = operation.parameters as OpenAPIV3.ParameterObject[] | undefined;
-  const hasParameters = parameters && parameters.length > 0;
+
+  // Resolve parameter $refs
+  const parameters = useMemo(() => {
+    if (!operation.parameters) return [];
+    return operation.parameters
+      .map((param) => {
+        if ('$ref' in param) {
+          const resolved = resolveRef(param as SchemaObject, spec);
+          return resolved?.schema as OpenAPIV3.ParameterObject | undefined;
+        }
+        return param as OpenAPIV3.ParameterObject;
+      })
+      .filter((p): p is OpenAPIV3.ParameterObject => p !== undefined);
+  }, [operation.parameters, spec]);
+
+  const hasParameters = parameters.length > 0;
 
   return (
     <div

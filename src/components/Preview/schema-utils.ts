@@ -106,23 +106,57 @@ export function hasComposition(schema: OpenAPIV3.SchemaObject): boolean {
   return Boolean(schema.oneOf || schema.anyOf || schema.allOf);
 }
 
-/**
- * Get the composition type and variants from a schema
- */
-export function getComposition(schema: OpenAPIV3.SchemaObject): {
+export interface DiscriminatorInfo {
+  propertyName: string;
+  mapping?: Record<string, string>;
+}
+
+export interface CompositionInfo {
   type: 'oneOf' | 'anyOf' | 'allOf';
   variants: SchemaObject[];
-} | null {
+  discriminator?: DiscriminatorInfo;
+}
+
+/**
+ * Get the composition type, variants, and discriminator from a schema
+ */
+export function getComposition(schema: OpenAPIV3.SchemaObject): CompositionInfo | null {
+  const discriminator = schema.discriminator
+    ? {
+        propertyName: schema.discriminator.propertyName,
+        mapping: schema.discriminator.mapping,
+      }
+    : undefined;
+
   if (schema.oneOf) {
-    return { type: 'oneOf', variants: schema.oneOf as SchemaObject[] };
+    return { type: 'oneOf', variants: schema.oneOf as SchemaObject[], discriminator };
   }
   if (schema.anyOf) {
-    return { type: 'anyOf', variants: schema.anyOf as SchemaObject[] };
+    return { type: 'anyOf', variants: schema.anyOf as SchemaObject[], discriminator };
   }
   if (schema.allOf) {
-    return { type: 'allOf', variants: schema.allOf as SchemaObject[] };
+    return { type: 'allOf', variants: schema.allOf as SchemaObject[], discriminator };
   }
   return null;
+}
+
+/**
+ * Get the discriminator value for a variant based on the mapping.
+ * Returns the key that maps to this variant's $ref, or undefined if not found.
+ */
+export function getDiscriminatorValue(
+  variant: SchemaObject,
+  discriminator: DiscriminatorInfo | undefined
+): string | undefined {
+  if (!discriminator?.mapping || !isRef(variant)) return undefined;
+
+  const variantRef = variant.$ref;
+  for (const [value, ref] of Object.entries(discriminator.mapping)) {
+    if (ref === variantRef) {
+      return value;
+    }
+  }
+  return undefined;
 }
 
 /**
@@ -137,11 +171,14 @@ export interface SchemaConstraints {
   maxLength?: number;
   pattern?: string;
   enum?: unknown[];
+  const?: unknown;
   default?: unknown;
   example?: unknown;
   minItems?: number;
   maxItems?: number;
   uniqueItems?: boolean;
+  readOnly?: boolean;
+  writeOnly?: boolean;
 }
 
 export function getConstraints(schema: OpenAPIV3.SchemaObject): SchemaConstraints {
@@ -156,11 +193,15 @@ export function getConstraints(schema: OpenAPIV3.SchemaObject): SchemaConstraint
   if (schema.maxLength !== undefined) constraints.maxLength = schema.maxLength;
   if (schema.pattern !== undefined) constraints.pattern = schema.pattern;
   if (schema.enum !== undefined) constraints.enum = schema.enum;
+  // OpenAPI 3.1 supports const (JSON Schema)
+  if ('const' in schema && schema.const !== undefined) constraints.const = schema.const;
   if (schema.default !== undefined) constraints.default = schema.default;
   if (schema.example !== undefined) constraints.example = schema.example;
   if (schema.minItems !== undefined) constraints.minItems = schema.minItems;
   if (schema.maxItems !== undefined) constraints.maxItems = schema.maxItems;
   if (schema.uniqueItems !== undefined) constraints.uniqueItems = schema.uniqueItems;
+  if (schema.readOnly) constraints.readOnly = true;
+  if (schema.writeOnly) constraints.writeOnly = true;
 
   return constraints;
 }
@@ -215,4 +256,59 @@ export function formatConstraints(constraints: SchemaConstraints): string[] {
 export function getRefName(ref: OpenAPIV3.ReferenceObject): string {
   const parts = ref.$ref.split('/');
   return parts[parts.length - 1];
+}
+
+/**
+ * Check if a schema contains a recursive reference to a given schema name.
+ * Used to detect self-referencing schemas like FilterGroup.
+ */
+export function isRecursiveRef(
+  schema: SchemaObject,
+  ancestorRefs: Set<string>
+): boolean {
+  if (isRef(schema)) {
+    return ancestorRefs.has(schema.$ref);
+  }
+  return false;
+}
+
+/**
+ * Collect all $ref paths from a schema and its nested structures.
+ * Useful for detecting circular references.
+ */
+export function collectRefs(schema: SchemaObject): Set<string> {
+  const refs = new Set<string>();
+
+  function walk(s: SchemaObject | undefined) {
+    if (!s) return;
+
+    if (isRef(s)) {
+      refs.add(s.$ref);
+      return;
+    }
+
+    if (s.properties) {
+      for (const propSchema of Object.values(s.properties)) {
+        walk(propSchema as SchemaObject);
+      }
+    }
+
+    if (s.type === 'array' && s.items) {
+      walk(s.items as SchemaObject);
+    }
+
+    if (s.additionalProperties && typeof s.additionalProperties === 'object') {
+      walk(s.additionalProperties as SchemaObject);
+    }
+
+    const composition = getComposition(s);
+    if (composition) {
+      for (const variant of composition.variants) {
+        walk(variant);
+      }
+    }
+  }
+
+  walk(schema);
+  return refs;
 }

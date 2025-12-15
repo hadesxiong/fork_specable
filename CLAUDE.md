@@ -30,13 +30,20 @@ pnpm test -t "source map"
 - **Zustand store** (`src/store/index.ts`): Single store managing file state, parsed spec, validation results, and UI state (panel visibility, editor reference)
 - State is persisted to localStorage for panel preferences and current file
 
+### Web Workers
+All heavy processing is offloaded to Web Workers using Comlink for typed RPC:
+- `validator.worker.ts`: YAML/JSON parsing, OpenAPI schema validation (swagger-parser)
+- `linter.worker.ts`: Spectral linting for best practices
+- `graph.worker.ts`: Builds schema relationship graph (nodes and edges) from parsed spec
+- `diff.worker.ts`: Computes API differences with breaking change detection (uses deep-diff)
+
+Worker API types are defined in `src/workers/types.ts`. Note that types like `GraphNode`, `DiffChange` etc. are duplicated in both `src/workers/types.ts` and `src/store/index.ts` - keep them in sync when modifying.
+
 ### Validation Pipeline
-- **Web Workers** offload validation from the main thread:
-  - `validator.worker.ts`: YAML/JSON parsing, OpenAPI schema validation (swagger-parser)
-  - `linter.worker.ts`: Spectral linting for best practices
-- **ValidationPipeline** (`src/services/validation-pipeline.ts`): Coordinates workers with debouncing (300ms) and cancellation
-- Workers communicate via Comlink for typed RPC
+- **ValidationPipeline** (`src/services/validation-pipeline.ts`): Coordinates validator and linter workers with debouncing (300ms) and cancellation
+- **Singleton**: Use `getValidationPipeline()` to get the shared instance
 - **Data flow**: Content change → `useValidation` hook → debounced `ValidationPipeline.validate()` → worker → store update
+- **Cancellation**: Uses `AbortController` to cancel in-flight validations when content changes rapidly
 - **Limitation**: OpenAPI 3.1.x specs only get syntax validation (swagger-parser doesn't support 3.1 schema validation)
 
 ### Editor
@@ -49,9 +56,14 @@ pnpm test -t "source map"
 - **Three-panel layout** (`src/components/Layout/MainLayout.tsx`):
   - Left: OutlineView (hierarchical spec navigation)
   - Centre: CodeMirror editor
-  - Right: DocumentationView (rendered preview)
+  - Right: Switchable view (preview/graph/diff) controlled by `rightPanelView` state
 - Resizable panels with drag handles
 - StatusBar shows validation status and diagnostics count
+
+### Right Panel Views
+- **DocumentationView**: Rendered API documentation preview
+- **GraphView**: Interactive schema relationship graph using PixiJS and d3-force for layout
+- **DiffView**: API comparison tool with breaking change detection (load a second spec to compare)
 
 ### Command Palette
 - `Ctrl+Shift+P` to open
