@@ -64,11 +64,17 @@ Worker API types are defined in `src/workers/types.ts`. Note that types like `Gr
 - **DocumentationView**: Rendered API documentation preview
 - **GraphView**: Interactive schema relationship graph using PixiJS and d3-force for layout
 - **DiffView**: API comparison tool with breaking change detection (load a second spec to compare)
+- **TryItOut**: Interactive API testing panel for executing requests against servers defined in the spec
 
 ### Command Palette
 - `Ctrl+Shift+P` to open
 - Fuzzy search via Fuse.js
 - Commands for navigation, editing, view toggles, and file operations
+
+### Keyboard Shortcuts
+- `Ctrl+Shift+P`: Open command palette
+- `F12`: Go to definition (navigate to `$ref` target)
+- `Ctrl+Click`: Navigate to `$ref` target under cursor
 
 ### File System
 - Uses File System Access API for native file open/save (`src/services/file-system.ts`)
