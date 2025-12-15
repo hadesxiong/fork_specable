@@ -219,6 +219,87 @@ const editorTheme = EditorView.theme({
     outline: '1px solid rgba(168, 85, 247, 0.4)',
     borderRadius: '2px',
   },
+  // Lint gutter markers
+  '.cm-lint-marker': {
+    width: '8px',
+    height: '8px',
+    borderRadius: '50%',
+    marginLeft: '4px',
+  },
+  '.cm-lint-marker-error': {
+    content: '""',
+    backgroundColor: '#f87171', // red-400
+  },
+  '.cm-lint-marker-warning': {
+    content: '""',
+    backgroundColor: '#fbbf24', // amber-400
+  },
+  '.cm-lint-marker-info': {
+    content: '""',
+    backgroundColor: '#c084fc', // purple-400
+  },
+  // Lint range underlines
+  '.cm-lintRange': {
+    backgroundPosition: 'left bottom',
+    backgroundRepeat: 'repeat-x',
+    paddingBottom: '0.7px',
+  },
+  '.cm-lintRange-error': {
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='3'%3E%3Cpath d='M0 3 L2 1 L4 3 L6 1' fill='none' stroke='%23f87171' stroke-width='1'/%3E%3C/svg%3E")`,
+  },
+  '.cm-lintRange-warning': {
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='3'%3E%3Cpath d='M0 3 L2 1 L4 3 L6 1' fill='none' stroke='%23fbbf24' stroke-width='1'/%3E%3C/svg%3E")`,
+  },
+  '.cm-lintRange-info': {
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='3'%3E%3Cpath d='M0 3 L2 1 L4 3 L6 1' fill='none' stroke='%23c084fc' stroke-width='1'/%3E%3C/svg%3E")`,
+  },
+  // Lint tooltip
+  '.cm-tooltip-lint': {
+    backgroundColor: '#18181b', // zinc-900
+    border: '1px solid #27272a', // zinc-800
+    borderRadius: '6px',
+    padding: '0',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)',
+    maxWidth: '400px',
+  },
+  '.cm-diagnostic': {
+    padding: '8px 12px',
+    fontFamily: 'var(--font-sans)',
+    fontSize: '12px',
+    lineHeight: '1.5',
+    borderLeft: '3px solid',
+  },
+  '.cm-diagnostic-error': {
+    borderLeftColor: '#f87171', // red-400
+    color: '#fecaca', // red-200
+  },
+  '.cm-diagnostic-warning': {
+    borderLeftColor: '#fbbf24', // amber-400
+    color: '#fde68a', // amber-200
+  },
+  '.cm-diagnostic-info': {
+    borderLeftColor: '#c084fc', // purple-400
+    color: '#e9d5ff', // purple-200
+  },
+  '.cm-diagnosticAction': {
+    padding: '2px 8px',
+    marginLeft: '8px',
+    backgroundColor: '#27272a', // zinc-800
+    color: '#a1a1aa', // zinc-400
+    borderRadius: '4px',
+    fontSize: '11px',
+    cursor: 'pointer',
+    '&:hover': {
+      backgroundColor: '#3f3f46', // zinc-700
+      color: '#e4e4e7', // zinc-200
+    },
+  },
+  '.cm-diagnosticSource': {
+    marginLeft: '8px',
+    color: '#71717a', // zinc-500
+    fontSize: '11px',
+    fontFamily: 'var(--font-mono)',
+  },
 }, { dark: true });
 
 const highlightStyle = HighlightStyle.define([

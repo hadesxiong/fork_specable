@@ -145,11 +145,16 @@ describe('CommandPalette', () => {
     expect(screen.getByText('Ctrl+O')).toBeInTheDocument();
   });
 
-  it('displays command categories', () => {
+  it('uses categories for fuzzy search', async () => {
+    const user = userEvent.setup();
     render(<CommandPalette isOpen={true} onClose={mockOnClose} commands={mockCommands} />);
-    expect(screen.getAllByText('edit').length).toBeGreaterThan(0);
-    expect(screen.getByText('navigation')).toBeInTheDocument();
-    expect(screen.getByText('file')).toBeInTheDocument();
+
+    // Search by category should find matching commands
+    const input = screen.getByRole('textbox');
+    await user.type(input, 'edit');
+
+    // Should find commands with 'edit' category
+    expect(screen.getByText('Test Command 1')).toBeInTheDocument();
   });
 
   it('shows no matches message when filter returns empty', async () => {

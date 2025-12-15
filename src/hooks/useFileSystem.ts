@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useEditorStore } from '../store';
 import { getFileSystem } from '../services/file-system';
+import { formatEditorContent } from '../utils/format';
 
 function detectLanguage(filename: string, content: string): 'yaml' | 'json' {
   if (filename.endsWith('.json')) return 'json';
@@ -94,8 +95,13 @@ export function useFileSystem() {
   const saveFile = useCallback(async () => {
     if (!file) return false;
 
+    formatEditorContent();
+
+    const currentFile = useEditorStore.getState().file;
+    if (!currentFile) return false;
+
     const fs = getFileSystem();
-    const success = await fs.saveFile(file);
+    const success = await fs.saveFile(currentFile);
     if (success) {
       markClean();
     }

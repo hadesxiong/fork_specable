@@ -6,6 +6,7 @@ import { OutlineView } from "../Outline";
 import { DocumentationView } from "../Preview";
 import { GraphView } from "../GraphView";
 import { DiffView } from "../DiffView";
+import { TryItOutView } from "../TryItOut";
 import { StatusBar } from "./StatusBar";
 import { DiagnosticsPanel } from "./DiagnosticsPanel";
 import { KeyboardShortcutsModal } from "./KeyboardShortcutsModal";
@@ -17,6 +18,7 @@ import {
 } from "../CommandPalette";
 import { useValidation } from "../../hooks/useValidation";
 import { useFileSystem } from "../../hooks/useFileSystem";
+import { formatEditorContent } from "../../utils/format";
 
 const MIN_PANEL_WIDTH = 150;
 const DEFAULT_OUTLINE_WIDTH = 220;
@@ -162,28 +164,39 @@ export function MainLayout() {
         e.preventDefault();
         saveFileAs();
       }
-      // Keyboard shortcuts: Ctrl+/
-      if ((e.ctrlKey || e.metaKey) && e.key === "/") {
+      // Keyboard shortcuts: F1
+      if (e.key === "F1") {
         e.preventDefault();
         setShowKeyboardShortcuts((prev) => !prev);
       }
-      // Switch to Docs: Cmd+1
+      // Switch to Docs: Ctrl+1
       if ((e.ctrlKey || e.metaKey) && e.key === "1") {
         e.preventDefault();
         setRightPanelView("preview");
         if (!showPreview) togglePreview();
       }
-      // Switch to Graph: Cmd+2
+      // Switch to Graph: Ctrl+2
       if ((e.ctrlKey || e.metaKey) && e.key === "2") {
         e.preventDefault();
         setRightPanelView("graph");
         if (!showPreview) togglePreview();
       }
-      // Switch to Diff: Cmd+3
+      // Switch to Diff: Ctrl+3
       if ((e.ctrlKey || e.metaKey) && e.key === "3") {
         e.preventDefault();
         setRightPanelView("diff");
         if (!showPreview) togglePreview();
+      }
+      // Switch to Try It: Ctrl+4
+      if ((e.ctrlKey || e.metaKey) && e.key === "4") {
+        e.preventDefault();
+        setRightPanelView("tryit");
+        if (!showPreview) togglePreview();
+      }
+      // Format document: Shift+Alt+F
+      if (e.shiftKey && e.altKey && e.key === "F") {
+        e.preventDefault();
+        formatEditorContent();
       }
     };
 
@@ -294,7 +307,7 @@ export function MainLayout() {
           <button
             onClick={() => setShowKeyboardShortcuts(true)}
             className="p-2 rounded-md text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50"
-            title="Keyboard Shortcuts (Ctrl+/)"
+            title="Keyboard Shortcuts (F1)"
             aria-label="Keyboard Shortcuts"
           >
             <Keyboard className="w-4 h-4" aria-hidden="true" />
@@ -368,6 +381,7 @@ export function MainLayout() {
                 {rightPanelView === "preview" && <DocumentationView />}
                 {rightPanelView === "graph" && <GraphView />}
                 {rightPanelView === "diff" && <DiffView />}
+                {rightPanelView === "tryit" && <TryItOutView />}
               </div>
             </aside>
           </>
@@ -407,9 +421,10 @@ interface RightPanelTabsProps {
 }
 
 const VIEW_TABS: { id: RightPanelView; label: string; shortcut: string }[] = [
-  { id: "preview", label: "Docs", shortcut: "Cmd+1" },
-  { id: "graph", label: "Graph", shortcut: "Cmd+2" },
-  { id: "diff", label: "Diff", shortcut: "Cmd+3" },
+  { id: "preview", label: "Docs", shortcut: "Ctrl+1" },
+  { id: "graph", label: "Graph", shortcut: "Ctrl+2" },
+  { id: "diff", label: "Diff", shortcut: "Ctrl+3" },
+  { id: "tryit", label: "Try It", shortcut: "Ctrl+4" },
 ];
 
 function RightPanelTabs({ activeView, onViewChange }: RightPanelTabsProps) {

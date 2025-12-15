@@ -9,6 +9,7 @@ import {
   SecuritySection,
   SchemaDisplay,
 } from './components';
+import { Markdown } from './Markdown';
 import { getComposition, resolveRef, type SchemaObject } from './schema-utils';
 
 const METHOD_STYLES: Record<string, { bg: string; text: string }> = {
@@ -89,9 +90,9 @@ export function DocumentationView() {
           {parsedSpec.info.title}
         </h1>
         {parsedSpec.info.description && (
-          <p className="mt-2 text-sm text-zinc-400 leading-relaxed">
-            {parsedSpec.info.description}
-          </p>
+          <div className="mt-2 text-sm text-zinc-400 leading-relaxed">
+            <Markdown>{parsedSpec.info.description}</Markdown>
+          </div>
         )}
         <div className="flex gap-4 mt-3 text-xs">
           <span className="text-purple-400">
@@ -266,9 +267,9 @@ function OperationCard({
         )}
 
         {operation.description && (
-          <p className="mt-1 text-xs text-zinc-400 whitespace-pre-wrap">
-            {operation.description}
-          </p>
+          <div className="mt-1 text-xs text-zinc-400">
+            <Markdown>{operation.description}</Markdown>
+          </div>
         )}
       </div>
 
@@ -356,9 +357,9 @@ function SchemaCard({
         </div>
 
         {schema.description && (
-          <p className="mt-1 text-xs text-zinc-400 whitespace-pre-wrap">
-            {schema.description}
-          </p>
+          <div className="mt-1 text-xs text-zinc-400">
+            <Markdown>{schema.description}</Markdown>
+          </div>
         )}
       </div>
 

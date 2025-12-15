@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { ChevronDown, ChevronRight, Lock, Key } from 'lucide-react';
 import type { OpenAPIV3 } from 'openapi-types';
+import { Markdown } from './Markdown';
 import {
   resolveRef,
   isRef,
@@ -114,7 +115,9 @@ export function ParameterRow({ param, spec }: ParameterRowProps) {
             )}
           </div>
           {param.description && (
-            <p className="text-xs text-zinc-400 mt-1">{param.description}</p>
+            <div className="text-xs text-zinc-400 mt-1">
+              <Markdown>{param.description}</Markdown>
+            </div>
           )}
           {constraintStrings.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-1">
@@ -200,7 +203,9 @@ export function SchemaDisplay({
         </div>
       )}
       {schemaObj.description && (
-        <p className="text-xs text-zinc-400 mb-2">{schemaObj.description}</p>
+        <div className="text-xs text-zinc-400 mb-2">
+          <Markdown>{schemaObj.description}</Markdown>
+        </div>
       )}
       {composition && (
         <CompositionDisplay
@@ -304,12 +309,12 @@ function PropertyRow({ name, schema, required, spec, depth, maxDepth }: Property
             write-only
           </span>
         )}
-        {!isRef(schema) && schema.description && (
-          <span className="text-xs text-zinc-500">
-            {schema.description}
-          </span>
-        )}
       </div>
+      {!isRef(schema) && schema.description && (
+        <div className="ml-6 text-xs text-zinc-500">
+          <Markdown>{schema.description}</Markdown>
+        </div>
+      )}
       {expanded && showExpandButton && (
         <div className="ml-4">
           <SchemaDisplay
@@ -441,7 +446,7 @@ function CompositionVariant({ variant, index, style, spec, depth, maxDepth, disc
 
       {variantSchema?.description && (
         <div className="px-2 pb-1.5 text-xs text-zinc-400">
-          {variantSchema.description}
+          <Markdown>{variantSchema.description}</Markdown>
         </div>
       )}
 
@@ -510,7 +515,9 @@ export function RequestBodySection({ requestBody, spec }: RequestBodySectionProp
     >
       <div className="bg-zinc-800/50 rounded p-3">
         {body.description && (
-          <p className="text-xs text-zinc-400 mb-2">{body.description}</p>
+          <div className="text-xs text-zinc-400 mb-2">
+            <Markdown>{body.description}</Markdown>
+          </div>
         )}
         {contentTypes.length > 1 && (
           <div className="flex gap-1 mb-2">
@@ -792,7 +799,9 @@ function SecuritySchemeDisplay({ name, scheme, scopes }: SecuritySchemeDisplayPr
           <span className="text-xs text-zinc-500">({getSchemeTypeLabel()})</span>
         </div>
         {scheme?.description && (
-          <p className="text-xs text-zinc-400 mt-0.5">{scheme.description}</p>
+          <div className="text-xs text-zinc-400 mt-0.5">
+            <Markdown>{scheme.description}</Markdown>
+          </div>
         )}
         {scopes.length > 0 && (
           <div className="mt-1 flex flex-wrap gap-1">

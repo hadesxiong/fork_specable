@@ -26,7 +26,7 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { keys: "Ctrl+G", description: "Go to line" },
       { keys: "F12", description: "Go to definition" },
       { keys: "Ctrl+Shift+P", description: "Command palette" },
-      { keys: "Ctrl+/", description: "Keyboard shortcuts" },
+      { keys: "F1", description: "Keyboard shortcuts" },
     ],
   },
   {
@@ -34,6 +34,10 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
     shortcuts: [
       { keys: "Ctrl+Shift+E", description: "Toggle outline panel" },
       { keys: "Ctrl+\\", description: "Toggle preview panel" },
+      { keys: "Ctrl+1", description: "Show Docs view" },
+      { keys: "Ctrl+2", description: "Show Graph view" },
+      { keys: "Ctrl+3", description: "Show Diff view" },
+      { keys: "Ctrl+4", description: "Show Try It view" },
     ],
   },
   {
@@ -44,6 +48,7 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { keys: "Ctrl+A", description: "Select all" },
       { keys: "Ctrl+F", description: "Find" },
       { keys: "Ctrl+H", description: "Find and replace" },
+      { keys: "Shift+Alt+F", description: "Format document" },
     ],
   },
   {

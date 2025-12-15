@@ -4,6 +4,7 @@ import { EditorView, keymap } from '@codemirror/view';
 import { useEditorStore } from '../../store';
 import { createExtensions } from './extensions';
 import { createRefNavigationExtension, goToDefinition } from './ref-navigation';
+import { setEditorDiagnostics } from './diagnostics';
 
 export function Editor() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -13,6 +14,8 @@ export function Editor() {
   const file = useEditorStore((state) => state.file);
   const setEditorView = useEditorStore((state) => state.setEditorView);
   const updateContent = useEditorStore((state) => state.updateContent);
+  const errors = useEditorStore((state) => state.errors);
+  const warnings = useEditorStore((state) => state.warnings);
 
   const handleDocChange = useCallback((content: string) => {
     if (!isUpdatingRef.current) {
@@ -83,6 +86,14 @@ export function Editor() {
       isUpdatingRef.current = false;
     }
   }, [file?.content]);
+
+  // Sync validation errors to editor diagnostics
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+
+    setEditorDiagnostics(view, errors, warnings);
+  }, [errors, warnings]);
 
   if (!file) {
     return (

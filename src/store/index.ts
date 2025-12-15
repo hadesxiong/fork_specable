@@ -33,7 +33,7 @@ export interface SourceMap {
 }
 
 // Graph types
-export type RightPanelView = 'preview' | 'graph' | 'diff';
+export type RightPanelView = 'preview' | 'graph' | 'diff' | 'tryit';
 export type GraphFilter = 'all' | 'referenced' | 'orphaned';
 export type GraphEdgeType = 'ref' | 'allOf' | 'anyOf' | 'oneOf' | 'items';
 
@@ -101,6 +101,41 @@ export interface ComparisonSpec {
   name: string;
 }
 
+// Try It Out types
+export type AuthType = 'none' | 'bearer' | 'apiKey' | 'basic';
+
+export interface AuthConfig {
+  type: AuthType;
+  bearerToken: string;
+  apiKeyName: string;
+  apiKeyValue: string;
+  apiKeyLocation: 'header' | 'query';
+  username: string;
+  password: string;
+}
+
+export interface TryItResponse {
+  status: number;
+  statusText: string;
+  headers: Record<string, string>;
+  body: string;
+  responseTimeMs: number;
+  error?: string;
+  isCorsError?: boolean;
+}
+
+export interface TryItState {
+  selectedOperationId: string | null;
+  selectedServer: string | null;
+  customServerUrl: string;
+  authConfig: AuthConfig;
+  parameterValues: Record<string, string>;
+  requestBody: string;
+  requestContentType: string;
+  isExecuting: boolean;
+  lastResponse: TryItResponse | null;
+}
+
 interface EditorState {
   // File state
   file: EditorFile | null;
@@ -131,6 +166,9 @@ interface EditorState {
   diffResult: DiffResult | null;
   diffFilter: DiffFilter;
   isDiffLoading: boolean;
+
+  // Try It Out state
+  tryIt: TryItState;
 
   // Editor reference (not persisted)
   editorView: EditorView | null;
@@ -171,6 +209,18 @@ interface EditorActions {
   setDiffFilter: (filter: DiffFilter) => void;
   setDiffLoading: (loading: boolean) => void;
   clearComparison: () => void;
+
+  // Try It Out actions
+  setTryItOperation: (operationId: string | null) => void;
+  setTryItServer: (server: string | null) => void;
+  setTryItCustomServer: (url: string) => void;
+  setTryItAuth: (config: Partial<AuthConfig>) => void;
+  setTryItParameter: (key: string, value: string) => void;
+  setTryItRequestBody: (body: string) => void;
+  setTryItContentType: (contentType: string) => void;
+  setTryItExecuting: (executing: boolean) => void;
+  setTryItResponse: (response: TryItResponse | null) => void;
+  resetTryItParameters: () => void;
 
   // Editor actions
   setEditorView: (view: EditorView | null) => void;
@@ -247,6 +297,25 @@ export const useEditorStore = create<EditorStore>()(
       diffResult: null,
       diffFilter: 'all',
       isDiffLoading: false,
+      tryIt: {
+        selectedOperationId: null,
+        selectedServer: null,
+        customServerUrl: '',
+        authConfig: {
+          type: 'none',
+          bearerToken: '',
+          apiKeyName: '',
+          apiKeyValue: '',
+          apiKeyLocation: 'header',
+          username: '',
+          password: '',
+        },
+        parameterValues: {},
+        requestBody: '',
+        requestContentType: 'application/json',
+        isExecuting: false,
+        lastResponse: null,
+      },
       editorView: null,
 
       // File actions
@@ -298,6 +367,38 @@ export const useEditorStore = create<EditorStore>()(
       setDiffLoading: (loading) => set({ isDiffLoading: loading }),
       clearComparison: () => set({ comparisonSpec: null, diffResult: null }),
 
+      // Try It Out actions
+      setTryItOperation: (operationId) => set((state) => ({
+        tryIt: { ...state.tryIt, selectedOperationId: operationId, parameterValues: {}, requestBody: '', lastResponse: null },
+      })),
+      setTryItServer: (server) => set((state) => ({
+        tryIt: { ...state.tryIt, selectedServer: server },
+      })),
+      setTryItCustomServer: (url) => set((state) => ({
+        tryIt: { ...state.tryIt, customServerUrl: url },
+      })),
+      setTryItAuth: (config) => set((state) => ({
+        tryIt: { ...state.tryIt, authConfig: { ...state.tryIt.authConfig, ...config } },
+      })),
+      setTryItParameter: (key, value) => set((state) => ({
+        tryIt: { ...state.tryIt, parameterValues: { ...state.tryIt.parameterValues, [key]: value } },
+      })),
+      setTryItRequestBody: (body) => set((state) => ({
+        tryIt: { ...state.tryIt, requestBody: body },
+      })),
+      setTryItContentType: (contentType) => set((state) => ({
+        tryIt: { ...state.tryIt, requestContentType: contentType },
+      })),
+      setTryItExecuting: (executing) => set((state) => ({
+        tryIt: { ...state.tryIt, isExecuting: executing },
+      })),
+      setTryItResponse: (response) => set((state) => ({
+        tryIt: { ...state.tryIt, lastResponse: response, isExecuting: false },
+      })),
+      resetTryItParameters: () => set((state) => ({
+        tryIt: { ...state.tryIt, parameterValues: {}, requestBody: '' },
+      })),
+
       // Editor actions
       setEditorView: (view) => set({ editorView: view }),
 
@@ -339,6 +440,16 @@ export const useEditorStore = create<EditorStore>()(
         graphFilter: state.graphFilter,
         diffFilter: state.diffFilter,
         file: state.file,
+        // Persist TryIt preferences but NOT sensitive credentials
+        tryIt: {
+          selectedServer: state.tryIt.selectedServer,
+          customServerUrl: state.tryIt.customServerUrl,
+          authConfig: {
+            type: state.tryIt.authConfig.type,
+            apiKeyLocation: state.tryIt.authConfig.apiKeyLocation,
+          },
+          requestContentType: state.tryIt.requestContentType,
+        },
       }),
     }
   )

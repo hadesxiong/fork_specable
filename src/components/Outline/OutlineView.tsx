@@ -138,12 +138,12 @@ export function OutlineView() {
               />
             )
           ) : (
-            <span className="w-4 shrink-0" aria-hidden="true" />
+            <span className="w-2 shrink-0" aria-hidden="true" />
           )}
 
           {node.method ? (
             <span
-              className={`text-xs font-mono font-bold shrink-0 w-10 ${METHOD_COLOURS[node.method]}`}
+              className={`text-xs font-mono font-bold shrink-0 w-12 ${METHOD_COLOURS[node.method]}`}
               aria-hidden="true"
             >
               {node.method.toUpperCase()}

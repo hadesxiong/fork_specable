@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useEditorStore } from '../../store';
+import { formatEditorContent } from '../../utils/format';
 import type { Command } from './CommandPalette';
 
 export function useCommandPalette(additionalCommands: Command[] = []) {
@@ -66,7 +67,7 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
       {
         id: 'view.showDocs',
         label: 'Show Documentation View',
-        shortcut: 'Cmd+1',
+        shortcut: 'Ctrl+1',
         category: 'view',
         action: () => {
           setRightPanelView('preview');
@@ -76,7 +77,7 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
       {
         id: 'view.showGraph',
         label: 'Show Graph View',
-        shortcut: 'Cmd+2',
+        shortcut: 'Ctrl+2',
         category: 'view',
         action: () => {
           setRightPanelView('graph');
@@ -86,10 +87,20 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
       {
         id: 'view.showDiff',
         label: 'Show Diff View',
-        shortcut: 'Cmd+3',
+        shortcut: 'Ctrl+3',
         category: 'view',
         action: () => {
           setRightPanelView('diff');
+          if (!showPreview) togglePreview();
+        },
+      },
+      {
+        id: 'view.showTryIt',
+        label: 'Show Try It View',
+        shortcut: 'Ctrl+4',
+        category: 'view',
+        action: () => {
+          setRightPanelView('tryit');
           if (!showPreview) togglePreview();
         },
       },
@@ -179,6 +190,13 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
             });
           }
         },
+      },
+      {
+        id: 'edit.format',
+        label: 'Format Document',
+        shortcut: 'Shift+Alt+F',
+        category: 'edit',
+        action: formatEditorContent,
       },
 
       // OpenAPI

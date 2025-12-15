@@ -23,6 +23,8 @@
     "@codemirror/search": "^6.5.11",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.39.4",
+    "@fontsource-variable/geist": "^5.2.8",
+    "@fontsource-variable/geist-mono": "^5.2.7",
     "@lezer/highlight": "^1.2.3",
     "@stoplight/spectral-core": "^1.20.0",
     "@stoplight/spectral-parsers": "^1.0.5",
@@ -40,6 +42,8 @@
     "pixi.js": "^8.14.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "tailwindcss": "^4.1.18",
     "yaml": "^2.8.2",
     "zustand": "^5.0.9"
