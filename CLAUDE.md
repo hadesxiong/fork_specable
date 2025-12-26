@@ -65,6 +65,7 @@ Worker API types are defined in `src/workers/types.ts`. Note that types like `Gr
 - **GraphView**: Interactive schema relationship graph using PixiJS and d3-force for layout
 - **DiffView**: API comparison tool with breaking change detection (load a second spec to compare)
 - **TryItOut**: Interactive API testing panel for executing requests against servers defined in the spec
+- **HistoryView**: Version history with IndexedDB-backed snapshots (deduped by content hash)
 
 ### Command Palette
 - `Ctrl+Shift+P` to open
@@ -79,6 +80,11 @@ Worker API types are defined in `src/workers/types.ts`. Note that types like `Gr
 ### File System
 - Uses File System Access API for native file open/save (`src/services/file-system.ts`)
 - `useFileSystem` hook wraps operations and updates store
+
+### Version History
+- **IndexedDB storage** (`src/services/version-history-db.ts`): Persists spec snapshots with SHA-256 deduplication
+- **Singleton**: Use `getVersionHistoryDB()` to get the shared instance
+- Automatically prunes old snapshots (default 50 per file)
 
 ## Key Patterns
 

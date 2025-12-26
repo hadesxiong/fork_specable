@@ -1,5 +1,5 @@
-import { useCallback, useState, useMemo } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useCallback, useState, useMemo, useRef, useEffect } from 'react';
+import { ChevronDown, ChevronUp, Copy, Check, SlidersHorizontal } from 'lucide-react';
 import { useEditorStore } from '../../store';
 import type { OpenAPIV3 } from 'openapi-types';
 import {
@@ -23,12 +23,67 @@ const METHOD_STYLES: Record<string, { bg: string; text: string }> = {
   head: { bg: 'bg-zinc-500/15', text: 'text-zinc-400' },
 };
 
+interface SearchFilters {
+  path: boolean;
+  description: boolean;
+  operationId: boolean;
+  parameterName: boolean;
+  schemaField: boolean;
+  bodyField: boolean;
+}
+
+const DEFAULT_FILTERS: SearchFilters = {
+  path: true,
+  description: true,
+  operationId: true,
+  parameterName: false,
+  schemaField: false,
+  bodyField: false,
+};
+
 export function DocumentationView() {
   const parsedSpec = useEditorStore((state) => state.parsedSpec);
   const sourceMap = useEditorStore((state) => state.sourceMap);
   const goToLine = useEditorStore((state) => state.goToLine);
   const [filter, setFilter] = useState('');
   const [headerExpanded, setHeaderExpanded] = useState(true);
+  const [searchFilters, setSearchFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const filterMenuRef = useRef<HTMLDivElement>(null);
+  const filterButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        filterMenuRef.current &&
+        !filterMenuRef.current.contains(event.target as Node) &&
+        filterButtonRef.current &&
+        !filterButtonRef.current.contains(event.target as Node)
+      ) {
+        setShowFilterMenu(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const toggleFilter = useCallback((key: keyof SearchFilters) => {
+    setSearchFilters((prev) => ({ ...prev, [key]: !prev[key] }));
+  }, []);
+
+  const activeFilterCount = Object.values(searchFilters).filter(Boolean).length;
+
+  const searchPlaceholder = useMemo(() => {
+    if (activeFilterCount === 0) return 'No filters active';
+    const labels: string[] = [];
+    if (searchFilters.path) labels.push('path');
+    if (searchFilters.description) labels.push('description');
+    if (searchFilters.operationId) labels.push('operation ID');
+    if (searchFilters.parameterName) labels.push('parameters');
+    if (searchFilters.schemaField) labels.push('schema fields');
+    if (searchFilters.bodyField) labels.push('body fields');
+    return `Filter by ${labels.join(', ')}...`;
+  }, [searchFilters, activeFilterCount]);
 
   const navigateToPath = useCallback((path: string) => {
     const position = sourceMap[path];
@@ -43,22 +98,63 @@ export function DocumentationView() {
     if (!filter) return entries;
 
     const lowerFilter = filter.toLowerCase();
+
+    const searchSchemaFields = (schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject | undefined): boolean => {
+      if (!schema) return false;
+      if ('$ref' in schema) {
+        const refName = schema.$ref.split('/').pop();
+        return refName?.toLowerCase().includes(lowerFilter) ?? false;
+      }
+      if (schema.properties) {
+        for (const propName of Object.keys(schema.properties)) {
+          if (propName.toLowerCase().includes(lowerFilter)) return true;
+        }
+      }
+      if (schema.type === 'array' && schema.items) {
+        return searchSchemaFields(schema.items);
+      }
+      return false;
+    };
+
     return entries.filter(([path, pathItem]) => {
-      if (path.toLowerCase().includes(lowerFilter)) return true;
+      if (searchFilters.path && path.toLowerCase().includes(lowerFilter)) return true;
 
       const item = pathItem as OpenAPIV3.PathItemObject;
       const methods = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head'] as const;
       for (const method of methods) {
         const operation = (item as Record<string, unknown>)[method] as OpenAPIV3.OperationObject | undefined;
         if (operation) {
-          if (operation.summary?.toLowerCase().includes(lowerFilter)) return true;
-          if (operation.description?.toLowerCase().includes(lowerFilter)) return true;
-          if (operation.operationId?.toLowerCase().includes(lowerFilter)) return true;
+          if (searchFilters.path && operation.summary?.toLowerCase().includes(lowerFilter)) return true;
+          if (searchFilters.description && operation.description?.toLowerCase().includes(lowerFilter)) return true;
+          if (searchFilters.operationId && operation.operationId?.toLowerCase().includes(lowerFilter)) return true;
+
+          if (searchFilters.parameterName && operation.parameters) {
+            for (const param of operation.parameters) {
+              if (!('$ref' in param) && param.name?.toLowerCase().includes(lowerFilter)) return true;
+            }
+          }
+
+          if (searchFilters.bodyField && operation.requestBody && !('$ref' in operation.requestBody)) {
+            const content = operation.requestBody.content;
+            for (const mediaType of Object.values(content ?? {})) {
+              if (searchSchemaFields(mediaType.schema)) return true;
+            }
+          }
+
+          if (searchFilters.bodyField && operation.responses) {
+            for (const response of Object.values(operation.responses)) {
+              if (response && !('$ref' in response) && response.content) {
+                for (const mediaType of Object.values(response.content)) {
+                  if (searchSchemaFields(mediaType.schema)) return true;
+                }
+              }
+            }
+          }
         }
       }
       return false;
     });
-  }, [parsedSpec?.paths, filter]);
+  }, [parsedSpec?.paths, filter, searchFilters]);
 
   const filteredSchemas = useMemo(() => {
     if (!parsedSpec?.components?.schemas) return [];
@@ -67,12 +163,17 @@ export function DocumentationView() {
 
     const lowerFilter = filter.toLowerCase();
     return entries.filter(([name, schema]) => {
-      if (name.toLowerCase().includes(lowerFilter)) return true;
+      if (searchFilters.path && name.toLowerCase().includes(lowerFilter)) return true;
       const schemaObj = schema as OpenAPIV3.SchemaObject;
-      if (schemaObj.description?.toLowerCase().includes(lowerFilter)) return true;
+      if (searchFilters.description && schemaObj.description?.toLowerCase().includes(lowerFilter)) return true;
+      if (searchFilters.schemaField && schemaObj.properties) {
+        for (const propName of Object.keys(schemaObj.properties)) {
+          if (propName.toLowerCase().includes(lowerFilter)) return true;
+        }
+      }
       return false;
     });
-  }, [parsedSpec?.components?.schemas, filter]);
+  }, [parsedSpec?.components?.schemas, filter, searchFilters]);
 
   if (!parsedSpec) {
     return (
@@ -135,15 +236,73 @@ export function DocumentationView() {
           </span>
         )}
 
-        <div className="mt-3">
+        <div className="mt-3 flex gap-2">
           <input
             type="text"
-            placeholder="Filter endpoints and schemas..."
+            placeholder={searchPlaceholder}
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="w-full px-3 py-2 text-sm bg-zinc-900 border border-zinc-800 rounded-md text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-purple-500"
+            className="flex-1 px-3 py-2 text-sm bg-zinc-900 border border-zinc-800 rounded-md text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-purple-500"
             aria-label="Filter preview"
           />
+          <div className="relative">
+            <button
+              ref={filterButtonRef}
+              type="button"
+              onClick={() => setShowFilterMenu(!showFilterMenu)}
+              className={`p-2 rounded-md border transition-colors ${
+                showFilterMenu || activeFilterCount !== Object.keys(DEFAULT_FILTERS).length
+                  ? 'bg-purple-500/20 border-purple-500/50 text-purple-400'
+                  : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
+              }`}
+              aria-label="Search filters"
+              aria-expanded={showFilterMenu}
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+            </button>
+            {showFilterMenu && (
+              <div
+                ref={filterMenuRef}
+                className="absolute right-0 top-full mt-1 w-48 bg-zinc-900 border border-zinc-700 rounded-md shadow-xl z-20"
+              >
+                <div className="p-2 border-b border-zinc-800">
+                  <span className="text-xs font-medium text-zinc-400">Search in</span>
+                </div>
+                <div className="p-1">
+                  <FilterCheckbox
+                    label="Path / Name"
+                    checked={searchFilters.path}
+                    onChange={() => toggleFilter('path')}
+                  />
+                  <FilterCheckbox
+                    label="Description"
+                    checked={searchFilters.description}
+                    onChange={() => toggleFilter('description')}
+                  />
+                  <FilterCheckbox
+                    label="Operation ID"
+                    checked={searchFilters.operationId}
+                    onChange={() => toggleFilter('operationId')}
+                  />
+                  <FilterCheckbox
+                    label="Parameter names"
+                    checked={searchFilters.parameterName}
+                    onChange={() => toggleFilter('parameterName')}
+                  />
+                  <FilterCheckbox
+                    label="Schema fields"
+                    checked={searchFilters.schemaField}
+                    onChange={() => toggleFilter('schemaField')}
+                  />
+                  <FilterCheckbox
+                    label="Request/response fields"
+                    checked={searchFilters.bodyField}
+                    onChange={() => toggleFilter('bodyField')}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -242,6 +401,14 @@ function OperationCard({
   onNavigate: () => void;
 }) {
   const style = METHOD_STYLES[method] ?? METHOD_STYLES.get;
+  const [copied, setCopied] = useState(false);
+
+  const copyPath = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(path);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }, [path]);
 
   // Resolve parameter $refs
   const parameters = useMemo(() => {
@@ -284,6 +451,18 @@ function OperationCard({
           <code className="text-sm text-zinc-200 font-mono">
             {path}
           </code>
+          <button
+            type="button"
+            onClick={copyPath}
+            className="p-1 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-700 rounded transition-colors"
+            aria-label="Copy path"
+          >
+            {copied ? (
+              <Check className="w-3.5 h-3.5 text-emerald-400" />
+            ) : (
+              <Copy className="w-3.5 h-3.5" />
+            )}
+          </button>
           {operation.deprecated && (
             <span className="px-1.5 py-0.5 bg-red-900/50 text-red-400 text-xs rounded">
               Deprecated
@@ -470,4 +649,26 @@ function getPropertyType(schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObj
   }
 
   return baseType as string;
+}
+
+function FilterCheckbox({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: () => void;
+}) {
+  return (
+    <label className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-zinc-800 cursor-pointer transition-colors">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={onChange}
+        className="w-3.5 h-3.5 rounded border-zinc-600 bg-zinc-800 text-purple-500 focus:ring-purple-500 focus:ring-offset-0"
+      />
+      <span className="text-sm text-zinc-300">{label}</span>
+    </label>
+  );
 }
