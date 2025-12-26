@@ -1,5 +1,5 @@
 import { useCallback, useState, useMemo, useRef, useEffect } from 'react';
-import { ChevronDown, ChevronUp, Copy, Check, SlidersHorizontal } from 'lucide-react';
+import { ChevronDown, ChevronUp, Copy, Check, SlidersHorizontal, ExternalLink } from 'lucide-react';
 import { useEditorStore } from '../../store';
 import type { OpenAPIV3 } from 'openapi-types';
 import {
@@ -43,6 +43,7 @@ const DEFAULT_FILTERS: SearchFilters = {
 
 export function DocumentationView() {
   const parsedSpec = useEditorStore((state) => state.parsedSpec);
+  const isValidating = useEditorStore((state) => state.isValidating);
   const sourceMap = useEditorStore((state) => state.sourceMap);
   const goToLine = useEditorStore((state) => state.goToLine);
   const [filter, setFilter] = useState('');
@@ -178,7 +179,7 @@ export function DocumentationView() {
   if (!parsedSpec) {
     return (
       <div className="h-full flex items-center justify-center bg-zinc-950 text-zinc-500">
-        No valid specification to preview
+        {isValidating ? 'Loading...' : 'No valid specification to preview'}
       </div>
     );
   }
@@ -191,9 +192,25 @@ export function DocumentationView() {
     <div className="h-full flex flex-col bg-zinc-950">
       <header className="sticky top-0 z-10 bg-zinc-950 border-b border-zinc-800 p-4">
         <div className="flex items-start justify-between gap-2">
-          <h1 className="text-lg font-medium text-zinc-100 tracking-tight">
-            {parsedSpec.info.title}
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg font-medium text-zinc-100 tracking-tight">
+              {parsedSpec.info.title}
+            </h1>
+            {new URLSearchParams(window.location.search).get('view') !== 'preview' && (
+              <button
+                onClick={() => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('view', 'preview');
+                  window.open(url.toString(), '_blank');
+                }}
+                className="p-1 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded transition-colors"
+                aria-label="Open in new tab"
+                title="Open in new tab"
+              >
+                <ExternalLink className="w-4 h-4" />
+              </button>
+            )}
+          </div>
           {hasHeaderContent && (
             <button
               onClick={() => setHeaderExpanded(!headerExpanded)}
