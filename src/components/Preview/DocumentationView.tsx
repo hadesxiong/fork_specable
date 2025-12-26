@@ -9,6 +9,7 @@ import {
   ResponseSection,
   SecuritySection,
   SchemaDisplay,
+  CopyAsTypeScript,
 } from './components';
 import { Markdown } from './Markdown';
 import { getComposition, resolveRef, type SchemaObject } from './schema-utils';
@@ -581,6 +582,7 @@ function SchemaCard({
           <span className="text-xs text-zinc-500">
             {schemaType}
           </span>
+          <CopyAsTypeScript schema={schema as SchemaObject} spec={spec} name={name} />
         </div>
 
         {schema.description && (

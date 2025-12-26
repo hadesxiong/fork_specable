@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from 'react';
-import { ChevronDown, ChevronRight, Lock, Key } from 'lucide-react';
+import { useState, useCallback, type ReactNode } from 'react';
+import { ChevronDown, ChevronRight, Lock, Key, Copy, Check } from 'lucide-react';
 import type { OpenAPIV3 } from 'openapi-types';
 import { Markdown } from './Markdown';
 import {
@@ -12,6 +12,7 @@ import {
   getComposition,
   getDiscriminatorValue,
   isRecursiveRef,
+  schemaToTypeScript,
   type SchemaObject,
   type CompositionInfo,
   type DiscriminatorInfo,
@@ -83,6 +84,40 @@ export function ParameterLocation({ location }: ParameterLocationProps) {
     <span className={`px-1.5 py-0.5 text-xs rounded font-medium ${style.bg} ${style.text}`}>
       {location}
     </span>
+  );
+}
+
+interface CopyAsTypeScriptProps {
+  schema: SchemaObject;
+  spec: OpenAPIV3.Document;
+  name?: string;
+}
+
+export function CopyAsTypeScript({ schema, spec, name }: CopyAsTypeScriptProps) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    const typescript = schemaToTypeScript(schema, spec, { name });
+    navigator.clipboard.writeText(typescript);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }, [schema, spec, name]);
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="p-1 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-700 rounded transition-colors"
+      aria-label="Copy as TypeScript"
+      title="Copy as TypeScript"
+    >
+      {copied ? (
+        <Check className="w-3.5 h-3.5 text-emerald-400" />
+      ) : (
+        <Copy className="w-3.5 h-3.5" />
+      )}
+    </button>
   );
 }
 
@@ -538,7 +573,15 @@ export function RequestBodySection({ requestBody, spec }: RequestBodySectionProp
           </div>
         )}
         {contentTypes.length === 1 && (
-          <div className="text-xs text-zinc-500 mb-2">{selectedType}</div>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xs text-zinc-500">{selectedType}</span>
+            {schema && <CopyAsTypeScript schema={schema} spec={spec} name="RequestBody" />}
+          </div>
+        )}
+        {contentTypes.length > 1 && schema && (
+          <div className="flex items-center gap-2 mb-2">
+            <CopyAsTypeScript schema={schema} spec={spec} name="RequestBody" />
+          </div>
         )}
         {schema && <SchemaDisplay schema={schema} spec={spec} />}
       </div>
@@ -635,7 +678,15 @@ function ResponseCard({ code, response, spec }: ResponseCardProps) {
               </div>
             )}
             {contentTypes.length === 1 && (
-              <div className="text-xs text-zinc-500 mb-2">{selectedType}</div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs text-zinc-500">{selectedType}</span>
+                {schema && <CopyAsTypeScript schema={schema} spec={spec} name={`Response${code}`} />}
+              </div>
+            )}
+            {contentTypes.length > 1 && schema && (
+              <div className="flex items-center gap-2 mb-2">
+                <CopyAsTypeScript schema={schema} spec={spec} name={`Response${code}`} />
+              </div>
             )}
             {schema && <SchemaDisplay schema={schema} spec={spec} />}
           </div>
