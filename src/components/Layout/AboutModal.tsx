@@ -7,34 +7,34 @@ interface AboutModalProps {
 
 const FEATURES = [
   {
-    title: "Sub-100ms Validation",
+    title: "Validation",
     description:
-      "Tiered validation pipeline with Web Workers keeps the UI responsive while validating syntax, schema, and linting rules in parallel.",
+      "Syntax, schema, and linting validation using Web Workers. Supports OpenAPI 3.0.x and 2.0 (Swagger).",
   },
   {
-    title: "Keyboard-First Workflow",
+    title: "Keyboard Shortcuts",
     description:
-      "Command palette (Ctrl+Shift+P), comprehensive shortcuts, and vim-inspired navigation for power users who live in their editors.",
+      "Command palette (Ctrl+Shift+P), go-to-line, find/replace, and code folding shortcuts.",
   },
   {
     title: "$ref Navigation",
     description:
-      "Go-to-definition (F12) and find-all-references across your entire specification. Click any $ref to jump to its target.",
+      "Go-to-definition (F12) and click-to-navigate for $ref targets throughout the specification.",
   },
   {
-    title: "Schema Graph Visualisation",
+    title: "Schema Graph",
     description:
-      "Interactive graph showing relationships between schemas - $ref, allOf, anyOf, oneOf connections at a glance.",
+      "Visualise relationships between schemas including $ref, allOf, anyOf, and oneOf connections.",
   },
   {
-    title: "Breaking Change Detection",
+    title: "Diff View",
     description:
-      "Compare spec versions and identify breaking changes automatically. Export changelogs for API consumers.",
+      "Compare two specifications and view changes. Breaking changes are flagged. Export as Markdown.",
   },
   {
-    title: "Local-First & Private",
+    title: "Local Storage",
     description:
-      "Your specifications never leave your device. No accounts, no cloud uploads, works offline.",
+      "Files are edited locally. Version history is stored in IndexedDB. No network requests.",
   },
 ];
 
@@ -75,29 +75,14 @@ export function AboutModal({ isOpen, onClose }: AboutModalProps) {
 
         {/* Content */}
         <div className="overflow-y-auto p-6 max-h-[calc(85vh-65px)]">
-          {/* Tagline */}
-          <p className="text-lg text-zinc-300 mb-6">
-            A fast, keyboard-driven OpenAPI editor for power users.
+          {/* Description */}
+          <p className="text-sm text-zinc-400 mb-6">
+            A browser-based OpenAPI specification editor with validation, documentation preview, and schema visualisation.
           </p>
 
-          {/* Problem statement */}
-          <div className="mb-8 p-4 bg-zinc-800/50 rounded-lg border border-zinc-700/50">
-            <p className="text-sm text-zinc-400 leading-relaxed">
-              Existing OpenAPI editors fail developers through slow performance,
-              missing power-user features, and primitive navigation for complex
-              specs. Specable targets individual developers with{" "}
-              <span className="text-purple-400">sub-100ms validation</span>,{" "}
-              <span className="text-purple-400">keyboard-first workflows</span>,
-              and{" "}
-              <span className="text-purple-400">intelligent navigation</span>{" "}
-              for massive specifications &mdash; all while remaining local-first
-              and free.
-            </p>
-          </div>
-
           {/* Features grid */}
-          <h3 className="text-xs font-medium text-purple-400 uppercase tracking-wide mb-4">
-            Key Features
+          <h3 className="text-xs font-medium text-zinc-500 uppercase tracking-wide mb-4">
+            Features
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             {FEATURES.map((feature) => (
@@ -116,7 +101,7 @@ export function AboutModal({ isOpen, onClose }: AboutModalProps) {
           </div>
 
           {/* Tech stack */}
-          <h3 className="text-xs font-medium text-purple-400 uppercase tracking-wide mb-3">
+          <h3 className="text-xs font-medium text-zinc-500 uppercase tracking-wide mb-3">
             Built With
           </h3>
           <div className="flex flex-wrap gap-2 mb-8">
@@ -140,8 +125,8 @@ export function AboutModal({ isOpen, onClose }: AboutModalProps) {
 
           {/* Footer */}
           <div className="pt-4 border-t border-zinc-800">
-            <p className="text-xs text-zinc-500 text-center">
-              Local-first. No accounts. No cloud. Your specs, your device.
+            <p className="text-xs text-zinc-600 text-center">
+              All data is stored locally in your browser.
             </p>
           </div>
         </div>
