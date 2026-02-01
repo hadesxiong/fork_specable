@@ -38,7 +38,7 @@ export function RequestBodyEditor({ operation, spec }: RequestBodyEditorProps) {
     return CONTENT_TYPES.filter((ct) =>
       specContentTypes.some((sct) => sct.includes(ct.value.split('/')[1]))
     );
-  }, [requestBodySpec?.content]);
+  }, [requestBodySpec]);
 
   const schemaInfo = useMemo(() => {
     if (!requestBodySpec?.content) return null;
@@ -56,7 +56,7 @@ export function RequestBodyEditor({ operation, spec }: RequestBodyEditorProps) {
     }
 
     return schema as OpenAPIV3.SchemaObject;
-  }, [requestBodySpec?.content, requestContentType, spec]);
+  }, [requestBodySpec, requestContentType, spec]);
 
   const isRequired = requestBodySpec?.required ?? false;
 

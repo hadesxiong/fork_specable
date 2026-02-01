@@ -1,20 +1,12 @@
-import * as yaml from 'yaml';
 import { useEditorStore } from '../store';
+import { parseContent, stringifyAsJson, stringifyAsYaml } from './content';
 
 export function formatContent(content: string, language: 'json' | 'yaml'): string {
-  const trimmed = content.trim();
-
-  let parsed: unknown;
-  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
-    parsed = JSON.parse(content);
-  } else {
-    parsed = yaml.parse(content);
-  }
-
+  const parsed = parseContent(content);
   if (language === 'json') {
-    return JSON.stringify(parsed, null, 2);
+    return stringifyAsJson(parsed);
   }
-  return yaml.stringify(parsed);
+  return stringifyAsYaml(parsed);
 }
 
 export function formatEditorContent(): boolean {

@@ -1,5 +1,5 @@
-import * as yaml from 'yaml';
 import { useEditorStore } from '../store';
+import { parseContent, stringifyAsJson, stringifyAsYaml } from './content';
 
 type OpenAPISpec = Record<string, unknown>;
 
@@ -51,23 +51,12 @@ export function sortEditorContent(): void {
 
   const content = editorView.state.doc.toString();
   try {
-    const trimmed = content.trim();
-    let parsed: OpenAPISpec;
-
-    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
-      parsed = JSON.parse(content);
-    } else {
-      parsed = yaml.parse(content);
-    }
-
+    const parsed = parseContent(content) as OpenAPISpec;
     const sorted = sortSpec(parsed);
 
-    let output: string;
-    if (file.language === 'json') {
-      output = JSON.stringify(sorted, null, 2);
-    } else {
-      output = yaml.stringify(sorted);
-    }
+    const output = file.language === 'json'
+      ? stringifyAsJson(sorted)
+      : stringifyAsYaml(sorted);
 
     if (output !== content) {
       editorView.dispatch({

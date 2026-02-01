@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useEditorStore } from "../../store";
 import type { OpenAPIV3 } from "openapi-types";
+import { METHOD_TEXT_COLOURS } from "../ui/style-constants";
 
 interface OutlineNode {
   id: string;
@@ -26,16 +27,6 @@ interface OutlineNode {
   method?: string;
   deprecated?: boolean;
 }
-
-const METHOD_COLOURS: Record<string, string> = {
-  get: "text-emerald-400",
-  post: "text-purple-400",
-  put: "text-amber-400",
-  patch: "text-yellow-400",
-  delete: "text-red-400",
-  options: "text-zinc-500",
-  head: "text-zinc-500",
-};
 
 const KIND_ICONS: Record<
   string,
@@ -143,7 +134,7 @@ export function OutlineView() {
 
           {node.method ? (
             <span
-              className={`text-xs font-mono font-bold shrink-0 w-12 ${METHOD_COLOURS[node.method]}`}
+              className={`text-xs font-mono font-bold shrink-0 w-12 ${METHOD_TEXT_COLOURS[node.method]}`}
               aria-hidden="true"
             >
               {node.method.toUpperCase()}

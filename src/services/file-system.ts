@@ -1,5 +1,6 @@
-import * as yaml from 'yaml';
 import type { EditorFile } from '../store';
+import { parseContent, stringifyAsJson, stringifyAsYaml } from '../utils/content';
+import { isAbortError } from '../utils/errors';
 
 export interface FileSystemService {
   openFile(): Promise<EditorFile | null>;
@@ -10,22 +11,14 @@ export interface FileSystemService {
   isSupported(): boolean;
 }
 
-function parseContent(content: string): unknown {
-  const trimmed = content.trim();
-  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
-    return JSON.parse(content);
-  }
-  return yaml.parse(content);
-}
-
 function convertToJson(content: string): string {
   const parsed = parseContent(content);
-  return JSON.stringify(parsed, null, 2);
+  return stringifyAsJson(parsed);
 }
 
 function convertToYaml(content: string): string {
   const parsed = parseContent(content);
-  return yaml.stringify(parsed);
+  return stringifyAsYaml(parsed);
 }
 
 function changeExtension(filename: string, newExt: string): string {
@@ -71,7 +64,7 @@ class NativeFileSystem implements FileSystemService {
         language: file.name.endsWith('.json') ? 'json' : 'yaml',
       };
     } catch (e) {
-      if ((e as Error).name === 'AbortError') return null;
+      if (isAbortError(e)) return null;
       throw e;
     }
   }
@@ -119,7 +112,7 @@ class NativeFileSystem implements FileSystemService {
         language: savedFile.name.endsWith('.json') ? 'json' : 'yaml',
       };
     } catch (e) {
-      if ((e as Error).name === 'AbortError') return null;
+      if (isAbortError(e)) return null;
       throw e;
     }
   }
@@ -138,7 +131,7 @@ class NativeFileSystem implements FileSystemService {
       });
       return this.writeToHandle(handle, jsonContent);
     } catch (e) {
-      if ((e as Error).name === 'AbortError') return false;
+      if (isAbortError(e)) return false;
       throw e;
     }
   }
@@ -157,7 +150,7 @@ class NativeFileSystem implements FileSystemService {
       });
       return this.writeToHandle(handle, yamlContent);
     } catch (e) {
-      if ((e as Error).name === 'AbortError') return false;
+      if (isAbortError(e)) return false;
       throw e;
     }
   }

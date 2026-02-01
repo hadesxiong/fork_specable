@@ -1,20 +1,12 @@
 import { expose } from 'comlink';
 import type { OpenAPIV3 } from 'openapi-types';
 import type { GraphResult, GraphWorkerApi, GraphNode, GraphEdge, GraphEdgeType } from './types';
+import { extractSchemaRefTarget, isReferenceObject } from '../utils/openapi';
 
 interface RefInfo {
   source: string;
   target: string;
   type: GraphEdgeType;
-}
-
-function extractRefTarget(ref: string): string | null {
-  const match = ref.match(/#\/components\/schemas\/(.+)$/);
-  return match ? match[1] : null;
-}
-
-function isReferenceObject(obj: unknown): obj is OpenAPIV3.ReferenceObject {
-  return typeof obj === 'object' && obj !== null && '$ref' in obj;
 }
 
 function collectRefsFromSchema(
@@ -23,7 +15,7 @@ function collectRefsFromSchema(
   refs: RefInfo[]
 ): void {
   if (isReferenceObject(schema)) {
-    const target = extractRefTarget(schema.$ref);
+    const target = extractSchemaRefTarget(schema.$ref);
     if (target) {
       refs.push({ source: sourceId, target, type: 'ref' });
     }
@@ -33,7 +25,7 @@ function collectRefsFromSchema(
   if (schema.allOf) {
     for (const subSchema of schema.allOf) {
       if (isReferenceObject(subSchema)) {
-        const target = extractRefTarget(subSchema.$ref);
+        const target = extractSchemaRefTarget(subSchema.$ref);
         if (target) {
           refs.push({ source: sourceId, target, type: 'allOf' });
         }
@@ -46,7 +38,7 @@ function collectRefsFromSchema(
   if (schema.anyOf) {
     for (const subSchema of schema.anyOf) {
       if (isReferenceObject(subSchema)) {
-        const target = extractRefTarget(subSchema.$ref);
+        const target = extractSchemaRefTarget(subSchema.$ref);
         if (target) {
           refs.push({ source: sourceId, target, type: 'anyOf' });
         }
@@ -59,7 +51,7 @@ function collectRefsFromSchema(
   if (schema.oneOf) {
     for (const subSchema of schema.oneOf) {
       if (isReferenceObject(subSchema)) {
-        const target = extractRefTarget(subSchema.$ref);
+        const target = extractSchemaRefTarget(subSchema.$ref);
         if (target) {
           refs.push({ source: sourceId, target, type: 'oneOf' });
         }
@@ -71,7 +63,7 @@ function collectRefsFromSchema(
 
   if ('items' in schema && schema.items) {
     if (isReferenceObject(schema.items)) {
-      const target = extractRefTarget(schema.items.$ref);
+      const target = extractSchemaRefTarget(schema.items.$ref);
       if (target) {
         refs.push({ source: sourceId, target, type: 'items' });
       }
@@ -99,7 +91,7 @@ function collectRefsFromOperation(
   if (operation.requestBody) {
     const requestBody = operation.requestBody;
     if (isReferenceObject(requestBody)) {
-      const target = extractRefTarget(requestBody.$ref);
+      const target = extractSchemaRefTarget(requestBody.$ref);
       if (target) {
         refs.push({ source: operationId, target, type: 'ref' });
       }
@@ -115,7 +107,7 @@ function collectRefsFromOperation(
   if (operation.responses) {
     for (const response of Object.values(operation.responses)) {
       if (isReferenceObject(response)) {
-        const target = extractRefTarget(response.$ref);
+        const target = extractSchemaRefTarget(response.$ref);
         if (target) {
           refs.push({ source: operationId, target, type: 'ref' });
         }
@@ -132,7 +124,7 @@ function collectRefsFromOperation(
   if (operation.parameters) {
     for (const param of operation.parameters) {
       if (isReferenceObject(param)) {
-        const target = extractRefTarget(param.$ref);
+        const target = extractSchemaRefTarget(param.$ref);
         if (target) {
           refs.push({ source: operationId, target, type: 'ref' });
         }

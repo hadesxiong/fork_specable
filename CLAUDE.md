@@ -37,14 +37,16 @@ All heavy processing is offloaded to Web Workers using Comlink for typed RPC:
 - `graph.worker.ts`: Builds schema relationship graph (nodes and edges) from parsed spec
 - `diff.worker.ts`: Computes API differences with breaking change detection (uses deep-diff)
 
-Worker API types are defined in `src/workers/types.ts`. Note that types like `GraphNode`, `DiffChange` etc. are duplicated in both `src/workers/types.ts` and `src/store/index.ts` - keep them in sync when modifying.
+Worker API types are defined in `src/workers/types.ts`. The store (`src/store/index.ts`) re-exports these types to provide a unified import path.
+
+Workers are created using the factory in `src/services/worker-factory.ts` which provides `createWorker()` and `createLazyWorker()` helpers.
 
 ### Validation Pipeline
 - **ValidationPipeline** (`src/services/validation-pipeline.ts`): Coordinates validator and linter workers with debouncing (300ms) and cancellation
 - **Singleton**: Use `getValidationPipeline()` to get the shared instance
 - **Data flow**: Content change → `useValidation` hook → debounced `ValidationPipeline.validate()` → worker → store update
 - **Cancellation**: Uses `AbortController` to cancel in-flight validations when content changes rapidly
-- **Limitation**: OpenAPI 3.1.x specs only get syntax validation (swagger-parser doesn't support 3.1 schema validation)
+- **Limitation**: OpenAPI 3.1.x specs only get syntax validation (swagger-parser doesn't support 3.1 schema validation). OpenAPI 3.0.x and 2.0 (Swagger) specs get full schema validation.
 
 ### Editor
 - **CodeMirror 6** (`src/components/Editor/`):
@@ -86,7 +88,19 @@ Worker API types are defined in `src/workers/types.ts`. Note that types like `Gr
 - **Singleton**: Use `getVersionHistoryDB()` to get the shared instance
 - Automatically prunes old snapshots (default 50 per file)
 
+### Custom Hooks
+- `useValidation`: Triggers validation pipeline on content changes, updates store with results
+- `useFileSystem`: Wraps File System Access API operations, handles open/save with store updates
+- `useVersionHistory`: Manages snapshot loading/saving with IndexedDB
+- `useViewport`: Tracks viewport width for responsive behaviour
+- `useStorageSync`: Persists store state to localStorage
+
 ## Key Patterns
+
+### Singleton Services
+Several services use singleton patterns - always use the getter functions rather than instantiating directly:
+- `getValidationPipeline()` - validation/linting coordinator
+- `getVersionHistoryDB()` - IndexedDB version storage
 
 - **React Compiler** is enabled (babel-plugin-react-compiler) for automatic memoisation
 - **Source maps** track YAML/JSON positions back to original content for accurate error locations

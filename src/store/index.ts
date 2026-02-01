@@ -4,7 +4,30 @@ import type { OpenAPIV3 } from 'openapi-types';
 import type { EditorView } from '@codemirror/view';
 import type { VersionSnapshot } from '../services/version-history-db';
 
+// Re-export types from workers/types.ts to avoid duplication
+export type {
+  ValidationError,
+  SourcePosition,
+  SourceMap,
+  GraphEdgeType,
+  SchemaProperty,
+  GraphNode,
+  GraphEdge,
+  GraphData,
+  DiffChangeType,
+  DiffChange,
+  DiffSummary,
+  DiffResult,
+} from '../workers/types';
+
 export type { VersionSnapshot } from '../services/version-history-db';
+
+import type {
+  ValidationError,
+  SourceMap,
+  GraphData,
+  DiffResult,
+} from '../workers/types';
 
 export interface Toast {
   id: string;
@@ -22,85 +45,9 @@ export interface EditorFile {
   language: 'yaml' | 'json';
 }
 
-export interface ValidationError {
-  line: number;
-  column: number;
-  endLine?: number;
-  endColumn?: number;
-  message: string;
-  path: string;
-  severity: 'error' | 'warning' | 'info';
-  rule?: string;
-}
-
-export interface SourcePosition {
-  line: number;
-  column: number;
-}
-
-export interface SourceMap {
-  [jsonPath: string]: SourcePosition;
-}
-
 export type RightPanelView = 'preview' | 'graph' | 'diff' | 'tryit' | 'history';
 export type GraphFilter = 'all' | 'referenced' | 'orphaned';
-export type GraphEdgeType = 'ref' | 'allOf' | 'anyOf' | 'oneOf' | 'items';
-
-export interface SchemaProperty {
-  name: string;
-  type: string;
-  required: boolean;
-  refTarget?: string;
-}
-
-export interface GraphNode {
-  id: string;
-  type: 'schema' | 'endpoint';
-  label: string;
-  jsonPath: string;
-  referenced: boolean;
-  properties?: SchemaProperty[];
-  description?: string;
-}
-
-export interface GraphEdge {
-  source: string;
-  target: string;
-  type: GraphEdgeType;
-  sourceProperty?: string;
-}
-
-export interface GraphData {
-  nodes: GraphNode[];
-  edges: GraphEdge[];
-}
-
 export type DiffFilter = 'all' | 'breaking' | 'non-breaking';
-export type DiffChangeType = 'added' | 'removed' | 'modified';
-
-export interface DiffChange {
-  path: string;
-  type: DiffChangeType;
-  breaking: boolean;
-  breakingReason?: string;
-  oldValue?: unknown;
-  newValue?: unknown;
-  jsonPathOld?: string;
-  jsonPathNew?: string;
-}
-
-export interface DiffSummary {
-  added: number;
-  removed: number;
-  modified: number;
-  breaking: number;
-  nonBreaking: number;
-}
-
-export interface DiffResult {
-  changes: DiffChange[];
-  summary: DiffSummary;
-}
 
 export interface ComparisonSpec {
   content: string;

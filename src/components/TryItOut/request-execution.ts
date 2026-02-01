@@ -1,4 +1,5 @@
 import type { AuthConfig, TryItResponse } from '../../store';
+import { isAbortError } from '../../utils/errors';
 
 interface ExecuteRequestOptions {
   method: string;
@@ -71,7 +72,7 @@ export async function executeRequest(options: ExecuteRequestOptions): Promise<Tr
     const isCorsError = isCorsRelatedError(error);
 
     // Detect timeout
-    const isTimeout = error instanceof DOMException && error.name === 'AbortError';
+    const isTimeout = isAbortError(error);
 
     return {
       status: 0,

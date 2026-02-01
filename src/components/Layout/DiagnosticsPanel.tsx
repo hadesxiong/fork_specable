@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { AlertCircle, AlertTriangle, Info, X, Download } from "lucide-react";
+import { X, Download } from "lucide-react";
 import { useEditorStore, type ValidationError } from "../../store";
+import { SEVERITY_ICONS, SEVERITY_COLOURS } from "../ui/style-constants";
 
 type FilterType = "all" | "errors" | "warnings";
 
@@ -10,18 +11,6 @@ interface DiagnosticsPanelProps {
   height: number;
   onResizeStart: (e: React.MouseEvent) => void;
 }
-
-const SEVERITY_ICONS = {
-  error: AlertCircle,
-  warning: AlertTriangle,
-  info: Info,
-};
-
-const SEVERITY_COLOURS = {
-  error: "text-red-400",
-  warning: "text-amber-400",
-  info: "text-purple-400",
-};
 
 const FILTER_OPTIONS: { value: FilterType; label: string }[] = [
   { value: "all", label: "All" },

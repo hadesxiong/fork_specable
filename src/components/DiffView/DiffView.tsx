@@ -1,35 +1,13 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { wrap } from 'comlink';
 import { useEditorStore } from '../../store';
 import type { DiffWorkerApi, DiffComputeResult, ValidationResult, ValidatorWorkerApi, DiffChange } from '../../workers/types';
 import { DiffToolbar } from './DiffToolbar';
 import { DiffSummary } from './DiffSummary';
 import { DiffList } from './DiffList';
+import { createLazyWorker } from '../../services/worker-factory';
 
-let diffWorker: Worker | null = null;
-let diffWorkerApi: DiffWorkerApi | null = null;
-let validatorWorker: Worker | null = null;
-let validatorWorkerApi: ValidatorWorkerApi | null = null;
-
-function getDiffWorker(): DiffWorkerApi {
-  if (!diffWorkerApi) {
-    diffWorker = new Worker(new URL('../../workers/diff.worker.ts', import.meta.url), {
-      type: 'module',
-    });
-    diffWorkerApi = wrap<DiffWorkerApi>(diffWorker);
-  }
-  return diffWorkerApi;
-}
-
-function getValidatorWorker(): ValidatorWorkerApi {
-  if (!validatorWorkerApi) {
-    validatorWorker = new Worker(new URL('../../workers/validator.worker.ts', import.meta.url), {
-      type: 'module',
-    });
-    validatorWorkerApi = wrap<ValidatorWorkerApi>(validatorWorker);
-  }
-  return validatorWorkerApi;
-}
+const getDiffWorker = createLazyWorker<DiffWorkerApi>('diff');
+const getValidatorWorker = createLazyWorker<ValidatorWorkerApi>('validator');
 
 export function DiffView() {
   const parsedSpec = useEditorStore((state) => state.parsedSpec);

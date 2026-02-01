@@ -1,5 +1,6 @@
-import { wrap, type Remote } from 'comlink';
+import type { Remote } from 'comlink';
 import type { ValidatorWorkerApi, LinterWorkerApi, ValidationResult, LintResult, ValidationError } from '../workers/types';
+import { createWorker } from './worker-factory';
 
 export interface PipelineResult {
   validation: ValidationResult | null;
@@ -17,12 +18,8 @@ export class ValidationPipeline {
   async initialise() {
     if (!this.validatorWorker) {
       try {
-        const worker = new Worker(
-          new URL('../workers/validator.worker.ts', import.meta.url),
-          { type: 'module' }
-        );
-        worker.onerror = (e) => console.error('Validator worker error:', e);
-        this.validatorWorker = wrap<ValidatorWorkerApi>(worker);
+        const [api] = createWorker<ValidatorWorkerApi>('validator');
+        this.validatorWorker = api;
       } catch (e) {
         console.error('Failed to create validator worker:', e);
         throw e;
@@ -31,12 +28,8 @@ export class ValidationPipeline {
 
     if (!this.linterWorker) {
       try {
-        const worker = new Worker(
-          new URL('../workers/linter.worker.ts', import.meta.url),
-          { type: 'module' }
-        );
-        worker.onerror = (e) => console.error('Linter worker error:', e);
-        this.linterWorker = wrap<LinterWorkerApi>(worker);
+        const [api] = createWorker<LinterWorkerApi>('linter');
+        this.linterWorker = api;
       } catch (e) {
         console.error('Failed to create linter worker:', e);
         throw e;

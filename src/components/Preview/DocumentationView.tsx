@@ -13,16 +13,7 @@ import {
 } from './components';
 import { Markdown } from './Markdown';
 import { getComposition, resolveRef, type SchemaObject } from './schema-utils';
-
-const METHOD_STYLES: Record<string, { bg: string; text: string }> = {
-  get: { bg: 'bg-emerald-500/15', text: 'text-emerald-400' },
-  post: { bg: 'bg-purple-500/15', text: 'text-purple-400' },
-  put: { bg: 'bg-amber-500/15', text: 'text-amber-400' },
-  patch: { bg: 'bg-yellow-500/15', text: 'text-yellow-400' },
-  delete: { bg: 'bg-red-500/15', text: 'text-red-400' },
-  options: { bg: 'bg-zinc-500/15', text: 'text-zinc-400' },
-  head: { bg: 'bg-zinc-500/15', text: 'text-zinc-400' },
-};
+import { METHOD_STYLES } from '../ui/style-constants';
 
 interface SearchFilters {
   path: boolean;
@@ -156,7 +147,7 @@ export function DocumentationView() {
       }
       return false;
     });
-  }, [parsedSpec?.paths, filter, searchFilters]);
+  }, [parsedSpec, filter, searchFilters]);
 
   const filteredSchemas = useMemo(() => {
     if (!parsedSpec?.components?.schemas) return [];
@@ -175,7 +166,7 @@ export function DocumentationView() {
       }
       return false;
     });
-  }, [parsedSpec?.components?.schemas, filter, searchFilters]);
+  }, [parsedSpec, filter, searchFilters]);
 
   if (!parsedSpec) {
     return (

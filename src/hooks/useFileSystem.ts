@@ -2,15 +2,7 @@ import { useCallback } from 'react';
 import { useEditorStore } from '../store';
 import { getFileSystem } from '../services/file-system';
 import { formatEditorContent } from '../utils/format';
-
-function detectLanguage(filename: string, content: string): 'yaml' | 'json' {
-  if (filename.endsWith('.json')) return 'json';
-  if (filename.endsWith('.yaml') || filename.endsWith('.yml')) return 'yaml';
-  // Try to detect from content
-  const trimmed = content.trim();
-  if (trimmed.startsWith('{') || trimmed.startsWith('[')) return 'json';
-  return 'yaml';
-}
+import { detectLanguage } from '../utils/content';
 
 export function useFileSystem() {
   const setFile = useEditorStore((state) => state.setFile);

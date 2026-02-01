@@ -1,4 +1,4 @@
-import { useState, useCallback, type ReactNode } from 'react';
+import { useState, useCallback, useMemo, type ReactNode } from 'react';
 import { ChevronDown, ChevronRight, Lock, Key, Copy, Check } from 'lucide-react';
 import type { OpenAPIV3 } from 'openapi-types';
 import { Markdown } from './Markdown';
@@ -17,14 +17,7 @@ import {
   type CompositionInfo,
   type DiscriminatorInfo,
 } from './schema-utils';
-
-// Location badge colours
-const LOCATION_STYLES: Record<string, { bg: string; text: string }> = {
-  path: { bg: 'bg-purple-500/15', text: 'text-purple-400' },
-  query: { bg: 'bg-cyan-500/15', text: 'text-cyan-400' },
-  header: { bg: 'bg-emerald-500/15', text: 'text-emerald-400' },
-  cookie: { bg: 'bg-amber-500/15', text: 'text-amber-400' },
-};
+import { LOCATION_STYLES } from '../ui/style-constants';
 
 interface CollapsibleSectionProps {
   title: string;
@@ -523,18 +516,19 @@ interface RequestBodySectionProps {
 }
 
 export function RequestBodySection({ requestBody, spec }: RequestBodySectionProps) {
-  let body: OpenAPIV3.RequestBodyObject;
+  const body: OpenAPIV3.RequestBodyObject | null = useMemo(() => {
+    if ('$ref' in requestBody) {
+      const resolved = resolveRef(requestBody as SchemaObject, spec);
+      if (!resolved) return null;
+      return resolved.schema as unknown as OpenAPIV3.RequestBodyObject;
+    }
+    return requestBody;
+  }, [requestBody, spec]);
 
-  if ('$ref' in requestBody) {
-    const resolved = resolveRef(requestBody as SchemaObject, spec);
-    if (!resolved) return null;
-    body = resolved.schema as unknown as OpenAPIV3.RequestBodyObject;
-  } else {
-    body = requestBody;
-  }
-
-  const contentTypes = Object.keys(body.content ?? {});
+  const contentTypes = Object.keys(body?.content ?? {});
   const [selectedType, setSelectedType] = useState(contentTypes[0] ?? 'application/json');
+
+  if (!body) return null;
 
   const mediaType = body.content?.[selectedType];
   const schema = mediaType?.schema as SchemaObject | undefined;
@@ -620,15 +614,19 @@ interface ResponseCardProps {
 }
 
 function ResponseCard({ code, response, spec }: ResponseCardProps) {
-  let resp: OpenAPIV3.ResponseObject;
+  const resp: OpenAPIV3.ResponseObject | null = useMemo(() => {
+    if ('$ref' in response) {
+      const resolved = resolveRef(response as SchemaObject, spec);
+      if (!resolved) return null;
+      return resolved.schema as unknown as OpenAPIV3.ResponseObject;
+    }
+    return response;
+  }, [response, spec]);
 
-  if ('$ref' in response) {
-    const resolved = resolveRef(response as SchemaObject, spec);
-    if (!resolved) return null;
-    resp = resolved.schema as unknown as OpenAPIV3.ResponseObject;
-  } else {
-    resp = response;
-  }
+  const contentTypes = Object.keys(resp?.content ?? {});
+  const [selectedType, setSelectedType] = useState(contentTypes[0]);
+
+  if (!resp) return null;
 
   const isSuccess = code.startsWith('2');
   const isClientError = code.startsWith('4');
@@ -641,9 +639,6 @@ function ResponseCard({ code, response, spec }: ResponseCardProps) {
     : isServerError
     ? 'bg-red-900/50 text-red-400'
     : 'bg-zinc-800 text-zinc-500';
-
-  const contentTypes = Object.keys(resp.content ?? {});
-  const [selectedType, setSelectedType] = useState(contentTypes[0]);
   const mediaType = selectedType ? resp.content?.[selectedType] : undefined;
   const schema = mediaType?.schema as SchemaObject | undefined;
 

@@ -47,17 +47,23 @@ export function CommandPalette({
     return fuse.search(query).map((result) => result.item);
   }, [query, fuse, availableCommands]);
 
-  useEffect(() => {
-    if (isOpen) {
-      setQuery("");
-      setSelectedIndex(0);
-      setTimeout(() => inputRef.current?.focus(), 0);
-    }
-  }, [isOpen]);
+  const prevIsOpenRef = useRef(false);
 
   useEffect(() => {
+    if (isOpen && !prevIsOpenRef.current) {
+      setTimeout(() => {
+        setQuery("");
+        setSelectedIndex(0);
+        inputRef.current?.focus();
+      }, 0);
+    }
+    prevIsOpenRef.current = isOpen;
+  }, [isOpen]);
+
+  const handleQueryChange = useCallback((newQuery: string) => {
+    setQuery(newQuery);
     setSelectedIndex(0);
-  }, [query]);
+  }, []);
 
   useEffect(() => {
     // Scroll selected item into view
@@ -136,7 +142,7 @@ export function CommandPalette({
           ref={inputRef}
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => handleQueryChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type a command..."
           className={`w-full bg-transparent text-zinc-200 text-sm outline-none border-b border-zinc-800 placeholder-zinc-600 ${

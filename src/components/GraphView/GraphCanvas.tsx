@@ -177,7 +177,7 @@ export function GraphCanvas({ data, onNodeClick }: GraphCanvasProps) {
         }
 
         let endX = targetPos.x;
-        let endY = targetPos.y + HEADER_HEIGHT / 2;
+        const endY = targetPos.y + HEADER_HEIGHT / 2;
 
         if (targetPos.x + targetPos.width < sourcePos.x) {
           startX = sourcePos.x;

@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { X, ExternalLink } from "lucide-react";
 
 interface AboutModalProps {
   isOpen: boolean;
@@ -124,10 +124,19 @@ export function AboutModal({ isOpen, onClose }: AboutModalProps) {
           </div>
 
           {/* Footer */}
-          <div className="pt-4 border-t border-zinc-800">
-            <p className="text-xs text-zinc-600 text-center">
+          <div className="pt-4 border-t border-zinc-800 flex items-center justify-between">
+            <p className="text-xs text-zinc-600">
               All data is stored locally in your browser.
             </p>
+            <a
+              href="https://github.com/tiaanduplessis/specable"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+            >
+              GitHub
+              <ExternalLink className="w-3 h-3" />
+            </a>
           </div>
         </div>
       </div>

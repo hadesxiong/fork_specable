@@ -66,13 +66,27 @@ class VersionHistoryDB {
     return this.db;
   }
 
+  private async withTransaction<T>(
+    mode: IDBTransactionMode,
+    operation: (store: IDBObjectStore) => IDBRequest
+  ): Promise<T> {
+    const db = await this.ensureDb();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(STORE_NAME, mode);
+      const store = transaction.objectStore(STORE_NAME);
+      const request = operation(store);
+
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
   async saveSnapshot(
     fileId: string,
     fileName: string,
     content: string,
     label?: string
   ): Promise<VersionSnapshot | null> {
-    const db = await this.ensureDb();
     const hash = await hashContent(content);
 
     // Check for duplicate content
@@ -91,17 +105,8 @@ class VersionHistoryDB {
       label,
     };
 
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(STORE_NAME, 'readwrite');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.add(snapshot);
-
-      request.onsuccess = () => resolve(snapshot);
-      request.onerror = () => {
-        console.error('Failed to save snapshot:', request.error);
-        reject(request.error);
-      };
-    });
+    await this.withTransaction<IDBValidKey>('readwrite', (store) => store.add(snapshot));
+    return snapshot;
   }
 
   private async findByHash(fileId: string, hash: string): Promise<VersionSnapshot | null> {
@@ -143,46 +148,23 @@ class VersionHistoryDB {
   }
 
   async getSnapshot(id: string): Promise<VersionSnapshot | null> {
-    const db = await this.ensureDb();
-
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(STORE_NAME, 'readonly');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.get(id);
-
-      request.onsuccess = () => resolve(request.result || null);
-      request.onerror = () => reject(request.error);
-    });
+    const result = await this.withTransaction<VersionSnapshot | undefined>(
+      'readonly',
+      (store) => store.get(id)
+    );
+    return result ?? null;
   }
 
   async deleteSnapshot(id: string): Promise<void> {
-    const db = await this.ensureDb();
-
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(STORE_NAME, 'readwrite');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.delete(id);
-
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
+    await this.withTransaction<undefined>('readwrite', (store) => store.delete(id));
   }
 
   async updateSnapshotLabel(id: string, label: string | undefined): Promise<void> {
-    const db = await this.ensureDb();
     const snapshot = await this.getSnapshot(id);
     if (!snapshot) return;
 
     snapshot.label = label;
-
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(STORE_NAME, 'readwrite');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.put(snapshot);
-
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
+    await this.withTransaction<IDBValidKey>('readwrite', (store) => store.put(snapshot));
   }
 
   async pruneOldSnapshots(fileId: string, keepCount: number = 50): Promise<number> {

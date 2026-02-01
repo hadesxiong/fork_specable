@@ -1,23 +1,12 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { wrap } from 'comlink';
 import { useEditorStore } from '../../store';
 import type { GraphWorkerApi, GraphResult, GraphData, GraphNode, GraphEdge } from '../../workers/types';
 import { GraphCanvas } from './GraphCanvas';
 import { GraphToolbar } from './GraphToolbar';
 import { GraphLegend } from './GraphLegend';
+import { createLazyWorker } from '../../services/worker-factory';
 
-let graphWorker: Worker | null = null;
-let graphWorkerApi: GraphWorkerApi | null = null;
-
-function getGraphWorker(): GraphWorkerApi {
-  if (!graphWorkerApi) {
-    graphWorker = new Worker(new URL('../../workers/graph.worker.ts', import.meta.url), {
-      type: 'module',
-    });
-    graphWorkerApi = wrap<GraphWorkerApi>(graphWorker);
-  }
-  return graphWorkerApi;
-}
+const getGraphWorker = createLazyWorker<GraphWorkerApi>('graph');
 
 export function GraphView() {
   const parsedSpec = useEditorStore((state) => state.parsedSpec);

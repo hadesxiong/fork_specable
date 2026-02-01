@@ -1,8 +1,27 @@
 {
   "name": "specable",
-  "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "A fast, local-first OpenAPI editor for power users",
   "type": "module",
+  "license": "MIT",
+  "author": "Tiaan du Plessis",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tiaanduplessis/specable.git"
+  },
+  "homepage": "https://specable.dev",
+  "bugs": {
+    "url": "https://github.com/tiaanduplessis/specable/issues"
+  },
+  "keywords": [
+    "openapi",
+    "swagger",
+    "api-editor",
+    "yaml",
+    "json",
+    "rest-api",
+    "api-documentation"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
