@@ -194,7 +194,7 @@ export function CommandPalette({
                   <kbd
                     className={`px-2 py-1 text-xs rounded-md font-mono ${
                       index === selectedIndex
-                        ? "bg-purple-500/30 text-purple-300"
+                        ? "bg-purple-500/30 text-purple-400"
                         : "bg-zinc-800 text-zinc-500"
                     }`}
                     aria-label={`Keyboard shortcut: ${cmd.shortcut}`}

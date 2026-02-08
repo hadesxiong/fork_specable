@@ -7,21 +7,21 @@ interface DiffListProps {
 
 const TYPE_STYLES = {
   added: {
-    bg: "bg-green-500/10",
-    border: "border-green-500/30",
-    text: "text-green-400",
+    bg: "bg-emerald-400/10",
+    border: "border-emerald-400/30",
+    text: "text-emerald-400",
     icon: "+",
   },
   removed: {
-    bg: "bg-red-500/10",
-    border: "border-red-500/30",
+    bg: "bg-red-400/10",
+    border: "border-red-400/30",
     text: "text-red-400",
     icon: "-",
   },
   modified: {
-    bg: "bg-yellow-500/10",
-    border: "border-yellow-500/30",
-    text: "text-yellow-400",
+    bg: "bg-amber-400/10",
+    border: "border-amber-400/30",
+    text: "text-amber-400",
     icon: "~",
   },
 };

@@ -163,7 +163,7 @@ export function TryItOutView() {
             <button
               onClick={handleExecute}
               disabled={!canExecute}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-md transition-colors ${
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                 canExecute
                   ? "bg-purple-600 text-white hover:bg-purple-700"
                   : "bg-zinc-800 text-zinc-500 cursor-not-allowed"

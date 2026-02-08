@@ -32,7 +32,7 @@ const COLORS = {
   headerText: 0xfafafa,
   propertyText: 0xa1a1aa,
   typeText: 0x71717a,
-  requiredBadge: 0xef4444,
+  requiredBadge: 0xf87171,
   refIndicator: 0xa855f7,
   orphanStroke: 0x52525b,
 };

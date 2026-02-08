@@ -12,17 +12,17 @@ export function DiffSummary({ summary }: DiffSummaryProps) {
       </div>
 
       <div className="flex items-center gap-1.5">
-        <span className="w-2 h-2 rounded-full bg-green-500" />
+        <span className="w-2 h-2 rounded-full bg-emerald-400" />
         <span className="text-xs text-zinc-300">{summary.added} added</span>
       </div>
 
       <div className="flex items-center gap-1.5">
-        <span className="w-2 h-2 rounded-full bg-red-500" />
+        <span className="w-2 h-2 rounded-full bg-red-400" />
         <span className="text-xs text-zinc-300">{summary.removed} removed</span>
       </div>
 
       <div className="flex items-center gap-1.5">
-        <span className="w-2 h-2 rounded-full bg-yellow-500" />
+        <span className="w-2 h-2 rounded-full bg-amber-400" />
         <span className="text-xs text-zinc-300">{summary.modified} modified</span>
       </div>
 
@@ -41,7 +41,7 @@ export function DiffSummary({ summary }: DiffSummaryProps) {
           <span className="text-xs font-medium">{summary.breaking} breaking</span>
         </div>
       ) : (
-        <div className="flex items-center gap-1.5 text-green-400">
+        <div className="flex items-center gap-1.5 text-emerald-400">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"

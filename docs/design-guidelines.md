@@ -13,6 +13,7 @@ Purple is the brand colour used for interactive elements, highlights, and accent
 | `purple-400` | `#c084fc` | Primary text, active indicators, hover states |
 | `purple-500` | `#a855f7` | Selection backgrounds, focus rings |
 | `purple-600` | `#9333ea` | Active/pressed button backgrounds |
+| `purple-700` | `#7e22ce` | Hover state for primary buttons |
 | `purple-500/20` | `rgba(168, 85, 247, 0.2)` | Subtle backgrounds, badges, selected items |
 | `purple-500/30` | `rgba(168, 85, 247, 0.3)` | Hover backgrounds on selected items |
 
@@ -21,6 +22,7 @@ CSS custom properties are defined in `src/index.css`:
 --color-primary-400: #c084fc;
 --color-primary-500: #a855f7;
 --color-primary-600: #9333ea;
+--color-primary-700: #7e22ce;
 ```
 
 ### Background Colours (Zinc)
@@ -55,6 +57,18 @@ The application uses a dark theme with zinc tones for backgrounds.
 | `red-400` | `#f87171` | Error states, required indicators |
 | `amber-400` | `#fbbf24` | Warning states |
 | `amber-500` | `#f59e0b` | Unsaved changes indicator |
+
+### Graph Colours
+
+Used in the schema relationship graph (`src/components/GraphView/`):
+
+| Colour | Hex | Usage |
+|--------|-----|-------|
+| `purple-500` | `#a855f7` | $ref edges |
+| `violet-500` | `#8b5cf6` | allOf edges |
+| `amber-500` | `#f59e0b` | anyOf edges |
+| `pink-500` | `#ec4899` | oneOf edges |
+| `cyan-500` | `#06b6d4` | items edges |
 
 ### Syntax Highlighting Colours
 
@@ -128,6 +142,14 @@ Used in the CodeMirror editor (defined in `src/components/Editor/theme.ts`):
 </button>
 ```
 
+#### Toggle Button — Accessible Header Variant
+Use this variant for header toggle buttons to meet the WCAG 44px minimum touch target:
+```tsx
+<button className="p-3 rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center bg-purple-500/20 text-purple-400">
+  <Icon className="w-5 h-5" />
+</button>
+```
+
 #### Filter/Segmented Control
 ```tsx
 <button className={`px-2 py-1 text-xs rounded-md transition-colors ${
@@ -192,7 +214,7 @@ Modals follow a consistent structure:
 
 Selected/highlighted variant:
 ```tsx
-<kbd className="px-2 py-1 text-xs rounded-md font-mono bg-purple-500/30 text-purple-300">
+<kbd className="px-2 py-1 text-xs rounded-md font-mono bg-purple-500/30 text-purple-400">
   Ctrl+K
 </kbd>
 ```
@@ -252,10 +274,19 @@ Selected/highlighted variant:
 
 ### Form Inputs
 
+#### Full-width Input (Forms)
 ```tsx
 <input
   className="w-full px-4 py-3.5 bg-transparent text-zinc-200 text-sm outline-none border-b border-zinc-800 placeholder-zinc-600"
   placeholder="Type here..."
+/>
+```
+
+#### Compact Input (Panels)
+```tsx
+<input
+  className="w-full px-3 py-2 bg-zinc-800/50 text-zinc-200 text-sm border border-zinc-800 rounded-md outline-none placeholder-zinc-600"
+  placeholder="Filter..."
 />
 ```
 
