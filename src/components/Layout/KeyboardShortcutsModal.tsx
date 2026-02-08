@@ -69,21 +69,21 @@ export function KeyboardShortcutsModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
-        className="absolute inset-0 bg-black/10 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
       <div
-        className="relative w-[600px] max-w-[90vw] max-h-[80vh] bg-zinc-900 rounded-xl shadow-2xl border border-zinc-800 overflow-hidden"
+        className="relative w-[640px] max-w-[90vw] max-h-[85vh] bg-zinc-900 rounded-xl shadow-2xl border border-zinc-800 overflow-hidden"
         role="dialog"
         aria-modal="true"
         aria-labelledby="shortcuts-title"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
           <h2
             id="shortcuts-title"
-            className="text-base font-medium text-zinc-100"
+            className="text-lg font-medium text-zinc-100"
           >
             Keyboard Shortcuts
           </h2>
@@ -97,7 +97,7 @@ export function KeyboardShortcutsModal({
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto p-5 max-h-[calc(80vh-60px)]">
+        <div className="overflow-y-auto p-6 max-h-[calc(85vh-65px)]">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {SHORTCUT_GROUPS.map((group) => (
               <div key={group.title}>
@@ -113,7 +113,7 @@ export function KeyboardShortcutsModal({
                       <span className="text-sm text-zinc-300">
                         {shortcut.description}
                       </span>
-                      <kbd className="px-2 py-1 text-xs font-mono bg-zinc-800 border border-zinc-700 rounded-md text-zinc-400">
+                      <kbd className="px-2 py-1 text-xs font-mono bg-zinc-800 rounded-md text-zinc-500">
                         {shortcut.keys}
                       </kbd>
                     </div>

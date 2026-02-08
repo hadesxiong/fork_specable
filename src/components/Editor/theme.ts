@@ -275,11 +275,11 @@ const editorTheme = EditorView.theme({
   },
   '.cm-diagnostic-warning': {
     borderLeftColor: '#fbbf24', // amber-400
-    color: '#fde68a', // amber-200
+    color: '#fcd34d', // amber-300
   },
   '.cm-diagnostic-info': {
     borderLeftColor: '#c084fc', // purple-400
-    color: '#e9d5ff', // purple-200
+    color: '#c084fc', // purple-400
   },
   '.cm-diagnosticAction': {
     padding: '2px 8px',

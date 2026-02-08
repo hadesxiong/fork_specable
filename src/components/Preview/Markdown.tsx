@@ -13,7 +13,7 @@ const components: Components = {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-purple-400 hover:text-purple-300 underline"
+      className="text-purple-400 hover:text-purple-400 underline"
     >
       {children}
     </a>
@@ -52,7 +52,7 @@ const components: Components = {
     <li>{children}</li>
   ),
   strong: ({ children }) => (
-    <strong className="font-semibold text-zinc-200">{children}</strong>
+    <strong className="font-bold text-zinc-200">{children}</strong>
   ),
   em: ({ children }) => (
     <em className="italic">{children}</em>
@@ -63,10 +63,10 @@ const components: Components = {
     </blockquote>
   ),
   h1: ({ children }) => (
-    <h1 className="text-base font-semibold text-zinc-200 mt-3 mb-1 first:mt-0">{children}</h1>
+    <h1 className="text-sm font-bold text-zinc-200 mt-3 mb-1 first:mt-0">{children}</h1>
   ),
   h2: ({ children }) => (
-    <h2 className="text-sm font-semibold text-zinc-200 mt-2 mb-1 first:mt-0">{children}</h2>
+    <h2 className="text-sm font-bold text-zinc-200 mt-2 mb-1 first:mt-0">{children}</h2>
   ),
   h3: ({ children }) => (
     <h3 className="text-sm font-medium text-zinc-300 mt-2 mb-1 first:mt-0">{children}</h3>
