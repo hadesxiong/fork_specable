@@ -5,7 +5,9 @@ import { useEditorStore } from '../../store';
 import { createExtensions } from './extensions';
 import { createRefNavigationExtension, goToDefinition } from './ref-navigation';
 import { setEditorDiagnostics } from './diagnostics';
+import { Breadcrumbs } from './Breadcrumbs';
 import { useViewport } from '../../hooks/useViewport';
+import { getPathAtLine } from '../../utils/source-map';
 
 export function Editor() {
   const { isMobile } = useViewport();
@@ -48,9 +50,22 @@ export function Editor() {
       },
     ]);
 
+    let cursorTrackTimeout: ReturnType<typeof setTimeout> | null = null;
+
     const updateListener = EditorView.updateListener.of((update) => {
       if (update.docChanged) {
         handleDocChange(update.state.doc.toString());
+      }
+
+      if (update.selectionSet || update.docChanged) {
+        if (cursorTrackTimeout) clearTimeout(cursorTrackTimeout);
+        cursorTrackTimeout = setTimeout(() => {
+          const store = getStore();
+          const { sourceMap } = store;
+          const line = update.state.doc.lineAt(update.state.selection.main.head).number;
+          const path = getPathAtLine(sourceMap, line);
+          store.setCurrentPath(path);
+        }, 150);
       }
     });
 
@@ -68,6 +83,7 @@ export function Editor() {
     setEditorView(view);
 
     return () => {
+      if (cursorTrackTimeout) clearTimeout(cursorTrackTimeout);
       view.destroy();
       viewRef.current = null;
       setEditorView(null);
@@ -110,9 +126,12 @@ export function Editor() {
   }
 
   return (
-    <div
-      ref={containerRef}
-      className="h-full w-full overflow-hidden bg-zinc-900"
-    />
+    <div className="h-full w-full flex flex-col overflow-hidden bg-zinc-900">
+      <Breadcrumbs />
+      <div
+        ref={containerRef}
+        className="flex-1 min-h-0 overflow-hidden"
+      />
+    </div>
   );
 }

@@ -12,6 +12,7 @@ import {
   CopyAsTypeScript,
 } from './components';
 import { Markdown } from './Markdown';
+import { CopySnippetButton } from './CopySnippetButton';
 import { getComposition, resolveRef, type SchemaObject } from './schema-utils';
 import { METHOD_STYLES } from '../ui/style-constants';
 
@@ -472,6 +473,7 @@ function OperationCard({
               <Copy className="w-3.5 h-3.5" />
             )}
           </button>
+          <CopySnippetButton method={method} path={path} operation={operation} spec={spec} />
           {operation.deprecated && (
             <span className="px-1.5 py-0.5 bg-red-900/50 text-red-400 text-xs rounded">
               Deprecated

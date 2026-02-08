@@ -116,6 +116,7 @@ interface EditorState {
   isHistoryLoading: boolean;
   toasts: Toast[];
   editorView: EditorView | null;
+  currentPath: string | null;
 }
 
 interface EditorActions {
@@ -164,6 +165,7 @@ interface EditorActions {
   setEditorView: (view: EditorView | null) => void;
   goToLine: (line: number, column?: number) => void;
   goToPosition: (pos: number) => void;
+  setCurrentPath: (path: string | null) => void;
 }
 
 type EditorStore = EditorState & EditorActions;
@@ -640,6 +642,7 @@ export const useEditorStore = create<EditorStore>()(
       isHistoryLoading: false,
       toasts: [],
       editorView: null,
+      currentPath: null,
 
       setFile: (file) => set({
         file,
@@ -761,6 +764,8 @@ export const useEditorStore = create<EditorStore>()(
           // Silently ignore invalid line numbers
         }
       },
+
+      setCurrentPath: (path) => set({ currentPath: path }),
 
       goToPosition: (pos) => {
         const { editorView } = get();

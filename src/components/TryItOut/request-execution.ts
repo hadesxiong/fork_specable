@@ -90,7 +90,7 @@ export async function executeRequest(options: ExecuteRequestOptions): Promise<Tr
   }
 }
 
-function buildUrl(
+export function buildUrl(
   baseUrl: string,
   path: string,
   parameterValues: Record<string, string>,
@@ -131,7 +131,7 @@ function buildUrl(
   return url.toString();
 }
 
-function buildHeaders(
+export function buildHeaders(
   contentType: string | undefined,
   parameterValues: Record<string, string>,
   auth: AuthConfig

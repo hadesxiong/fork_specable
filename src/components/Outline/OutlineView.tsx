@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect, useRef } from "react";
 import {
   ChevronRight,
   ChevronDown,
@@ -38,15 +38,55 @@ const KIND_ICONS: Record<
   servers: Server,
 };
 
+/**
+ * Maps a source map path (e.g. "paths./books.get") to the corresponding
+ * outline node ID and the IDs of its parent nodes that should be expanded.
+ */
+function mapPathToOutlineNode(currentPath: string): { activeId: string | null; expandIds: string[] } {
+  const parts = currentPath.split(".");
+
+  // paths.<pathKey>.<method>
+  if (parts[0] === "paths" && parts.length >= 2) {
+    const pathKey = parts[1];
+    const method = parts[2];
+    if (method && ["get", "post", "put", "patch", "delete", "options", "head"].includes(method)) {
+      return {
+        activeId: `${pathKey}-${method}`,
+        expandIds: ["paths", pathKey],
+      };
+    }
+    return { activeId: pathKey, expandIds: ["paths"] };
+  }
+
+  // components.schemas.<name>
+  if (parts[0] === "components" && parts[1] === "schemas" && parts[2]) {
+    return { activeId: `schema-${parts[2]}`, expandIds: ["schemas"] };
+  }
+
+  // components.securitySchemes.<name>
+  if (parts[0] === "components" && parts[1] === "securitySchemes" && parts[2]) {
+    return { activeId: `security-${parts[2]}`, expandIds: ["security"] };
+  }
+
+  // servers.<index>
+  if (parts[0] === "servers" && parts[1]) {
+    return { activeId: `server-${parts[1]}`, expandIds: ["servers"] };
+  }
+
+  return { activeId: null, expandIds: [] };
+}
+
 export function OutlineView() {
   const parsedSpec = useEditorStore((state) => state.parsedSpec);
   const sourceMap = useEditorStore((state) => state.sourceMap);
   const goToLine = useEditorStore((state) => state.goToLine);
+  const currentPath = useEditorStore((state) => state.currentPath);
 
   const [expanded, setExpanded] = useState<Set<string>>(
     new Set(["paths", "schemas"]),
   );
   const [filter, setFilter] = useState("");
+  const activeNodeRef = useRef<HTMLDivElement>(null);
 
   const outline = useMemo(() => {
     if (!parsedSpec) return [];
@@ -57,6 +97,29 @@ export function OutlineView() {
     if (!filter) return outline;
     return filterOutline(outline, filter.toLowerCase());
   }, [outline, filter]);
+
+  const { activeNodeId, autoExpandIds } = useMemo(() => {
+    if (!currentPath) return { activeNodeId: null, autoExpandIds: [] as string[] };
+    const { activeId, expandIds } = mapPathToOutlineNode(currentPath);
+    return { activeNodeId: activeId, autoExpandIds: expandIds };
+  }, [currentPath]);
+
+  // Merge user-toggled expansions with auto-expansions from cursor tracking
+  const effectiveExpanded = useMemo(() => {
+    if (autoExpandIds.length === 0) return expanded;
+    const hasAll = autoExpandIds.every((id) => expanded.has(id));
+    if (hasAll) return expanded;
+    const merged = new Set(expanded);
+    for (const id of autoExpandIds) merged.add(id);
+    return merged;
+  }, [expanded, autoExpandIds]);
+
+  // Scroll the active node into view
+  useEffect(() => {
+    if (activeNodeRef.current) {
+      activeNodeRef.current.scrollIntoView({ block: "nearest" });
+    }
+  }, [activeNodeId]);
 
   const toggleExpanded = useCallback((id: string) => {
     setExpanded((prev) => {
@@ -84,7 +147,8 @@ export function OutlineView() {
 
   const renderNode = (node: OutlineNode, depth: number = 0) => {
     const hasChildren = node.children && node.children.length > 0;
-    const isExpanded = expanded.has(node.id);
+    const isExpanded = effectiveExpanded.has(node.id);
+    const isActive = node.id === activeNodeId;
     const Icon = KIND_ICONS[node.kind] ?? Globe;
 
     return (
@@ -92,15 +156,17 @@ export function OutlineView() {
         key={node.id}
         role="treeitem"
         aria-expanded={hasChildren ? isExpanded : undefined}
-        aria-selected={false}
+        aria-selected={isActive}
       >
         <div
+          ref={isActive ? activeNodeRef : undefined}
           className={`
             flex items-center gap-1 px-2 py-1 cursor-pointer rounded
-            hover:bg-zinc-800 transition-colors
+            transition-colors
+            ${isActive ? "bg-purple-500/10 border-l-2 border-purple-500" : "hover:bg-zinc-800"}
             ${node.deprecated ? "line-through opacity-60" : ""}
           `}
-          style={{ paddingLeft: `${depth * 12 + 8}px` }}
+          style={{ paddingLeft: `${depth * 12 + (isActive ? 6 : 8)}px` }}
           onClick={() => handleClick(node)}
           role="button"
           tabIndex={0}

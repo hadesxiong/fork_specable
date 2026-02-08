@@ -138,6 +138,38 @@ export function buildJsonSourceMap(content: string): SourceMap {
 }
 
 /**
+ * Find the source map path that contains the given line number.
+ * Returns the deepest (most specific) path whose start line is <= the given line.
+ */
+export function getPathAtLine(sourceMap: SourceMap, line: number): string | null {
+  const entries: [number, string][] = [];
+
+  for (const [path, position] of Object.entries(sourceMap)) {
+    entries.push([position.line, path]);
+  }
+
+  // Sort by line ascending; for equal lines, longer paths (more specific) come last
+  entries.sort((a, b) => a[0] - b[0] || a[1].length - b[1].length);
+
+  // Binary search for the last entry with line <= target
+  let low = 0;
+  let high = entries.length - 1;
+  let result: string | null = null;
+
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+    if (entries[mid][0] <= line) {
+      result = entries[mid][1];
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+    }
+  }
+
+  return result;
+}
+
+/**
  * Extracts a position from an error message that contains a JSON pointer path.
  */
 export function extractPositionFromError(message: string, sourceMap: SourceMap): SourcePosition {
