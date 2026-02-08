@@ -7,6 +7,7 @@ import {
   buildYamlSourceMap,
   buildJsonSourceMap,
   extractPositionFromError,
+  getPathAtLine,
 } from './source-map';
 
 describe('offsetToPosition', () => {
@@ -173,5 +174,55 @@ describe('extractPositionFromError', () => {
     const message = 'Error at #/paths/~1users~0special';
     const position = extractPositionFromError(message, sourceMap);
     expect(position).toEqual({ line: 15, column: 3 });
+  });
+});
+
+describe('getPathAtLine', () => {
+  const sourceMap = {
+    'paths': { line: 5, column: 1 },
+    'paths./users': { line: 6, column: 3 },
+    'paths./users.get': { line: 7, column: 5 },
+    'paths./users.post': { line: 15, column: 5 },
+    'components': { line: 25, column: 1 },
+    'components.schemas': { line: 26, column: 3 },
+    'components.schemas.User': { line: 27, column: 5 },
+    'components.schemas.Error': { line: 40, column: 5 },
+  };
+
+  it('returns null for empty source map', () => {
+    expect(getPathAtLine({}, 1)).toBeNull();
+  });
+
+  it('returns null when line is before all entries', () => {
+    expect(getPathAtLine(sourceMap, 1)).toBeNull();
+  });
+
+  it('returns exact match', () => {
+    expect(getPathAtLine(sourceMap, 7)).toBe('paths./users.get');
+  });
+
+  it('returns the most specific path for a line between entries', () => {
+    // Line 10 is between paths./users.get (line 7) and paths./users.post (line 15)
+    expect(getPathAtLine(sourceMap, 10)).toBe('paths./users.get');
+  });
+
+  it('returns deepest path when multiple entries share the same line', () => {
+    // If we add an entry at the same line, the longer (more specific) path should win
+    const mapWithSameLine = {
+      'paths': { line: 5, column: 1 },
+      'paths./users': { line: 5, column: 3 },
+    };
+    expect(getPathAtLine(mapWithSameLine, 5)).toBe('paths./users');
+  });
+
+  it('returns last entry for lines past the end', () => {
+    expect(getPathAtLine(sourceMap, 100)).toBe('components.schemas.Error');
+  });
+
+  it('returns the correct path at section boundaries', () => {
+    // Line 25 is exactly at "components"
+    expect(getPathAtLine(sourceMap, 25)).toBe('components');
+    // Line 27 is exactly at "components.schemas.User"
+    expect(getPathAtLine(sourceMap, 27)).toBe('components.schemas.User');
   });
 });

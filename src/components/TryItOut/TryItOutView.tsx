@@ -8,6 +8,7 @@ import { ParameterForm } from "./ParameterForm";
 import { AuthConfig } from "./AuthConfig";
 import { RequestBodyEditor } from "./RequestBodyEditor";
 import { ResponseDisplay } from "./ResponseDisplay";
+import { CopySnippetButton } from "./CopySnippetButton";
 import { executeRequest } from "./request-execution";
 
 export function TryItOutView() {
@@ -158,27 +159,36 @@ export function TryItOutView() {
           )}
 
           {/* Execute Button */}
-          <button
-            onClick={handleExecute}
-            disabled={!canExecute}
-            className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-md transition-colors ${
-              canExecute
-                ? "bg-purple-600 text-white hover:bg-purple-700"
-                : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
-            }`}
-          >
-            {tryIt.isExecuting ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Sending...
-              </>
-            ) : (
-              <>
-                <Play className="w-4 h-4" />
-                Send Request
-              </>
+          <div className="flex gap-2">
+            <button
+              onClick={handleExecute}
+              disabled={!canExecute}
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-md transition-colors ${
+                canExecute
+                  ? "bg-purple-600 text-white hover:bg-purple-700"
+                  : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+              }`}
+            >
+              {tryIt.isExecuting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4" />
+                  Send Request
+                </>
+              )}
+            </button>
+            {selectedOperation && (
+              <CopySnippetButton
+                method={selectedOperation.method}
+                path={selectedOperation.path}
+                serverUrl={serverUrl}
+              />
             )}
-          </button>
+          </div>
 
           {/* Response */}
           {tryIt.lastResponse && (
