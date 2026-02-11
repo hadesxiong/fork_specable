@@ -14,6 +14,7 @@ export function useValidation() {
   const setParsedSpec = useEditorStore((state) => state.setParsedSpec);
   const pipelineRef = useRef(getValidationPipeline());
   const lastContentRef = useRef<string | null>(null);
+  const isFirstValidation = useRef(true);
 
   useEffect(() => {
     if (!file) return;
@@ -26,28 +27,32 @@ export function useValidation() {
     // Skip empty content
     if (!content) return;
 
+    let active = true;
     const pipeline = pipelineRef.current;
+
+    const debounceMs = isFirstValidation.current ? 0 : 300;
+    isFirstValidation.current = false;
 
     setValidating(true);
 
     pipeline
       .validateDebounced(content, (stage, result) => {
+        if (!active) return;
         if (stage === "validating" && result.validation?.parsedSpec) {
-          // Update parsed spec immediately when available
           setParsedSpec(
             result.validation.parsedSpec,
             result.validation.sourceMap,
           );
         }
-      })
+      }, debounceMs)
       .then((result) => {
-        // Mark this content as validated only after successful completion
+        if (!active) return;
+
         lastContentRef.current = content;
 
         const { validation, lint } = result;
 
         if (validation) {
-          // Combine validation errors with lint diagnostics
           const lintErrors = lint ? lintToValidationErrors(lint) : [];
           const allErrors = [
             ...validation.errors,
@@ -67,7 +72,6 @@ export function useValidation() {
             warnings: allWarnings,
           });
 
-          // Only update parsed spec if we have a valid one (preserve last valid on syntax errors)
           if (validation.parsedSpec) {
             setParsedSpec(validation.parsedSpec, validation.sourceMap);
           }
@@ -76,6 +80,7 @@ export function useValidation() {
         setValidating(false);
       })
       .catch((e) => {
+        if (!active) return;
         setValidating(false);
         if (e.message !== "Validation cancelled") {
           console.error("Validation error:", e);
@@ -83,6 +88,7 @@ export function useValidation() {
       });
 
     return () => {
+      active = false;
       pipeline.cancel();
     };
   }, [file?.content, setValidating, setValidationResult, setParsedSpec]);
