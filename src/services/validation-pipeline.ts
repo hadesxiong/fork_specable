@@ -15,6 +15,21 @@ export class ValidationPipeline {
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
   private pendingDebounceReject: ((reason: Error) => void) | null = null;
 
+  private callWithTimeout<T>(
+    promise: Promise<T>,
+    timeoutMs: number,
+    label: string
+  ): Promise<T> {
+    let timer: ReturnType<typeof setTimeout>;
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(
+        () => reject(new Error(`${label} timed out after ${timeoutMs}ms`)),
+        timeoutMs
+      );
+    });
+    return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+  }
+
   async initialise() {
     if (!this.validatorWorker) {
       try {
@@ -61,7 +76,11 @@ export class ValidationPipeline {
     onProgress?.('validating', result);
 
     try {
-      result.validation = await this.validatorWorker!.validate(content);
+      result.validation = await this.callWithTimeout(
+        this.validatorWorker!.validate(content),
+        30_000,
+        'Validation worker'
+      );
       onProgress?.('validating', result);
     } catch (e) {
       console.error('Validation worker failed:', e);
@@ -74,11 +93,14 @@ export class ValidationPipeline {
       onProgress?.('linting', result);
 
       try {
-        result.lint = await this.linterWorker!.lint(content);
+        result.lint = await this.callWithTimeout(
+          this.linterWorker!.lint(content),
+          15_000,
+          'Linter worker'
+        );
         onProgress?.('linting', result);
       } catch (e) {
         if (signal.aborted) throw new Error('Validation cancelled');
-        // Linting errors are not fatal
         console.error('Linting failed:', e);
       }
     }
