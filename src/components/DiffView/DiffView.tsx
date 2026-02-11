@@ -6,8 +6,12 @@ import { DiffSummary } from './DiffSummary';
 import { DiffList } from './DiffList';
 import { createLazyWorker } from '../../services/worker-factory';
 
-const getDiffWorker = createLazyWorker<DiffWorkerApi>('diff');
-const getValidatorWorker = createLazyWorker<ValidatorWorkerApi>('validator');
+const getDiffWorker = createLazyWorker<DiffWorkerApi>(
+  () => new Worker(new URL('../../workers/diff.worker.ts', import.meta.url), { type: 'module' })
+);
+const getValidatorWorker = createLazyWorker<ValidatorWorkerApi>(
+  () => new Worker(new URL('../../workers/validator.worker.ts', import.meta.url), { type: 'module' })
+);
 
 export function DiffView() {
   const parsedSpec = useEditorStore((state) => state.parsedSpec);
