@@ -20,4 +20,15 @@ export default defineConfig({
       },
     }),
   ],
+  worker: {
+    plugins: () => [
+      nodePolyfills({
+        include: ["util", "path", "buffer", "process"],
+        globals: {
+          process: true,
+          Buffer: true,
+        },
+      }),
+    ],
+  },
 });

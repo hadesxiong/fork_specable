@@ -33,7 +33,9 @@ export class ValidationPipeline {
   async initialise() {
     if (!this.validatorWorker) {
       try {
-        const [api] = createWorker<ValidatorWorkerApi>('validator');
+        const [api] = createWorker<ValidatorWorkerApi>(
+          new Worker(new URL('../workers/validator.worker.ts', import.meta.url), { type: 'module' })
+        );
         this.validatorWorker = api;
       } catch (e) {
         console.error('Failed to create validator worker:', e);
@@ -43,7 +45,9 @@ export class ValidationPipeline {
 
     if (!this.linterWorker) {
       try {
-        const [api] = createWorker<LinterWorkerApi>('linter');
+        const [api] = createWorker<LinterWorkerApi>(
+          new Worker(new URL('../workers/linter.worker.ts', import.meta.url), { type: 'module' })
+        );
         this.linterWorker = api;
       } catch (e) {
         console.error('Failed to create linter worker:', e);

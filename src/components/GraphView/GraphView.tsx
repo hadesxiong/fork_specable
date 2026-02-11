@@ -6,7 +6,9 @@ import { GraphToolbar } from './GraphToolbar';
 import { GraphLegend } from './GraphLegend';
 import { createLazyWorker } from '../../services/worker-factory';
 
-const getGraphWorker = createLazyWorker<GraphWorkerApi>('graph');
+const getGraphWorker = createLazyWorker<GraphWorkerApi>(
+  () => new Worker(new URL('../../workers/graph.worker.ts', import.meta.url), { type: 'module' })
+);
 
 export function GraphView() {
   const parsedSpec = useEditorStore((state) => state.parsedSpec);

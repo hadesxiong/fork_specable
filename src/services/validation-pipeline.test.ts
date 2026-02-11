@@ -2,6 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ValidationPipeline } from './validation-pipeline';
 import type { ValidationResult, LintResult } from '../workers/types';
 
+// Worker is not defined in jsdom; stub it so the inline `new Worker()` calls don't throw
+globalThis.Worker = vi.fn() as unknown as typeof Worker;
+
 vi.mock('./worker-factory', () => ({
   createWorker: vi.fn(),
 }));
@@ -42,12 +45,10 @@ describe('ValidationPipeline', () => {
     mockValidate = vi.fn();
     mockLint = vi.fn();
 
-    vi.mocked(createWorker).mockImplementation((module) => {
-      if (module === 'validator') {
-        return [{ validate: mockValidate } as never, {} as Worker];
-      }
-      return [{ lint: mockLint } as never, {} as Worker];
-    });
+    // initialise() creates the validator worker first, then the linter worker
+    vi.mocked(createWorker)
+      .mockReturnValueOnce([{ validate: mockValidate } as never, {} as Worker])
+      .mockReturnValueOnce([{ lint: mockLint } as never, {} as Worker]);
 
     pipeline = new ValidationPipeline();
   });
