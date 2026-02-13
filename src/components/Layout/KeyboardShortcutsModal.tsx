@@ -38,6 +38,7 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { keys: "Ctrl+2", description: "Show Graph view" },
       { keys: "Ctrl+3", description: "Show Diff view" },
       { keys: "Ctrl+4", description: "Show Try It view" },
+      { keys: "Ctrl+5", description: "Show History view" },
     ],
   },
   {
