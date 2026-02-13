@@ -40,6 +40,7 @@ pnpm dev
 pnpm dev          # Start development server
 pnpm build        # Type-check and build for production
 pnpm lint         # Run ESLint
+pnpm preview      # Preview production build
 pnpm test         # Run tests in watch mode
 pnpm test:run     # Run tests once
 pnpm test:coverage # Run tests with coverage
@@ -67,13 +68,46 @@ All validation and linting runs in Web Workers to keep the UI responsive. The va
 
 ## Keyboard Shortcuts
 
+On macOS, use Cmd instead of Ctrl.
+
+### File
+
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl+Shift+P` | Open command palette |
+| `Ctrl+N` | New file |
+| `Ctrl+O` | Open file |
+| `Ctrl+S` | Save file |
+| `Ctrl+Shift+S` | Save as |
+
+### Navigation
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+G` | Go to line |
 | `F12` | Go to definition |
 | `Ctrl+Click` | Navigate to `$ref` target |
-| `Ctrl+S` | Save file |
-| `Ctrl+O` | Open file |
+| `Ctrl+Shift+P` | Open command palette |
+| `F1` | Keyboard shortcuts |
+
+### View
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+Shift+E` | Toggle outline panel |
+| `Ctrl+\` | Toggle preview panel |
+| `Ctrl+1` | Show Docs view |
+| `Ctrl+2` | Show Graph view |
+| `Ctrl+3` | Show Diff view |
+| `Ctrl+4` | Show Try It view |
+| `Ctrl+5` | Show History view |
+
+### Editor
+
+| Shortcut | Action |
+|----------|--------|
+| `Shift+Alt+F` | Format document |
+| `Ctrl+K Ctrl+0` | Fold all |
+| `Ctrl+K Ctrl+J` | Unfold all |
 
 ## Contributing
 

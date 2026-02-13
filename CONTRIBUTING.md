@@ -37,6 +37,8 @@ src/
 ├── hooks/          # Custom React hooks
 ├── services/       # Core services (file system, validation pipeline, etc.)
 ├── store/          # Zustand store
+├── test/           # Test setup and utilities
+├── types/          # Shared TypeScript type definitions
 ├── utils/          # Utility functions
 └── workers/        # Web Workers for heavy processing
 ```
