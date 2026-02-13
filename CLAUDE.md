@@ -58,7 +58,7 @@ Workers are created using the factory in `src/services/worker-factory.ts` which 
 - **Three-panel layout** (`src/components/Layout/MainLayout.tsx`):
   - Left: OutlineView (hierarchical spec navigation)
   - Centre: CodeMirror editor
-  - Right: Switchable view (preview/graph/diff) controlled by `rightPanelView` state
+  - Right: Switchable view (preview/graph/diff/tryit/history) controlled by `rightPanelView` state
 - Resizable panels with drag handles
 - StatusBar shows validation status and diagnostics count
 
@@ -75,9 +75,10 @@ Workers are created using the factory in `src/services/worker-factory.ts` which 
 - Commands for navigation, editing, view toggles, and file operations
 
 ### Keyboard Shortcuts
-- `Ctrl+Shift+P`: Open command palette
-- `F12`: Go to definition (navigate to `$ref` target)
-- `Ctrl+Click`: Navigate to `$ref` target under cursor
+- **File**: `Ctrl+N` (new), `Ctrl+O` (open), `Ctrl+S` (save), `Ctrl+Shift+S` (save as)
+- **Navigation**: `Ctrl+G` (go to line), `F12` (go to definition), `Ctrl+Click` (navigate to `$ref`), `Ctrl+Shift+P` (command palette), `F1` (keyboard shortcuts)
+- **View**: `Ctrl+Shift+E` (toggle outline), `Ctrl+\` (toggle preview), `Ctrl+1`-`Ctrl+5` (switch right panel view)
+- **Editor**: `Shift+Alt+F` (format), `Ctrl+K Ctrl+0` (fold all), `Ctrl+K Ctrl+J` (unfold all)
 
 ### File System
 - Uses File System Access API for native file open/save (`src/services/file-system.ts`)
@@ -93,7 +94,7 @@ Workers are created using the factory in `src/services/worker-factory.ts` which 
 - `useFileSystem`: Wraps File System Access API operations, handles open/save with store updates
 - `useVersionHistory`: Manages snapshot loading/saving with IndexedDB
 - `useViewport`: Tracks viewport width for responsive behaviour
-- `useStorageSync`: Persists store state to localStorage
+- `useStorageSync`: Syncs store state across browser tabs via localStorage storage events
 
 ## Key Patterns
 
@@ -101,6 +102,7 @@ Workers are created using the factory in `src/services/worker-factory.ts` which 
 Several services use singleton patterns - always use the getter functions rather than instantiating directly:
 - `getValidationPipeline()` - validation/linting coordinator
 - `getVersionHistoryDB()` - IndexedDB version storage
+- `getFileSystem()` - file system access (native or fallback)
 
 - **React Compiler** is enabled (babel-plugin-react-compiler) for automatic memoisation
 - **Source maps** track YAML/JSON positions back to original content for accurate error locations
