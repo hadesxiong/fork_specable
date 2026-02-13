@@ -1,5 +1,4 @@
 import { useRef, useState, useCallback, useEffect, useMemo } from "react";
-import { PanelLeft, PanelRight, Keyboard } from "lucide-react";
 import { useEditorStore, type RightPanelView } from "../../store";
 import { Editor } from "../Editor";
 import { OutlineView } from "../Outline";
@@ -13,6 +12,7 @@ import { StatusBar } from "./StatusBar";
 import { DiagnosticsPanel } from "./DiagnosticsPanel";
 import { KeyboardShortcutsModal } from "./KeyboardShortcutsModal";
 import { AboutModal } from "./AboutModal";
+import { AppMenu } from "./AppMenu";
 import { MobileLayout } from "./MobileLayout";
 import {
   CommandPalette,
@@ -24,6 +24,7 @@ import { useFileSystem } from "../../hooks/useFileSystem";
 import { useVersionHistory } from "../../hooks/useVersionHistory";
 import { useViewport } from "../../hooks/useViewport";
 import { formatEditorContent } from "../../utils/format";
+import { sortEditorContent } from "../../utils/sort";
 
 const MIN_PANEL_WIDTH = 150;
 const DEFAULT_OUTLINE_WIDTH = 220;
@@ -152,6 +153,7 @@ export function MainLayout() {
 
   const {
     isOpen: isCommandPaletteOpen,
+    open: openCommandPalette,
     close: closeCommandPalette,
     commands,
   } = useCommandPalette(fileCommands);
@@ -337,42 +339,24 @@ export function MainLayout() {
             BETA
           </span>
         </div>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setShowKeyboardShortcuts(true)}
-            className="p-3 rounded-md text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 min-w-[44px] min-h-[44px] flex items-center justify-center"
-            title="Keyboard Shortcuts (F1)"
-            aria-label="Keyboard Shortcuts"
-          >
-            <Keyboard className="w-5 h-5" aria-hidden="true" />
-          </button>
-          <button
-            onClick={toggleOutline}
-            className={`p-3 rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center ${
-              showOutline
-                ? "bg-purple-500/20 text-purple-400"
-                : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50"
-            }`}
-            title="Toggle Outline (Ctrl+Shift+E)"
-            aria-label="Toggle Outline"
-            aria-pressed={showOutline}
-          >
-            <PanelLeft className="w-5 h-5" aria-hidden="true" />
-          </button>
-          <button
-            onClick={togglePreview}
-            className={`p-3 rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center ${
-              showPreview
-                ? "bg-purple-500/20 text-purple-400"
-                : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50"
-            }`}
-            title="Toggle Preview (Ctrl+\)"
-            aria-label="Toggle Preview"
-            aria-pressed={showPreview}
-          >
-            <PanelRight className="w-5 h-5" aria-hidden="true" />
-          </button>
-        </div>
+        <AppMenu
+          onNewFile={newFile}
+          onOpenFile={openFile}
+          onImportFile={() => importFromFile()}
+          onImportUrl={() => importFromUrl()}
+          onSave={saveFile}
+          onSaveAs={saveFileAs}
+          onExportJson={exportAsJson}
+          onExportYaml={exportAsYaml}
+          onFormatDocument={formatEditorContent}
+          onSortContent={sortEditorContent}
+          onCreateSnapshot={() => createSnapshot("Manual snapshot")}
+          onToggleOutline={toggleOutline}
+          onTogglePreview={togglePreview}
+          onShowKeyboardShortcuts={() => setShowKeyboardShortcuts(true)}
+          onOpenCommandPalette={openCommandPalette}
+          onSetRightPanelView={setRightPanelView}
+        />
       </header>
 
       <div ref={containerRef} className="flex-1 flex overflow-hidden">
