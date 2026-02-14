@@ -116,6 +116,8 @@ interface EditorState {
   isHistoryLoading: boolean;
   toasts: Toast[];
   editorView: EditorView | null;
+  cursorLine: number;
+  cursorColumn: number;
   currentPath: string | null;
 }
 
@@ -165,6 +167,7 @@ interface EditorActions {
   setEditorView: (view: EditorView | null) => void;
   goToLine: (line: number, column?: number) => void;
   goToPosition: (pos: number) => void;
+  setCursorPosition: (line: number, column: number) => void;
   setCurrentPath: (path: string | null) => void;
 }
 
@@ -642,6 +645,8 @@ export const useEditorStore = create<EditorStore>()(
       isHistoryLoading: false,
       toasts: [],
       editorView: null,
+      cursorLine: 1,
+      cursorColumn: 1,
       currentPath: null,
 
       setFile: (file) => set({
@@ -765,6 +770,7 @@ export const useEditorStore = create<EditorStore>()(
         }
       },
 
+      setCursorPosition: (line, column) => set({ cursorLine: line, cursorColumn: column }),
       setCurrentPath: (path) => set({ currentPath: path }),
 
       goToPosition: (pos) => {

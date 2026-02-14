@@ -12,13 +12,9 @@ export function StatusBar({ onDiagnosticsClick }: StatusBarProps) {
   const schemaValid = useEditorStore((state) => state.schemaValid);
   const errors = useEditorStore((state) => state.errors);
   const warnings = useEditorStore((state) => state.warnings);
-  const editorView = useEditorStore((state) => state.editorView);
+  const cursorLine = useEditorStore((state) => state.cursorLine);
+  const cursorColumn = useEditorStore((state) => state.cursorColumn);
   const parsedSpec = useEditorStore((state) => state.parsedSpec);
-
-  const cursorPosition = editorView?.state.selection.main.head ?? 0;
-  const line = editorView?.state.doc.lineAt(cursorPosition);
-  const lineNumber = line?.number ?? 1;
-  const columnNumber = line ? cursorPosition - line.from + 1 : 1;
 
   const errorCount = errors.length;
   const warningCount = warnings.length;
@@ -42,8 +38,8 @@ export function StatusBar({ onDiagnosticsClick }: StatusBarProps) {
         </span>
 
         {/* Cursor position */}
-        <span aria-label={`Line ${lineNumber}, Column ${columnNumber}`}>
-          Ln {lineNumber}, Col {columnNumber}
+        <span aria-label={`Line ${cursorLine}, Column ${cursorColumn}`}>
+          Ln {cursorLine}, Col {cursorColumn}
         </span>
       </div>
 

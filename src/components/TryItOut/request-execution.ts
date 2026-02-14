@@ -112,8 +112,9 @@ export function buildUrl(
   const normalizedBase = baseUrl.replace(/\/+$/, '');
   const normalizedPath = resolvedPath.startsWith('/') ? resolvedPath : `/${resolvedPath}`;
 
-  // Build URL
-  const url = new URL(normalizedPath, normalizedBase);
+  // Build URL — avoid new URL(path, base) which drops base path prefixes
+  const url = new URL(normalizedBase);
+  url.pathname = url.pathname.replace(/\/+$/, '') + normalizedPath;
 
   // Add query parameters
   for (const [key, value] of Object.entries(parameterValues)) {
