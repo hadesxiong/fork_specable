@@ -201,7 +201,9 @@ export function buildSnippetFromTryIt(options: {
   const normalizedBase = baseUrl.replace(/\/+$/, '');
   const normalizedPath = resolvedPath.startsWith('/') ? resolvedPath : `/${resolvedPath}`;
 
-  const url = new URL(normalizedPath, normalizedBase);
+  // Avoid new URL(path, base) which drops base path prefixes
+  const url = new URL(normalizedBase);
+  url.pathname = url.pathname.replace(/\/+$/, '') + normalizedPath;
 
   // Query parameters
   for (const [key, value] of Object.entries(parameterValues)) {

@@ -62,9 +62,11 @@ export function Editor() {
         cursorTrackTimeout = setTimeout(() => {
           const store = getStore();
           const { sourceMap } = store;
-          const line = update.state.doc.lineAt(update.state.selection.main.head).number;
-          const path = getPathAtLine(sourceMap, line);
+          const pos = update.state.selection.main.head;
+          const lineInfo = update.state.doc.lineAt(pos);
+          const path = getPathAtLine(sourceMap, lineInfo.number);
           store.setCurrentPath(path);
+          store.setCursorPosition(lineInfo.number, pos - lineInfo.from + 1);
         }, 150);
       }
     });

@@ -4,12 +4,21 @@ import { getFileSystem } from '../services/file-system';
 import { formatEditorContent } from '../utils/format';
 import { detectLanguage } from '../utils/content';
 
+function confirmDiscardChanges(): boolean {
+  const file = useEditorStore.getState().file;
+  if (file?.isDirty) {
+    return window.confirm('You have unsaved changes that will be lost. Continue?');
+  }
+  return true;
+}
+
 export function useFileSystem() {
   const setFile = useEditorStore((state) => state.setFile);
   const updateFileIdentity = useEditorStore((state) => state.updateFileIdentity);
   const file = useEditorStore((state) => state.file);
 
   const openFile = useCallback(async () => {
+    if (!confirmDiscardChanges()) return;
     const fs = getFileSystem();
     const newFile = await fs.openFile();
     if (newFile) {
@@ -18,6 +27,7 @@ export function useFileSystem() {
   }, [setFile]);
 
   const importFromFile = useCallback(async () => {
+    if (!confirmDiscardChanges()) return false;
     // Use a regular file input to import without File System Access API handle
     return new Promise<boolean>((resolve) => {
       const input = document.createElement('input');
@@ -55,6 +65,7 @@ export function useFileSystem() {
   }, [setFile]);
 
   const importFromUrl = useCallback(async (url?: string) => {
+    if (!confirmDiscardChanges()) return false;
     const targetUrl = url ?? prompt('Enter URL to import OpenAPI specification:');
     if (!targetUrl) return false;
 
@@ -112,6 +123,7 @@ export function useFileSystem() {
   }, [file, updateFileIdentity]);
 
   const newFile = useCallback(() => {
+    if (!confirmDiscardChanges()) return;
     const defaultContent = `openapi: 3.0.3
 info:
   title: New API
