@@ -12,99 +12,144 @@ interface DiffLine {
   newLineNumber?: number;
 }
 
-function computeLineDiff(oldContent: string, newContent: string): DiffLine[] {
-  const oldLines = oldContent.split('\n');
-  const newLines = newContent.split('\n');
+const MAX_DIFF_LINES = 5000;
 
-  // Simple LCS-based diff
-  const lcs = computeLCS(oldLines, newLines);
+/**
+ * Myers diff algorithm -- O(nd) time where d is the edit distance.
+ * Returns an edit script as an array of operations.
+ */
+function myersDiff(oldLines: string[], newLines: string[]): DiffLine[] {
+  const n = oldLines.length;
+  const m = newLines.length;
+  const max = n + m;
+
+  // V stores the furthest-reaching endpoint for each diagonal k
+  const v = new Int32Array(2 * max + 1);
+  const offset = max;
+
+  // Trace stores V snapshots for backtracking
+  const trace: Int32Array[] = [];
+
+  outer: for (let d = 0; d <= max; d++) {
+    const snapshot = new Int32Array(v);
+    trace.push(snapshot);
+
+    for (let k = -d; k <= d; k += 2) {
+      let x: number;
+      if (k === -d || (k !== d && v[k - 1 + offset] < v[k + 1 + offset])) {
+        x = v[k + 1 + offset]; // move down (insert)
+      } else {
+        x = v[k - 1 + offset] + 1; // move right (delete)
+      }
+
+      let y = x - k;
+
+      // Follow diagonal (matching lines)
+      while (x < n && y < m && oldLines[x] === newLines[y]) {
+        x++;
+        y++;
+      }
+
+      v[k + offset] = x;
+
+      if (x >= n && y >= m) {
+        break outer;
+      }
+    }
+  }
+
+  // Backtrack to build the edit script
+  const edits: Array<'keep' | 'insert' | 'delete'> = [];
+  let x = n;
+  let y = m;
+
+  for (let d = trace.length - 1; d > 0; d--) {
+    const prev = trace[d - 1];
+    const k = x - y;
+
+    let prevK: number;
+    if (k === -d || (k !== d && prev[k - 1 + offset] < prev[k + 1 + offset])) {
+      prevK = k + 1;
+    } else {
+      prevK = k - 1;
+    }
+
+    const prevX = prev[prevK + offset];
+    const prevY = prevX - prevK;
+
+    // Diagonal moves (matching lines)
+    while (x > prevX && y > prevY) {
+      edits.push('keep');
+      x--;
+      y--;
+    }
+
+    if (x === prevX) {
+      edits.push('insert');
+      y--;
+    } else {
+      edits.push('delete');
+      x--;
+    }
+  }
+
+  // Remaining diagonal at d=0
+  while (x > 0 && y > 0) {
+    edits.push('keep');
+    x--;
+    y--;
+  }
+
+  edits.reverse();
+
+  // Convert edits to DiffLines
   const result: DiffLine[] = [];
+  let oldIdx = 0;
+  let newIdx = 0;
 
-  let oldIndex = 0;
-  let newIndex = 0;
-  let lcsIndex = 0;
-
-  while (oldIndex < oldLines.length || newIndex < newLines.length) {
-    if (lcsIndex < lcs.length && oldIndex < oldLines.length && oldLines[oldIndex] === lcs[lcsIndex]) {
-      // Check if this line is also in new content at the right position
-      if (newIndex < newLines.length && newLines[newIndex] === lcs[lcsIndex]) {
+  for (const edit of edits) {
+    switch (edit) {
+      case 'keep':
         result.push({
           type: 'unchanged',
-          content: oldLines[oldIndex],
-          oldLineNumber: oldIndex + 1,
-          newLineNumber: newIndex + 1,
+          content: oldLines[oldIdx],
+          oldLineNumber: oldIdx + 1,
+          newLineNumber: newIdx + 1,
         });
-        oldIndex++;
-        newIndex++;
-        lcsIndex++;
-      } else {
-        // New line was added
+        oldIdx++;
+        newIdx++;
+        break;
+      case 'delete':
+        result.push({
+          type: 'removed',
+          content: oldLines[oldIdx],
+          oldLineNumber: oldIdx + 1,
+        });
+        oldIdx++;
+        break;
+      case 'insert':
         result.push({
           type: 'added',
-          content: newLines[newIndex],
-          newLineNumber: newIndex + 1,
+          content: newLines[newIdx],
+          newLineNumber: newIdx + 1,
         });
-        newIndex++;
-      }
-    } else if (oldIndex < oldLines.length && (lcsIndex >= lcs.length || oldLines[oldIndex] !== lcs[lcsIndex])) {
-      // Old line was removed
-      result.push({
-        type: 'removed',
-        content: oldLines[oldIndex],
-        oldLineNumber: oldIndex + 1,
-      });
-      oldIndex++;
-    } else if (newIndex < newLines.length) {
-      // New line was added
-      result.push({
-        type: 'added',
-        content: newLines[newIndex],
-        newLineNumber: newIndex + 1,
-      });
-      newIndex++;
+        newIdx++;
+        break;
     }
   }
 
   return result;
 }
 
-function computeLCS(a: string[], b: string[]): string[] {
-  const m = a.length;
-  const n = b.length;
+function computeLineDiff(oldContent: string, newContent: string): DiffLine[] | null {
+  const oldLines = oldContent.split('\n');
+  const newLines = newContent.split('\n');
 
-  // Create DP table
-  const dp: number[][] = Array(m + 1)
-    .fill(null)
-    .map(() => Array(n + 1).fill(0));
-
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      if (a[i - 1] === b[j - 1]) {
-        dp[i][j] = dp[i - 1][j - 1] + 1;
-      } else {
-        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
-      }
-    }
+  if (oldLines.length + newLines.length > MAX_DIFF_LINES) {
+    return null;
   }
 
-  // Backtrack to find LCS
-  const lcs: string[] = [];
-  let i = m;
-  let j = n;
-
-  while (i > 0 && j > 0) {
-    if (a[i - 1] === b[j - 1]) {
-      lcs.unshift(a[i - 1]);
-      i--;
-      j--;
-    } else if (dp[i - 1][j] > dp[i][j - 1]) {
-      i--;
-    } else {
-      j--;
-    }
-  }
-
-  return lcs;
+  return myersDiff(oldLines, newLines);
 }
 
 export function HistoryDiff({ oldContent, newContent }: HistoryDiffProps) {
@@ -114,6 +159,7 @@ export function HistoryDiff({ oldContent, newContent }: HistoryDiffProps) {
   );
 
   const stats = useMemo(() => {
+    if (!diffLines) return null;
     let added = 0;
     let removed = 0;
     for (const line of diffLines) {
@@ -131,13 +177,23 @@ export function HistoryDiff({ oldContent, newContent }: HistoryDiffProps) {
     );
   }
 
+  if (!diffLines) {
+    return (
+      <div className="flex items-center justify-center h-full text-zinc-500 text-sm p-4 text-center">
+        Diff too large to display inline ({oldContent.split('\n').length} + {newContent.split('\n').length} lines)
+      </div>
+    );
+  }
+
   return (
     <div className="font-mono text-xs">
       {/* Stats bar */}
-      <div className="px-3 py-1.5 bg-zinc-900/50 text-zinc-400 flex gap-4 border-b border-zinc-800">
-        <span className="text-emerald-400">+{stats.added} added</span>
-        <span className="text-red-400">-{stats.removed} removed</span>
-      </div>
+      {stats && (
+        <div className="px-3 py-1.5 bg-zinc-900/50 text-zinc-400 flex gap-4 border-b border-zinc-800">
+          <span className="text-emerald-400">+{stats.added} added</span>
+          <span className="text-red-400">-{stats.removed} removed</span>
+        </div>
+      )}
 
       {/* Diff content */}
       <div className="overflow-auto">

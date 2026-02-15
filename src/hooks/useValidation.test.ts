@@ -136,8 +136,8 @@ describe('useValidation', () => {
 
       const { unmount } = renderHook(() => useValidation());
 
-      // Store should have isValidating=true
-      expect(useEditorStore.getState().isValidating).toBe(true);
+      // isValidating is false -- setValidating(true) only fires inside onProgress after debounce
+      expect(useEditorStore.getState().isValidating).toBe(false);
 
       // Unmount triggers cleanup (sets active=false)
       unmount();
@@ -148,8 +148,8 @@ describe('useValidation', () => {
         resolveValidation(createPipelineResult());
       });
 
-      // isValidating should still be true (stale .then() was ignored)
-      expect(useEditorStore.getState().isValidating).toBe(true);
+      // isValidating stays false (was never set to true, stale .then() was ignored)
+      expect(useEditorStore.getState().isValidating).toBe(false);
       expect(useEditorStore.getState().parsedSpec).toBeNull();
     });
 
@@ -163,7 +163,7 @@ describe('useValidation', () => {
 
       const { unmount } = renderHook(() => useValidation());
 
-      expect(useEditorStore.getState().isValidating).toBe(true);
+      expect(useEditorStore.getState().isValidating).toBe(false);
 
       unmount();
 
@@ -172,8 +172,8 @@ describe('useValidation', () => {
         rejectValidation(new Error('Worker failed'));
       });
 
-      // isValidating should still be true (stale .catch() was ignored)
-      expect(useEditorStore.getState().isValidating).toBe(true);
+      // isValidating stays false (was never set to true, stale .catch() was ignored)
+      expect(useEditorStore.getState().isValidating).toBe(false);
     });
 
     it('ignores onProgress after cleanup', async () => {

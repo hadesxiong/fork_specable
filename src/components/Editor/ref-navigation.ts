@@ -15,18 +15,23 @@ function buildDecorations(view: EditorView): DecorationSet {
   const decorations: { from: number; to: number }[] = [];
   const doc = view.state.doc;
 
-  for (let i = 1; i <= doc.lines; i++) {
-    const line = doc.line(i);
-    const text = line.text;
+  for (const { from, to } of view.visibleRanges) {
+    const startLine = doc.lineAt(from).number;
+    const endLine = doc.lineAt(to).number;
 
-    let match;
-    REF_PATTERN.lastIndex = 0;
-    while ((match = REF_PATTERN.exec(text)) !== null) {
-      const refValue = match[1];
-      const refStart = line.from + match.index + match[0].indexOf(refValue);
-      const refEnd = refStart + refValue.length;
+    for (let i = startLine; i <= endLine; i++) {
+      const line = doc.line(i);
+      const text = line.text;
 
-      decorations.push({ from: refStart, to: refEnd });
+      let match;
+      REF_PATTERN.lastIndex = 0;
+      while ((match = REF_PATTERN.exec(text)) !== null) {
+        const refValue = match[1];
+        const refStart = line.from + match.index + match[0].indexOf(refValue);
+        const refEnd = refStart + refValue.length;
+
+        decorations.push({ from: refStart, to: refEnd });
+      }
     }
   }
 

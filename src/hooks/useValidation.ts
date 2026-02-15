@@ -33,16 +33,17 @@ export function useValidation() {
     const debounceMs = isFirstValidation.current ? 0 : 300;
     isFirstValidation.current = false;
 
-    setValidating(true);
-
     pipeline
       .validateDebounced(content, (stage, result) => {
         if (!active) return;
-        if (stage === "validating" && result.validation?.parsedSpec) {
-          setParsedSpec(
-            result.validation.parsedSpec,
-            result.validation.sourceMap,
-          );
+        if (stage === "validating") {
+          setValidating(true);
+          if (result.validation?.parsedSpec) {
+            setParsedSpec(
+              result.validation.parsedSpec,
+              result.validation.sourceMap,
+            );
+          }
         }
       }, debounceMs)
       .then((result) => {

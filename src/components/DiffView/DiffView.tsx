@@ -1,16 +1,14 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useEditorStore } from '../../store';
-import type { DiffWorkerApi, DiffComputeResult, ValidationResult, ValidatorWorkerApi, DiffChange } from '../../workers/types';
+import type { DiffWorkerApi, DiffComputeResult, ValidationResult, DiffChange } from '../../workers/types';
 import { DiffToolbar } from './DiffToolbar';
 import { DiffSummary } from './DiffSummary';
 import { DiffList } from './DiffList';
 import { createLazyWorker } from '../../services/worker-factory';
+import { getValidatorWorker } from '../../services/shared-workers';
 
 const getDiffWorker = createLazyWorker<DiffWorkerApi>(
   () => new Worker(new URL('../../workers/diff.worker.ts', import.meta.url), { type: 'module' })
-);
-const getValidatorWorker = createLazyWorker<ValidatorWorkerApi>(
-  () => new Worker(new URL('../../workers/validator.worker.ts', import.meta.url), { type: 'module' })
 );
 
 export function DiffView() {

@@ -14,6 +14,7 @@ export function Editor() {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const isUpdatingRef = useRef(false);
+  const isDestroyedRef = useRef(false);
 
   const file = useEditorStore((state) => state.file);
   const setEditorView = useEditorStore((state) => state.setEditorView);
@@ -81,11 +82,13 @@ export function Editor() {
       parent: containerRef.current,
     });
 
+    isDestroyedRef.current = false;
     viewRef.current = view;
     setEditorView(view);
 
     return () => {
       if (cursorTrackTimeout) clearTimeout(cursorTrackTimeout);
+      isDestroyedRef.current = true;
       view.destroy();
       viewRef.current = null;
       setEditorView(null);
@@ -95,7 +98,7 @@ export function Editor() {
   // Sync content from store to editor when it changes externally
   useEffect(() => {
     const view = viewRef.current;
-    if (!view || !file) return;
+    if (!view || !file || isDestroyedRef.current) return;
 
     const currentContent = view.state.doc.toString();
     if (currentContent !== file.content) {
@@ -114,7 +117,7 @@ export function Editor() {
   // Sync validation errors to editor diagnostics
   useEffect(() => {
     const view = viewRef.current;
-    if (!view) return;
+    if (!view || isDestroyedRef.current) return;
 
     setEditorDiagnostics(view, errors, warnings);
   }, [errors, warnings]);
