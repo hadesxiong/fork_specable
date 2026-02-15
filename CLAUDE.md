@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Specable is a local-first OpenAPI editor for power users, built with React 19, TypeScript, Vite 7, and Tailwind CSS 4. It aims to provide sub-100ms validation, keyboard-first workflows, and intelligent navigation for large API specifications.
+Specable is a local-first OpenAPI editor for power users, built with React 19, TypeScript, Vite 7, and Tailwind CSS 4. It aims to provide responsive validation, keyboard-first workflows, and intelligent navigation for large API specifications.
 
 ## Development Commands
 

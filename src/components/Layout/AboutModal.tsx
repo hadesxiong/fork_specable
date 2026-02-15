@@ -34,7 +34,7 @@ const FEATURES = [
   {
     title: "Local Storage",
     description:
-      "Files are edited locally. Version history is stored in IndexedDB. No network requests.",
+      "Files are edited locally and version history is stored in IndexedDB. Try It Out and URL imports make network requests from your browser.",
   },
 ];
 
@@ -126,7 +126,7 @@ export function AboutModal({ isOpen, onClose }: AboutModalProps) {
           {/* Footer */}
           <div className="pt-4 border-t border-zinc-800 flex items-center justify-between">
             <p className="text-xs text-zinc-600">
-              All data is stored locally in your browser.
+              Files and version history are stored locally in your browser.
             </p>
             <a
               href="https://github.com/tiaanduplessis/specable"
