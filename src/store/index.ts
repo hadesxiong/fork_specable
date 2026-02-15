@@ -123,6 +123,7 @@ interface EditorState {
 
 interface EditorActions {
   setFile: (file: EditorFile | null) => void;
+  syncFileFromTab: (file: EditorFile) => void;
   updateContent: (content: string) => void;
   markClean: () => void;
   updateFileIdentity: (file: EditorFile) => void;
@@ -657,6 +658,24 @@ export const useEditorStore = create<EditorStore>()(
         warnings: [],
         versionHistory: [],
         selectedSnapshotId: null,
+      }),
+
+      syncFileFromTab: (file) => set((state) => {
+        if (state.file?.id === file.id && state.file?.content === file.content) {
+          return {};
+        }
+        const isSameFile = state.file?.id === file.id;
+        return {
+          file,
+          ...(isSameFile ? {} : {
+            parsedSpec: null,
+            sourceMap: {},
+            errors: [],
+            warnings: [],
+            versionHistory: [],
+            selectedSnapshotId: null,
+          }),
+        };
       }),
 
       updateContent: (content) => set((state) => ({

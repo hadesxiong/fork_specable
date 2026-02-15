@@ -4,7 +4,7 @@ import { useEditorStore, type EditorFile } from '../store';
 const STORAGE_KEY = 'specable-editor';
 
 export function useStorageSync() {
-  const setFile = useEditorStore((state) => state.setFile);
+  const syncFileFromTab = useEditorStore((state) => state.syncFileFromTab);
 
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
@@ -15,7 +15,7 @@ export function useStorageSync() {
         const newFile = parsed.state?.file as EditorFile | undefined;
 
         if (newFile) {
-          setFile(newFile);
+          syncFileFromTab(newFile);
         }
       } catch {
         // Ignore parse errors
@@ -24,5 +24,5 @@ export function useStorageSync() {
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, [setFile]);
+  }, [syncFileFromTab]);
 }

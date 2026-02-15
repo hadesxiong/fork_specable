@@ -7,9 +7,15 @@ globalThis.Worker = vi.fn() as unknown as typeof Worker;
 
 vi.mock('./worker-factory', () => ({
   createWorker: vi.fn(),
+  createLazyWorker: vi.fn(),
+}));
+
+vi.mock('./shared-workers', () => ({
+  getValidatorWorker: vi.fn(),
 }));
 
 import { createWorker } from './worker-factory';
+import { getValidatorWorker } from './shared-workers';
 
 function createValidationResult(overrides: Partial<ValidationResult> = {}): ValidationResult {
   return {
@@ -45,9 +51,9 @@ describe('ValidationPipeline', () => {
     mockValidate = vi.fn();
     mockLint = vi.fn();
 
-    // initialise() creates the validator worker first, then the linter worker
+    // initialise() uses shared getValidatorWorker for validator, createWorker for linter
+    vi.mocked(getValidatorWorker).mockReturnValue({ validate: mockValidate } as never);
     vi.mocked(createWorker)
-      .mockReturnValueOnce([{ validate: mockValidate } as never, {} as Worker])
       .mockReturnValueOnce([{ lint: mockLint } as never, {} as Worker]);
 
     pipeline = new ValidationPipeline();
@@ -128,7 +134,7 @@ describe('ValidationPipeline', () => {
       await pipeline.validate('first');
       await pipeline.validate('second');
 
-      expect(createWorker).toHaveBeenCalledTimes(2); // once for validator, once for linter
+      expect(createWorker).toHaveBeenCalledTimes(1); // once for linter (validator uses shared worker)
     });
   });
 
@@ -165,44 +171,27 @@ describe('ValidationPipeline', () => {
       mockValidate.mockResolvedValue(createValidationResult());
       mockLint.mockResolvedValue(createLintResult());
 
-      const first = pipeline.validateDebounced('first', undefined, 300);
-      // Eagerly attach handler to prevent unhandled rejection
-      const firstRejection = first.catch((e: Error) => e);
+      // First call is superseded -- its promise never resolves (generation counter)
+      pipeline.validateDebounced('first', undefined, 300);
 
       const second = pipeline.validateDebounced('second', undefined, 300);
 
       await vi.advanceTimersByTimeAsync(300);
 
-      const error = await firstRejection;
-      expect(error).toBeInstanceOf(Error);
-      expect((error as Error).message).toBe('Validation cancelled');
       const result = await second;
       expect(mockValidate).toHaveBeenCalledWith('second');
+      expect(mockValidate).not.toHaveBeenCalledWith('first');
       expect(result.validation).not.toBeNull();
     });
   });
 
   describe('cancel', () => {
-    it('rejects pending debounced validation', async () => {
-      mockValidate.mockResolvedValue(createValidationResult());
-      mockLint.mockResolvedValue(createLintResult());
-
-      const promise = pipeline.validateDebounced('content', undefined, 300);
-      const rejection = promise.catch((e: Error) => e);
-
-      pipeline.cancel();
-
-      const error = await rejection;
-      expect(error).toBeInstanceOf(Error);
-      expect((error as Error).message).toBe('Validation cancelled');
-    });
-
     it('prevents debounce timer from firing', async () => {
       mockValidate.mockResolvedValue(createValidationResult());
       mockLint.mockResolvedValue(createLintResult());
 
-      const promise = pipeline.validateDebounced('content', undefined, 300);
-      promise.catch(() => {}); // prevent unhandled rejection
+      // The promise never settles after cancel (generation counter)
+      pipeline.validateDebounced('content', undefined, 300);
 
       pipeline.cancel();
 

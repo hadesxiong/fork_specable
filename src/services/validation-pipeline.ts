@@ -1,6 +1,7 @@
 import type { Remote } from 'comlink';
 import type { ValidatorWorkerApi, LinterWorkerApi, ValidationResult, LintResult, ValidationError } from '../workers/types';
 import { createWorker } from './worker-factory';
+import { getValidatorWorker } from './shared-workers';
 
 export interface PipelineResult {
   validation: ValidationResult | null;
@@ -13,7 +14,7 @@ export class ValidationPipeline {
   private linterWorker: Remote<LinterWorkerApi> | null = null;
   private pendingValidation: AbortController | null = null;
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
-  private pendingDebounceReject: ((reason: Error) => void) | null = null;
+  private debounceGeneration = 0;
 
   private callWithTimeout<T>(
     promise: Promise<T>,
@@ -32,15 +33,7 @@ export class ValidationPipeline {
 
   async initialise() {
     if (!this.validatorWorker) {
-      try {
-        const [api] = createWorker<ValidatorWorkerApi>(
-          new Worker(new URL('../workers/validator.worker.ts', import.meta.url), { type: 'module' })
-        );
-        this.validatorWorker = api;
-      } catch (e) {
-        console.error('Failed to create validator worker:', e);
-        throw e;
-      }
+      this.validatorWorker = getValidatorWorker();
     }
 
     if (!this.linterWorker) {
@@ -120,25 +113,24 @@ export class ValidationPipeline {
     onProgress?: (stage: 'validating' | 'linting' | 'complete', result: Partial<PipelineResult>) => void,
     debounceMs = 300
   ): Promise<PipelineResult> {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+    }
+
+    const generation = ++this.debounceGeneration;
+
     return new Promise((resolve, reject) => {
-      // Cancel any pending debounced validation
-      if (this.debounceTimer) {
-        clearTimeout(this.debounceTimer);
-      }
-      if (this.pendingDebounceReject) {
-        this.pendingDebounceReject(new Error('Validation cancelled'));
-        this.pendingDebounceReject = null;
-      }
-
-      this.pendingDebounceReject = reject;
-
       this.debounceTimer = setTimeout(async () => {
-        this.pendingDebounceReject = null;
+        if (generation !== this.debounceGeneration) return;
         try {
           const result = await this.validate(content, onProgress);
-          resolve(result);
+          if (generation === this.debounceGeneration) {
+            resolve(result);
+          }
         } catch (e) {
-          reject(e);
+          if (generation === this.debounceGeneration) {
+            reject(e);
+          }
         }
       }, debounceMs);
     });
@@ -146,13 +138,10 @@ export class ValidationPipeline {
 
   cancel() {
     this.pendingValidation?.abort();
+    this.debounceGeneration++;
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
       this.debounceTimer = null;
-    }
-    if (this.pendingDebounceReject) {
-      this.pendingDebounceReject(new Error('Validation cancelled'));
-      this.pendingDebounceReject = null;
     }
   }
 
