@@ -1,18 +1,18 @@
 # Specable
 
-A fast, local-first OpenAPI editor for power users. Built for keyboard-first workflows, sub-100ms validation, and intelligent navigation of large API specifications.
+A local-first OpenAPI editor for power users. Built for keyboard-first workflows, worker-based validation, and intelligent navigation of large API specifications.
 
 ## Features
 
-- **Fast Validation** - Real-time OpenAPI validation with debounced updates
+- **Validation** - OpenAPI validation with debounced updates
 - **Spectral Linting** - Best practice rules powered by Stoplight Spectral
 - **Keyboard-First** - Command palette (`Ctrl+Shift+P`), go-to-definition (`F12`), and extensive shortcuts
 - **Schema Graph** - Interactive visualisation of schema relationships using PixiJS and d3-force
 - **API Documentation** - Live rendered preview of your API documentation
 - **Diff View** - Compare specs with breaking change detection
 - **Try It Out** - Execute API requests against servers defined in your spec
-- **Version History** - Automatic snapshots with content deduplication
-- **Local-First** - Works entirely in the browser with File System Access API
+- **Version History** - Manual snapshots with content deduplication
+- **Local-First** - Local editing and storage with the File System Access API
 
 ## Getting Started
 
