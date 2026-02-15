@@ -80,8 +80,7 @@ export function KeyboardShortcutsModal({
         aria-modal="true"
         aria-labelledby="shortcuts-title"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
+        <header className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
           <h2
             id="shortcuts-title"
             className="text-lg font-medium text-zinc-100"
@@ -95,32 +94,34 @@ export function KeyboardShortcutsModal({
           >
             <X className="w-4 h-4" />
           </button>
-        </div>
+        </header>
 
         {/* Content */}
         <div className="overflow-y-auto p-6 max-h-[calc(85vh-65px)]">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {SHORTCUT_GROUPS.map((group) => (
-              <div key={group.title}>
+              <section key={group.title}>
                 <h3 className="text-xs font-medium text-purple-400 uppercase tracking-wide mb-3">
                   {group.title}
                 </h3>
-                <div className="space-y-1">
+                <dl className="space-y-1">
                   {group.shortcuts.map((shortcut) => (
                     <div
                       key={shortcut.keys}
                       className="flex items-center justify-between py-2 px-2 rounded-md hover:bg-zinc-800/50"
                     >
-                      <span className="text-sm text-zinc-300">
+                      <dt className="text-sm text-zinc-300">
                         {shortcut.description}
-                      </span>
-                      <kbd className="px-2 py-1 text-xs font-mono bg-zinc-800 rounded-md text-zinc-500">
-                        {shortcut.keys}
-                      </kbd>
+                      </dt>
+                      <dd>
+                        <kbd className="px-2 py-1 text-xs font-mono bg-zinc-800 rounded-md text-zinc-500">
+                          {shortcut.keys}
+                        </kbd>
+                      </dd>
                     </div>
                   ))}
-                </div>
-              </div>
+                </dl>
+              </section>
             ))}
           </div>
 

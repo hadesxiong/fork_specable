@@ -86,7 +86,7 @@ export function OutlineView() {
     new Set(["paths", "schemas"]),
   );
   const [filter, setFilter] = useState("");
-  const activeNodeRef = useRef<HTMLDivElement>(null);
+  const activeNodeRef = useRef<HTMLButtonElement>(null);
 
   const outline = useMemo(() => {
     if (!parsedSpec) return [];
@@ -158,24 +158,17 @@ export function OutlineView() {
         aria-expanded={hasChildren ? isExpanded : undefined}
         aria-selected={isActive}
       >
-        <div
+        <button
+          type="button"
           ref={isActive ? activeNodeRef : undefined}
           className={`
-            flex items-center gap-1 px-2 py-1 cursor-pointer rounded
+            w-full text-left flex items-center gap-1 px-2 py-1 cursor-pointer rounded
             transition-colors
             ${isActive ? "bg-purple-500/10 border-l-2 border-purple-500" : "hover:bg-zinc-800"}
             ${node.deprecated ? "line-through opacity-60" : ""}
           `}
           style={{ paddingLeft: `${depth * 12 + (isActive ? 6 : 8)}px` }}
           onClick={() => handleClick(node)}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              handleClick(node);
-            }
-          }}
           aria-label={
             node.method
               ? `${node.method.toUpperCase()} ${node.label}`
@@ -213,7 +206,7 @@ export function OutlineView() {
           )}
 
           <span className="text-sm text-zinc-200 truncate">{node.label}</span>
-        </div>
+        </button>
 
         {hasChildren && isExpanded && (
           <ul role="group">

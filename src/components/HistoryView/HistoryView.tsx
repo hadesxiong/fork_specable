@@ -70,8 +70,7 @@ export function HistoryView() {
 
   return (
     <div className="h-full flex flex-col bg-zinc-950">
-      {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-800 bg-zinc-900/50">
+      <header className="flex items-center justify-between px-3 py-2 border-b border-zinc-800 bg-zinc-900/50">
         <span className="text-xs font-medium text-zinc-400 uppercase tracking-wide">
           Version History
         </span>
@@ -82,7 +81,7 @@ export function HistoryView() {
         >
           <Plus className="w-4 h-4" />
         </button>
-      </div>
+      </header>
 
       <div className="flex-1 overflow-hidden flex flex-col min-h-0">
         {/* Snapshot list */}
@@ -96,9 +95,9 @@ export function HistoryView() {
               </p>
             </div>
           ) : (
-            <div className="py-1">
+            <ul className="py-1">
               {versionHistory.map((snapshot) => (
-                <div
+                <li
                   key={snapshot.id}
                   onClick={() => setSelectedSnapshot(
                     selectedSnapshotId === snapshot.id ? null : snapshot.id
@@ -115,16 +114,17 @@ export function HistoryView() {
                       <div className="text-sm truncate">
                         {snapshot.label || formatRelativeTime(snapshot.timestamp)}
                       </div>
-                      <div className="text-xs text-zinc-500">
+                      <time dateTime={new Date(snapshot.timestamp).toISOString()} className="block text-xs text-zinc-500">
                         {formatTime(snapshot.timestamp)}
                         {snapshot.label && (
                           <span className="ml-2">{formatRelativeTime(snapshot.timestamp)}</span>
                         )}
-                      </div>
+                      </time>
                     </div>
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <button
+                      type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleRestoreSnapshot(snapshot.id);
@@ -135,6 +135,7 @@ export function HistoryView() {
                       <RotateCcw className="w-3.5 h-3.5" />
                     </button>
                     <button
+                      type="button"
                       onClick={(e) => handleDeleteSnapshot(snapshot.id, e)}
                       className="p-1.5 rounded-md text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-colors"
                       title="Delete this snapshot"
@@ -142,16 +143,16 @@ export function HistoryView() {
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
         </div>
 
         {/* Diff view when snapshot selected */}
         {selectedSnapshot && (
           <div className="flex-1 overflow-auto min-h-0 border-t border-zinc-800">
-            <div className="px-3 py-2 bg-zinc-900/50 border-b border-zinc-800 flex items-center justify-between">
+            <header className="px-3 py-2 bg-zinc-900/50 border-b border-zinc-800 flex items-center justify-between">
               <span className="text-xs text-zinc-400">
                 Changes from{' '}
                 <span className="text-zinc-300">
@@ -164,7 +165,7 @@ export function HistoryView() {
               >
                 Restore
               </button>
-            </div>
+            </header>
             <HistoryDiff
               oldContent={selectedSnapshot.content}
               newContent={file.content}

@@ -96,8 +96,7 @@ export function DiagnosticsPanel({
         aria-label="Resize problems panel"
       />
 
-      {/* Header */}
-      <div className="h-9 flex items-center justify-between pb-2 px-4 border-b border-zinc-800 shrink-0">
+      <header className="h-9 flex items-center justify-between pb-2 px-4 border-b border-zinc-800 shrink-0">
         <div className="flex items-center gap-4">
           <h2
             id="diagnostics-heading"
@@ -145,7 +144,7 @@ export function DiagnosticsPanel({
             <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
-      </div>
+      </header>
 
       {/* Diagnostics list */}
       <ul

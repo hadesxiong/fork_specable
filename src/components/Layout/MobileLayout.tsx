@@ -52,9 +52,9 @@ export function MobileLayout({ onShowAbout }: MobileLayoutProps) {
         </button>
       </header>
 
-      <div className="flex-1 overflow-hidden">
+      <main className="flex-1 overflow-hidden">
         {activePanel === 'editor' ? <Editor /> : <DocumentationView />}
-      </div>
+      </main>
 
       <MobileStatusBar
         activePanel={activePanel}
