@@ -317,7 +317,7 @@ export function DocumentationView() {
       </header>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <main className="flex-1 overflow-y-auto p-4 space-y-4">
         {!hasResults && filter && (
           <div className="text-center text-zinc-600 py-8">
             No matches found for "{filter}"
@@ -337,7 +337,7 @@ export function DocumentationView() {
 
         {/* Schemas */}
         {filteredSchemas.length > 0 && (
-          <div className="mt-8">
+          <section className="mt-8">
             <h2 className="text-base font-medium text-zinc-200 mb-4 pb-2 border-b border-zinc-800">
               Schemas ({filteredSchemas.length})
             </h2>
@@ -352,9 +352,9 @@ export function DocumentationView() {
                 />
               ))}
             </div>
-          </div>
+          </section>
         )}
-      </div>
+      </main>
     </div>
   );
 }
