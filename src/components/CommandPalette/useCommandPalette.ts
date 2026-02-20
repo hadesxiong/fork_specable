@@ -1,21 +1,21 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useEditorStore } from '../../store';
-import { formatEditorContent } from '../../utils/format';
-import { sortEditorContent } from '../../utils/sort';
-import type { Command } from './CommandPalette';
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useEditorStore } from '../../store'
+import { formatEditorContent } from '../../utils/format'
+import { sortEditorContent } from '../../utils/sort'
+import type { Command } from './CommandPalette'
 
 export function useCommandPalette(additionalCommands: Command[] = []) {
-  const [isOpen, setIsOpen] = useState(false);
-  const togglePreview = useEditorStore((state) => state.togglePreview);
-  const toggleOutline = useEditorStore((state) => state.toggleOutline);
-  const toggleMinimap = useEditorStore((state) => state.toggleMinimap);
-  const showPreview = useEditorStore((state) => state.showPreview);
-  const setRightPanelView = useEditorStore((state) => state.setRightPanelView);
-  const setGraphFilter = useEditorStore((state) => state.setGraphFilter);
-  const setDiffFilter = useEditorStore((state) => state.setDiffFilter);
-  const clearComparison = useEditorStore((state) => state.clearComparison);
-  const goToLine = useEditorStore((state) => state.goToLine);
-  const editorView = useEditorStore((state) => state.editorView);
+  const [isOpen, setIsOpen] = useState(false)
+  const togglePreview = useEditorStore((state) => state.togglePreview)
+  const toggleOutline = useEditorStore((state) => state.toggleOutline)
+  const toggleMinimap = useEditorStore((state) => state.toggleMinimap)
+  const showPreview = useEditorStore((state) => state.showPreview)
+  const setRightPanelView = useEditorStore((state) => state.setRightPanelView)
+  const setGraphFilter = useEditorStore((state) => state.setGraphFilter)
+  const setDiffFilter = useEditorStore((state) => state.setDiffFilter)
+  const clearComparison = useEditorStore((state) => state.clearComparison)
+  const goToLine = useEditorStore((state) => state.goToLine)
+  const editorView = useEditorStore((state) => state.editorView)
 
   const baseCommands: Command[] = useMemo(
     () => [
@@ -25,11 +25,11 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
         shortcut: 'Ctrl+G',
         category: 'navigation',
         action: () => {
-          const line = prompt('Go to line:');
+          const line = prompt('Go to line:')
           if (line) {
-            const lineNum = parseInt(line, 10);
+            const lineNum = parseInt(line, 10)
             if (!isNaN(lineNum)) {
-              goToLine(lineNum);
+              goToLine(lineNum)
             }
           }
         },
@@ -42,9 +42,9 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
         action: () => {
           if (editorView) {
             import('../Editor/ref-navigation').then(({ goToDefinition }) => {
-              const getStore = () => useEditorStore.getState();
-              goToDefinition(editorView, getStore);
-            });
+              const getStore = () => useEditorStore.getState()
+              goToDefinition(editorView, getStore)
+            })
           }
         },
         when: () => editorView !== null,
@@ -75,8 +75,8 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
         shortcut: 'Ctrl+1',
         category: 'view',
         action: () => {
-          setRightPanelView('preview');
-          if (!showPreview) togglePreview();
+          setRightPanelView('preview')
+          if (!showPreview) togglePreview()
         },
       },
       {
@@ -85,8 +85,8 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
         shortcut: 'Ctrl+2',
         category: 'view',
         action: () => {
-          setRightPanelView('graph');
-          if (!showPreview) togglePreview();
+          setRightPanelView('graph')
+          if (!showPreview) togglePreview()
         },
       },
       {
@@ -95,8 +95,8 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
         shortcut: 'Ctrl+3',
         category: 'view',
         action: () => {
-          setRightPanelView('diff');
-          if (!showPreview) togglePreview();
+          setRightPanelView('diff')
+          if (!showPreview) togglePreview()
         },
       },
       {
@@ -105,8 +105,8 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
         shortcut: 'Ctrl+4',
         category: 'view',
         action: () => {
-          setRightPanelView('tryit');
-          if (!showPreview) togglePreview();
+          setRightPanelView('tryit')
+          if (!showPreview) togglePreview()
         },
       },
       {
@@ -159,8 +159,8 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
         action: () => {
           if (editorView) {
             import('@codemirror/commands').then(({ undo }) => {
-              undo(editorView);
-            });
+              undo(editorView)
+            })
           }
         },
       },
@@ -172,8 +172,8 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
         action: () => {
           if (editorView) {
             import('@codemirror/commands').then(({ redo }) => {
-              redo(editorView);
-            });
+              redo(editorView)
+            })
           }
         },
       },
@@ -185,8 +185,8 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
         action: () => {
           if (editorView) {
             import('@codemirror/commands').then(({ selectAll }) => {
-              selectAll(editorView);
-            });
+              selectAll(editorView)
+            })
           }
         },
       },
@@ -211,8 +211,8 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
         action: () => {
           if (editorView) {
             import('@codemirror/language').then(({ foldAll }) => {
-              foldAll(editorView);
-            });
+              foldAll(editorView)
+            })
           }
         },
       },
@@ -224,35 +224,46 @@ export function useCommandPalette(additionalCommands: Command[] = []) {
         action: () => {
           if (editorView) {
             import('@codemirror/language').then(({ unfoldAll }) => {
-              unfoldAll(editorView);
-            });
+              unfoldAll(editorView)
+            })
           }
         },
       },
     ],
-    [togglePreview, toggleOutline, toggleMinimap, showPreview, setRightPanelView, setGraphFilter, setDiffFilter, clearComparison, goToLine, editorView]
-  );
+    [
+      togglePreview,
+      toggleOutline,
+      toggleMinimap,
+      showPreview,
+      setRightPanelView,
+      setGraphFilter,
+      setDiffFilter,
+      clearComparison,
+      goToLine,
+      editorView,
+    ],
+  )
 
   const allCommands = useMemo(
     () => [...baseCommands, ...additionalCommands],
-    [baseCommands, additionalCommands]
-  );
+    [baseCommands, additionalCommands],
+  )
 
-  const open = useCallback(() => setIsOpen(true), []);
-  const close = useCallback(() => setIsOpen(false), []);
-  const toggle = useCallback(() => setIsOpen((prev) => !prev), []);
+  const open = useCallback(() => setIsOpen(true), [])
+  const close = useCallback(() => setIsOpen(false), [])
+  const toggle = useCallback(() => setIsOpen((prev) => !prev), [])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'p') {
-        e.preventDefault();
-        toggle();
+        e.preventDefault()
+        toggle()
       }
-    };
+    }
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggle]);
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [toggle])
 
-  return { isOpen, open, close, toggle, commands: allCommands };
+  return { isOpen, open, close, toggle, commands: allCommands }
 }

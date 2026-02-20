@@ -8,7 +8,10 @@ export function GraphLegend() {
           <span className="text-zinc-400">Required</span>
         </dd>
         <dd className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-purple-500" aria-hidden="true" />
+          <span
+            className="w-1.5 h-1.5 rounded-full bg-purple-500"
+            aria-hidden="true"
+          />
           <span className="text-zinc-400">Reference</span>
         </dd>
       </dl>
@@ -37,5 +40,5 @@ export function GraphLegend() {
         </dd>
       </dl>
     </div>
-  );
+  )
 }

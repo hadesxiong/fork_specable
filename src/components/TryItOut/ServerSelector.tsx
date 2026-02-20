@@ -1,57 +1,62 @@
-import { useMemo, useState, useRef, useEffect } from 'react';
-import { ChevronDown, Globe, Edit3 } from 'lucide-react';
-import type { OpenAPIV3 } from 'openapi-types';
-import { useEditorStore } from '../../store';
+import { useMemo, useState, useRef, useEffect } from 'react'
+import { ChevronDown, Globe, Edit3 } from 'lucide-react'
+import type { OpenAPIV3 } from 'openapi-types'
+import { useEditorStore } from '../../store'
 
 interface ServerSelectorProps {
-  spec: OpenAPIV3.Document;
+  spec: OpenAPIV3.Document
 }
 
 export function ServerSelector({ spec }: ServerSelectorProps) {
-  const selectedServer = useEditorStore((state) => state.tryIt.selectedServer);
-  const customServerUrl = useEditorStore((state) => state.tryIt.customServerUrl);
-  const setTryItServer = useEditorStore((state) => state.setTryItServer);
-  const setTryItCustomServer = useEditorStore((state) => state.setTryItCustomServer);
+  const selectedServer = useEditorStore((state) => state.tryIt.selectedServer)
+  const customServerUrl = useEditorStore((state) => state.tryIt.customServerUrl)
+  const setTryItServer = useEditorStore((state) => state.setTryItServer)
+  const setTryItCustomServer = useEditorStore(
+    (state) => state.setTryItCustomServer,
+  )
 
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   const servers = useMemo(() => {
-    return spec.servers ?? [];
-  }, [spec.servers]);
+    return spec.servers ?? []
+  }, [spec.servers])
 
-  const isCustom = selectedServer === '__custom__';
+  const isCustom = selectedServer === '__custom__'
 
   const displayValue = useMemo(() => {
     if (isCustom) {
-      return customServerUrl || 'Enter custom URL...';
+      return customServerUrl || 'Enter custom URL...'
     }
     if (selectedServer) {
-      return selectedServer;
+      return selectedServer
     }
-    return servers[0]?.url ?? 'No server defined';
-  }, [selectedServer, customServerUrl, servers, isCustom]);
+    return servers[0]?.url ?? 'No server defined'
+  }, [selectedServer, customServerUrl, servers, isCustom])
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false)
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const handleSelectServer = (url: string | null) => {
-    setTryItServer(url);
-    setIsOpen(false);
-  };
+    setTryItServer(url)
+    setIsOpen(false)
+  }
 
   const handleSelectCustom = () => {
-    setTryItServer('__custom__');
-    setIsOpen(false);
-  };
+    setTryItServer('__custom__')
+    setIsOpen(false)
+  }
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -89,7 +94,9 @@ export function ServerSelector({ spec }: ServerSelectorProps) {
               {displayValue}
             </span>
           </div>
-          <ChevronDown className={`w-4 h-4 text-zinc-500 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown
+            className={`w-4 h-4 text-zinc-500 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          />
         </button>
       )}
 
@@ -111,7 +118,9 @@ export function ServerSelector({ spec }: ServerSelectorProps) {
                 >
                   <Globe className="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-mono truncate">{server.url}</div>
+                    <div className="text-sm font-mono truncate">
+                      {server.url}
+                    </div>
                     {server.description && (
                       <div className="text-xs text-zinc-500 truncate mt-0.5">
                         {server.description}
@@ -145,5 +154,5 @@ export function ServerSelector({ spec }: ServerSelectorProps) {
         </div>
       )}
     </div>
-  );
+  )
 }

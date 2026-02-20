@@ -1,45 +1,45 @@
-import { X, ExternalLink } from "lucide-react";
+import { X, ExternalLink } from 'lucide-react'
 
 interface AboutModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen: boolean
+  onClose: () => void
 }
 
 const FEATURES = [
   {
-    title: "Validation",
+    title: 'Validation',
     description:
-      "Syntax, schema, and linting validation using Web Workers. Supports OpenAPI 3.0.x and 2.0 (Swagger).",
+      'Syntax, schema, and linting validation using Web Workers. Supports OpenAPI 3.0.x and 2.0 (Swagger).',
   },
   {
-    title: "Keyboard Shortcuts",
+    title: 'Keyboard Shortcuts',
     description:
-      "Command palette (Ctrl+Shift+P), go-to-line, find/replace, and code folding shortcuts.",
+      'Command palette (Ctrl+Shift+P), go-to-line, find/replace, and code folding shortcuts.',
   },
   {
-    title: "$ref Navigation",
+    title: '$ref Navigation',
     description:
-      "Go-to-definition (F12) and click-to-navigate for $ref targets throughout the specification.",
+      'Go-to-definition (F12) and click-to-navigate for $ref targets throughout the specification.',
   },
   {
-    title: "Schema Graph",
+    title: 'Schema Graph',
     description:
-      "Visualise relationships between schemas including $ref, allOf, anyOf, and oneOf connections.",
+      'Visualise relationships between schemas including $ref, allOf, anyOf, and oneOf connections.',
   },
   {
-    title: "Diff View",
+    title: 'Diff View',
     description:
-      "Compare two specifications and view changes. Breaking changes are flagged. Export as Markdown.",
+      'Compare two specifications and view changes. Breaking changes are flagged. Export as Markdown.',
   },
   {
-    title: "Local Storage",
+    title: 'Local Storage',
     description:
-      "Files are edited locally and version history is stored in IndexedDB. Try It Out and URL imports make network requests from your browser.",
+      'Files are edited locally and version history is stored in IndexedDB. Try It Out and URL imports make network requests from your browser.',
   },
-];
+]
 
 export function AboutModal({ isOpen, onClose }: AboutModalProps) {
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -76,7 +76,8 @@ export function AboutModal({ isOpen, onClose }: AboutModalProps) {
         <div className="overflow-y-auto p-6 max-h-[calc(85vh-65px)]">
           {/* Description */}
           <p className="text-sm text-zinc-400 mb-6">
-            A browser-based OpenAPI specification editor with validation, documentation preview, and schema visualisation.
+            A browser-based OpenAPI specification editor with validation,
+            documentation preview, and schema visualisation.
           </p>
 
           {/* Features grid */}
@@ -105,13 +106,13 @@ export function AboutModal({ isOpen, onClose }: AboutModalProps) {
           </h3>
           <ul className="flex flex-wrap gap-2 mb-8">
             {[
-              "React 19",
-              "TypeScript",
-              "CodeMirror 6",
-              "Zustand",
-              "Tailwind CSS",
-              "Web Workers",
-              "Vite",
+              'React 19',
+              'TypeScript',
+              'CodeMirror 6',
+              'Zustand',
+              'Tailwind CSS',
+              'Web Workers',
+              'Vite',
             ].map((tech) => (
               <li
                 key={tech}
@@ -139,5 +140,5 @@ export function AboutModal({ isOpen, onClose }: AboutModalProps) {
         </div>
       </div>
     </div>
-  );
+  )
 }

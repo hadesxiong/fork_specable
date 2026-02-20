@@ -1,28 +1,28 @@
-import { useEffect } from 'react';
-import { useEditorStore, type EditorFile } from '../store';
+import { useEffect } from 'react'
+import { useEditorStore, type EditorFile } from '../store'
 
-const STORAGE_KEY = 'specable-editor';
+const STORAGE_KEY = 'specable-editor'
 
 export function useStorageSync() {
-  const syncFileFromTab = useEditorStore((state) => state.syncFileFromTab);
+  const syncFileFromTab = useEditorStore((state) => state.syncFileFromTab)
 
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key !== STORAGE_KEY || !event.newValue) return;
+      if (event.key !== STORAGE_KEY || !event.newValue) return
 
       try {
-        const parsed = JSON.parse(event.newValue);
-        const newFile = parsed.state?.file as EditorFile | undefined;
+        const parsed = JSON.parse(event.newValue)
+        const newFile = parsed.state?.file as EditorFile | undefined
 
         if (newFile) {
-          syncFileFromTab(newFile);
+          syncFileFromTab(newFile)
         }
       } catch {
         // Ignore parse errors
       }
-    };
+    }
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [syncFileFromTab]);
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [syncFileFromTab])
 }

@@ -1,1 +1,1 @@
-export { OutlineView } from './OutlineView';
+export { OutlineView } from './OutlineView'

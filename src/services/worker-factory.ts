@@ -1,4 +1,4 @@
-import { wrap, type Remote } from 'comlink';
+import { wrap, type Remote } from 'comlink'
 
 /**
  * Wraps an existing web worker with Comlink for typed RPC.
@@ -12,11 +12,11 @@ import { wrap, type Remote } from 'comlink';
  */
 export function createWorker<T>(worker: Worker): [Remote<T>, Worker] {
   worker.onerror = (e) => {
-    console.error('Worker error:', e);
-  };
+    console.error('Worker error:', e)
+  }
 
-  const api = wrap<T>(worker);
-  return [api, worker];
+  const api = wrap<T>(worker)
+  return [api, worker]
 }
 
 /**
@@ -27,13 +27,13 @@ export function createWorker<T>(worker: Worker): [Remote<T>, Worker] {
  * so Vite can statically detect and bundle the worker entry point.
  */
 export function createLazyWorker<T>(factory: () => Worker): () => Remote<T> {
-  let api: Remote<T> | null = null;
+  let api: Remote<T> | null = null
 
   return () => {
     if (!api) {
-      const [wrappedApi] = createWorker<T>(factory());
-      api = wrappedApi;
+      const [wrappedApi] = createWorker<T>(factory())
+      api = wrappedApi
     }
-    return api;
-  };
+    return api
+  }
 }

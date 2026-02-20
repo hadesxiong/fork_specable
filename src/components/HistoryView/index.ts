@@ -1,2 +1,2 @@
-export { HistoryView } from './HistoryView';
-export { HistoryDiff } from './HistoryDiff';
+export { HistoryView } from './HistoryView'
+export { HistoryDiff } from './HistoryDiff'

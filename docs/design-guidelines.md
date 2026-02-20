@@ -8,16 +8,17 @@ This document outlines the design system and visual guidelines for Specable. All
 
 Purple is the brand colour used for interactive elements, highlights, and accents.
 
-| Token | Hex | Usage |
-|-------|-----|-------|
-| `purple-400` | `#c084fc` | Primary text, active indicators, hover states |
-| `purple-500` | `#a855f7` | Selection backgrounds, focus rings |
-| `purple-600` | `#9333ea` | Active/pressed button backgrounds |
-| `purple-700` | `#7e22ce` | Hover state for primary buttons |
-| `purple-500/20` | `rgba(168, 85, 247, 0.2)` | Subtle backgrounds, badges, selected items |
-| `purple-500/30` | `rgba(168, 85, 247, 0.3)` | Hover backgrounds on selected items |
+| Token           | Hex                       | Usage                                         |
+| --------------- | ------------------------- | --------------------------------------------- |
+| `purple-400`    | `#c084fc`                 | Primary text, active indicators, hover states |
+| `purple-500`    | `#a855f7`                 | Selection backgrounds, focus rings            |
+| `purple-600`    | `#9333ea`                 | Active/pressed button backgrounds             |
+| `purple-700`    | `#7e22ce`                 | Hover state for primary buttons               |
+| `purple-500/20` | `rgba(168, 85, 247, 0.2)` | Subtle backgrounds, badges, selected items    |
+| `purple-500/30` | `rgba(168, 85, 247, 0.3)` | Hover backgrounds on selected items           |
 
 CSS custom properties are defined in `src/index.css`:
+
 ```css
 --color-primary-400: #c084fc;
 --color-primary-500: #a855f7;
@@ -29,66 +30,69 @@ CSS custom properties are defined in `src/index.css`:
 
 The application uses a dark theme with zinc tones for backgrounds.
 
-| Token | Hex | Usage |
-|-------|-----|-------|
-| `zinc-950` | `#09090b` | Main application background, editor background |
-| `zinc-900` | `#18181b` | Panel backgrounds, modals, header, status bar |
-| `zinc-900/50` | `rgba(24, 24, 27, 0.5)` | Semi-transparent overlays, tab bars |
-| `zinc-800` | `#27272a` | Borders, dividers, input backgrounds |
-| `zinc-800/50` | `rgba(39, 39, 42, 0.5)` | Subtle hover backgrounds |
-| `zinc-700` | `#3f3f46` | Hover states for secondary elements |
+| Token         | Hex                     | Usage                                          |
+| ------------- | ----------------------- | ---------------------------------------------- |
+| `zinc-950`    | `#09090b`               | Main application background, editor background |
+| `zinc-900`    | `#18181b`               | Panel backgrounds, modals, header, status bar  |
+| `zinc-900/50` | `rgba(24, 24, 27, 0.5)` | Semi-transparent overlays, tab bars            |
+| `zinc-800`    | `#27272a`               | Borders, dividers, input backgrounds           |
+| `zinc-800/50` | `rgba(39, 39, 42, 0.5)` | Subtle hover backgrounds                       |
+| `zinc-700`    | `#3f3f46`               | Hover states for secondary elements            |
 
 ### Text Colours
 
-| Token | Hex | Usage |
-|-------|-----|-------|
-| `zinc-100` | `#f4f4f5` | Primary headings, important text |
-| `zinc-200` | `#e4e4e7` | Primary body text |
-| `zinc-300` | `#d4d4d8` | Secondary text |
-| `zinc-400` | `#a1a1aa` | Muted text, labels |
+| Token      | Hex       | Usage                             |
+| ---------- | --------- | --------------------------------- |
+| `zinc-100` | `#f4f4f5` | Primary headings, important text  |
+| `zinc-200` | `#e4e4e7` | Primary body text                 |
+| `zinc-300` | `#d4d4d8` | Secondary text                    |
+| `zinc-400` | `#a1a1aa` | Muted text, labels                |
 | `zinc-500` | `#71717a` | Placeholder text, disabled states |
-| `zinc-600` | `#52525b` | Very muted text, subtle labels |
+| `zinc-600` | `#52525b` | Very muted text, subtle labels    |
 
 ### Semantic Colours
 
-| Colour | Hex | Usage |
-|--------|-----|-------|
-| `emerald-400` | `#34d399` | Success states, valid indicators |
-| `red-400` | `#f87171` | Error states, required indicators |
-| `amber-400` | `#fbbf24` | Warning states |
-| `amber-500` | `#f59e0b` | Unsaved changes indicator |
+| Colour        | Hex       | Usage                             |
+| ------------- | --------- | --------------------------------- |
+| `emerald-400` | `#34d399` | Success states, valid indicators  |
+| `red-400`     | `#f87171` | Error states, required indicators |
+| `amber-400`   | `#fbbf24` | Warning states                    |
+| `amber-500`   | `#f59e0b` | Unsaved changes indicator         |
 
 ### Graph Colours
 
 Used in the schema relationship graph (`src/components/GraphView/`):
 
-| Colour | Hex | Usage |
-|--------|-----|-------|
-| `purple-500` | `#a855f7` | $ref edges |
+| Colour       | Hex       | Usage       |
+| ------------ | --------- | ----------- |
+| `purple-500` | `#a855f7` | $ref edges  |
 | `violet-500` | `#8b5cf6` | allOf edges |
-| `amber-500` | `#f59e0b` | anyOf edges |
-| `pink-500` | `#ec4899` | oneOf edges |
-| `cyan-500` | `#06b6d4` | items edges |
+| `amber-500`  | `#f59e0b` | anyOf edges |
+| `pink-500`   | `#ec4899` | oneOf edges |
+| `cyan-500`   | `#06b6d4` | items edges |
 
 ### Syntax Highlighting Colours
 
 Used in the CodeMirror editor (defined in `src/components/Editor/theme.ts`):
 
-| Colour | Hex | Usage |
-|--------|-----|-------|
+| Colour       | Hex       | Usage                          |
+| ------------ | --------- | ------------------------------ |
 | `purple-400` | `#c084fc` | Keywords, booleans, null, tags |
-| `green-300` | `#86efac` | Strings |
-| `amber-300` | `#fcd34d` | Numbers, functions |
-| `blue-300` | `#93c5fd` | Properties, attributes |
-| `cyan-300` | `#67e8f9` | Variables, types |
+| `green-300`  | `#86efac` | Strings                        |
+| `amber-300`  | `#fcd34d` | Numbers, functions             |
+| `blue-300`   | `#93c5fd` | Properties, attributes         |
+| `cyan-300`   | `#67e8f9` | Variables, types               |
 
 ## Typography
 
 ### Font Families
 
 ```css
---font-sans: "Geist Variable", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
---font-mono: "Geist Mono Variable", "SF Mono", Menlo, Monaco, "Courier New", monospace;
+--font-sans:
+  'Geist Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+  sans-serif;
+--font-mono:
+  'Geist Mono Variable', 'SF Mono', Menlo, Monaco, 'Courier New', monospace;
 ```
 
 - **Geist Variable**: Used for all UI text (labels, buttons, body text)
@@ -96,21 +100,21 @@ Used in the CodeMirror editor (defined in `src/components/Editor/theme.ts`):
 
 ### Font Sizes
 
-| Class | Size | Usage |
-|-------|------|-------|
-| `text-xl` | 1.25rem | Application title |
-| `text-lg` | 1.125rem | Modal headings, large labels |
-| `text-sm` | 0.875rem | Body text, button labels |
-| `text-xs` | 0.75rem | Small labels, badges, status text |
-| `text-[10px]` | 10px | Very small badges (e.g., BETA tag) |
+| Class         | Size     | Usage                              |
+| ------------- | -------- | ---------------------------------- |
+| `text-xl`     | 1.25rem  | Application title                  |
+| `text-lg`     | 1.125rem | Modal headings, large labels       |
+| `text-sm`     | 0.875rem | Body text, button labels           |
+| `text-xs`     | 0.75rem  | Small labels, badges, status text  |
+| `text-[10px]` | 10px     | Very small badges (e.g., BETA tag) |
 
 ### Font Weights
 
-| Weight | Usage |
-|--------|-------|
-| `font-bold` | Application title, emphasis |
+| Weight        | Usage                                   |
+| ------------- | --------------------------------------- |
+| `font-bold`   | Application title, emphasis             |
 | `font-medium` | Section headings, button labels, badges |
-| Regular (400) | Body text, descriptions |
+| Regular (400) | Body text, descriptions                 |
 
 ### Letter Spacing
 
@@ -122,6 +126,7 @@ Used in the CodeMirror editor (defined in `src/components/Editor/theme.ts`):
 ### Buttons
 
 #### Primary Action Button
+
 ```tsx
 <button className="px-3 py-1.5 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
   Action
@@ -129,6 +134,7 @@ Used in the CodeMirror editor (defined in `src/components/Editor/theme.ts`):
 ```
 
 #### Toggle Button (Active)
+
 ```tsx
 <button className="p-2 rounded-md bg-purple-500/20 text-purple-400">
   <Icon className="w-4 h-4" />
@@ -136,6 +142,7 @@ Used in the CodeMirror editor (defined in `src/components/Editor/theme.ts`):
 ```
 
 #### Toggle Button (Inactive)
+
 ```tsx
 <button className="p-2 rounded-md text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50">
   <Icon className="w-4 h-4" />
@@ -143,7 +150,9 @@ Used in the CodeMirror editor (defined in `src/components/Editor/theme.ts`):
 ```
 
 #### Toggle Button — Accessible Header Variant
+
 Use this variant for header toggle buttons to meet the WCAG 44px minimum touch target:
+
 ```tsx
 <button className="p-3 rounded-md min-w-[44px] min-h-[44px] flex items-center justify-center bg-purple-500/20 text-purple-400">
   <Icon className="w-5 h-5" />
@@ -151,12 +160,15 @@ Use this variant for header toggle buttons to meet the WCAG 44px minimum touch t
 ```
 
 #### Filter/Segmented Control
+
 ```tsx
-<button className={`px-2 py-1 text-xs rounded-md transition-colors ${
-  isActive
-    ? 'bg-purple-600 text-white'
-    : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
-}`}>
+<button
+  className={`px-2 py-1 text-xs rounded-md transition-colors ${
+    isActive
+      ? 'bg-purple-600 text-white'
+      : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+  }`}
+>
   Filter
 </button>
 ```
@@ -164,6 +176,7 @@ Use this variant for header toggle buttons to meet the WCAG 44px minimum touch t
 ### Badges
 
 #### Status Badge
+
 ```tsx
 <span className="px-1.5 py-0.5 text-[10px] font-medium bg-purple-500/20 text-purple-400 rounded">
   BETA
@@ -171,6 +184,7 @@ Use this variant for header toggle buttons to meet the WCAG 44px minimum touch t
 ```
 
 #### Version Badge
+
 ```tsx
 <span className="px-2 py-0.5 text-xs font-medium bg-purple-500/20 text-purple-400 rounded">
   v0.1.0
@@ -184,7 +198,10 @@ Modals follow a consistent structure:
 ```tsx
 <div className="fixed inset-0 z-50 flex items-center justify-center">
   {/* Backdrop */}
-  <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+  <div
+    className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+    onClick={onClose}
+  />
 
   {/* Modal content */}
   <div className="relative w-[640px] max-w-[90vw] max-h-[85vh] bg-zinc-900 rounded-xl shadow-2xl border border-zinc-800 overflow-hidden">
@@ -213,6 +230,7 @@ Modals follow a consistent structure:
 ```
 
 Selected/highlighted variant:
+
 ```tsx
 <kbd className="px-2 py-1 text-xs rounded-md font-mono bg-purple-500/30 text-purple-400">
   Ctrl+K
@@ -222,6 +240,7 @@ Selected/highlighted variant:
 ### Panels
 
 #### Panel Header
+
 ```tsx
 <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-800 bg-zinc-900/50">
   <span className="text-xs font-medium text-zinc-400 uppercase tracking-wide">
@@ -231,13 +250,16 @@ Selected/highlighted variant:
 ```
 
 #### Tab Bar
+
 ```tsx
 <div className="flex border-b border-zinc-800 bg-zinc-900/50">
-  <button className={`px-3 py-2 text-xs font-medium transition-colors ${
-    isActive
-      ? 'text-purple-400 border-b-2 border-purple-400 -mb-px'
-      : 'text-zinc-500 hover:text-zinc-300'
-  }`}>
+  <button
+    className={`px-3 py-2 text-xs font-medium transition-colors ${
+      isActive
+        ? 'text-purple-400 border-b-2 border-purple-400 -mb-px'
+        : 'text-zinc-500 hover:text-zinc-300'
+    }`}
+  >
     Tab
   </button>
 </div>
@@ -246,6 +268,7 @@ Selected/highlighted variant:
 ### Status Indicators
 
 #### Validation States
+
 ```tsx
 // Valid
 <span className="flex items-center gap-1.5 text-emerald-400">
@@ -275,6 +298,7 @@ Selected/highlighted variant:
 ### Form Inputs
 
 #### Full-width Input (Forms)
+
 ```tsx
 <input
   className="w-full px-4 py-3.5 bg-transparent text-zinc-200 text-sm outline-none border-b border-zinc-800 placeholder-zinc-600"
@@ -283,6 +307,7 @@ Selected/highlighted variant:
 ```
 
 #### Compact Input (Panels)
+
 ```tsx
 <input
   className="w-full px-3 py-2 bg-zinc-800/50 text-zinc-200 text-sm border border-zinc-800 rounded-md outline-none placeholder-zinc-600"
@@ -293,11 +318,13 @@ Selected/highlighted variant:
 ### List Items (Command Palette Style)
 
 ```tsx
-<div className={`mx-1 px-3 py-2.5 flex items-center justify-between cursor-pointer rounded-lg transition-colors ${
-  isSelected
-    ? 'bg-purple-500/20 text-zinc-100'
-    : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'
-}`}>
+<div
+  className={`mx-1 px-3 py-2.5 flex items-center justify-between cursor-pointer rounded-lg transition-colors ${
+    isSelected
+      ? 'bg-purple-500/20 text-zinc-100'
+      : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'
+  }`}
+>
   {/* Content */}
 </div>
 ```
@@ -307,6 +334,7 @@ Selected/highlighted variant:
 ### Spacing Scale
 
 Use Tailwind's default spacing scale:
+
 - `gap-1`, `gap-1.5`: Tight spacing (icons with text)
 - `gap-2`, `gap-3`: Standard spacing
 - `gap-4`, `gap-6`: Section spacing
@@ -320,12 +348,12 @@ Use Tailwind's default spacing scale:
 
 ### Border Radius
 
-| Class | Usage |
-|-------|-------|
-| `rounded` | Small elements, badges |
-| `rounded-md` | Buttons, inputs |
-| `rounded-lg` | Cards, list items |
-| `rounded-xl` | Modals, popovers |
+| Class        | Usage                  |
+| ------------ | ---------------------- |
+| `rounded`    | Small elements, badges |
+| `rounded-md` | Buttons, inputs        |
+| `rounded-lg` | Cards, list items      |
+| `rounded-xl` | Modals, popovers       |
 
 ### Borders
 
@@ -339,12 +367,15 @@ Use Tailwind's default spacing scale:
 The application uses [Lucide React](https://lucide.dev/) for icons.
 
 ### Standard Sizes
+
 - `w-3 h-3`: Small inline icons (status bar)
 - `w-4 h-4`: Standard UI icons (buttons, navigation)
 - `w-5 h-5`: Larger interactive icons
 
 ### Icon Colours
+
 Icons should inherit text colour via `currentColor`. Set colour on the parent element:
+
 ```tsx
 <button className="text-zinc-500 hover:text-zinc-300">
   <Icon className="w-4 h-4" />
@@ -356,6 +387,7 @@ Icons should inherit text colour via `currentColor`. Set colour on the parent el
 ### ARIA Attributes
 
 Always include appropriate ARIA attributes:
+
 ```tsx
 <button
   aria-label="Toggle Outline"
@@ -372,6 +404,7 @@ Always include appropriate ARIA attributes:
 ### Focus States
 
 Focus states use the primary colour:
+
 ```css
 :focus-visible {
   outline: 2px solid var(--color-primary-500);
@@ -386,9 +419,10 @@ All interactive elements must be keyboard accessible. Use `tabIndex` and keyboar
 ## Transitions
 
 Standard transition for interactive elements:
+
 ```tsx
-className="transition-colors" // For colour changes
-className="transition-all"    // For multiple property changes
+className = 'transition-colors' // For colour changes
+className = 'transition-all' // For multiple property changes
 ```
 
 Default duration is 150ms (set globally in `src/index.css`).
@@ -396,6 +430,7 @@ Default duration is 150ms (set globally in `src/index.css`).
 ## Scrollbars
 
 Custom scrollbar styling is applied globally:
+
 - Track: transparent
 - Thumb: `zinc-800`, hover `zinc-700`
 - Width/height: 8px

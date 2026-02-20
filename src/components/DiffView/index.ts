@@ -1,1 +1,1 @@
-export { DiffView } from './DiffView';
+export { DiffView } from './DiffView'

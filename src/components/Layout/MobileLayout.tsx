@@ -1,17 +1,17 @@
-import { useState } from 'react';
-import { Code, FileText } from 'lucide-react';
-import { Editor } from '../Editor';
-import { DocumentationView } from '../Preview';
-import { MobileStatusBar } from './MobileStatusBar';
+import { useState } from 'react'
+import { Code, FileText } from 'lucide-react'
+import { Editor } from '../Editor'
+import { DocumentationView } from '../Preview'
+import { MobileStatusBar } from './MobileStatusBar'
 
-type ActivePanel = 'editor' | 'preview';
+type ActivePanel = 'editor' | 'preview'
 
 interface MobileLayoutProps {
-  onShowAbout: () => void;
+  onShowAbout: () => void
 }
 
 export function MobileLayout({ onShowAbout }: MobileLayoutProps) {
-  const [activePanel, setActivePanel] = useState<ActivePanel>('editor');
+  const [activePanel, setActivePanel] = useState<ActivePanel>('editor')
 
   return (
     <div className="h-screen flex flex-col bg-zinc-950 relative">
@@ -61,5 +61,5 @@ export function MobileLayout({ onShowAbout }: MobileLayoutProps) {
         onPanelChange={setActivePanel}
       />
     </div>
-  );
+  )
 }

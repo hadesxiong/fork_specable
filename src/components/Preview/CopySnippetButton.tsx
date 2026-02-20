@@ -1,30 +1,35 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { Code, Check } from 'lucide-react';
-import type { OpenAPIV3 } from 'openapi-types';
+import { useState, useCallback, useRef, useEffect } from 'react'
+import { Code, Check } from 'lucide-react'
+import type { OpenAPIV3 } from 'openapi-types'
 import {
   generateSnippet,
   buildSnippetFromOperation,
   type SnippetFormat,
-} from '../../services/code-snippet-generator';
+} from '../../services/code-snippet-generator'
 
 const FORMATS: { id: SnippetFormat; label: string }[] = [
   { id: 'curl', label: 'cURL' },
   { id: 'fetch', label: 'fetch' },
   { id: 'python', label: 'Python' },
-];
+]
 
 interface CopySnippetButtonProps {
-  method: string;
-  path: string;
-  operation: OpenAPIV3.OperationObject;
-  spec: OpenAPIV3.Document;
+  method: string
+  path: string
+  operation: OpenAPIV3.OperationObject
+  spec: OpenAPIV3.Document
 }
 
-export function CopySnippetButton({ method, path, operation, spec }: CopySnippetButtonProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [copied, setCopied] = useState<SnippetFormat | null>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
+export function CopySnippetButton({
+  method,
+  path,
+  operation,
+  spec,
+}: CopySnippetButtonProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [copied, setCopied] = useState<SnippetFormat | null>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -34,23 +39,26 @@ export function CopySnippetButton({ method, path, operation, spec }: CopySnippet
         buttonRef.current &&
         !buttonRef.current.contains(event.target as Node)
       ) {
-        setIsOpen(false);
+        setIsOpen(false)
       }
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
-  const handleCopy = useCallback((format: SnippetFormat) => {
-    const request = buildSnippetFromOperation(method, path, operation, spec);
-    const snippet = generateSnippet(request, format);
-    navigator.clipboard.writeText(snippet);
-    setCopied(format);
-    setTimeout(() => {
-      setCopied(null);
-      setIsOpen(false);
-    }, 1200);
-  }, [method, path, operation, spec]);
+  const handleCopy = useCallback(
+    (format: SnippetFormat) => {
+      const request = buildSnippetFromOperation(method, path, operation, spec)
+      const snippet = generateSnippet(request, format)
+      navigator.clipboard.writeText(snippet)
+      setCopied(format)
+      setTimeout(() => {
+        setCopied(null)
+        setIsOpen(false)
+      }, 1200)
+    },
+    [method, path, operation, spec],
+  )
 
   return (
     <div className="relative">
@@ -58,8 +66,8 @@ export function CopySnippetButton({ method, path, operation, spec }: CopySnippet
         ref={buttonRef}
         type="button"
         onClick={(e) => {
-          e.stopPropagation();
-          setIsOpen(!isOpen);
+          e.stopPropagation()
+          setIsOpen(!isOpen)
         }}
         className="p-1 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-700 rounded transition-colors"
         aria-label="Copy as code snippet"
@@ -98,5 +106,5 @@ export function CopySnippetButton({ method, path, operation, spec }: CopySnippet
         </div>
       )}
     </div>
-  );
+  )
 }

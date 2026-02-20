@@ -1,8 +1,8 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import type { OpenAPIV3 } from 'openapi-types';
-import type { EditorView } from '@codemirror/view';
-import type { VersionSnapshot } from '../services/version-history-db';
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import type { OpenAPIV3 } from 'openapi-types'
+import type { EditorView } from '@codemirror/view'
+import type { VersionSnapshot } from '../services/version-history-db'
 
 // Re-export types from workers/types.ts to avoid duplication
 export type {
@@ -18,161 +18,161 @@ export type {
   DiffChange,
   DiffSummary,
   DiffResult,
-} from '../workers/types';
+} from '../workers/types'
 
-export type { VersionSnapshot } from '../services/version-history-db';
+export type { VersionSnapshot } from '../services/version-history-db'
 
 import type {
   ValidationError,
   SourceMap,
   GraphData,
   DiffResult,
-} from '../workers/types';
+} from '../workers/types'
 
 export interface Toast {
-  id: string;
-  type: 'success' | 'error' | 'info';
-  message: string;
-  duration: number;
+  id: string
+  type: 'success' | 'error' | 'info'
+  message: string
+  duration: number
 }
 
 export interface EditorFile {
-  id: string;
-  name: string;
-  content: string;
-  path?: string;
-  isDirty: boolean;
-  language: 'yaml' | 'json';
+  id: string
+  name: string
+  content: string
+  path?: string
+  isDirty: boolean
+  language: 'yaml' | 'json'
 }
 
-export type RightPanelView = 'preview' | 'graph' | 'diff' | 'tryit' | 'history';
-export type GraphFilter = 'all' | 'referenced' | 'orphaned';
-export type DiffFilter = 'all' | 'breaking' | 'non-breaking';
+export type RightPanelView = 'preview' | 'graph' | 'diff' | 'tryit' | 'history'
+export type GraphFilter = 'all' | 'referenced' | 'orphaned'
+export type DiffFilter = 'all' | 'breaking' | 'non-breaking'
 
 export interface ComparisonSpec {
-  content: string;
-  parsed: OpenAPIV3.Document;
-  sourceMap: SourceMap;
-  name: string;
+  content: string
+  parsed: OpenAPIV3.Document
+  sourceMap: SourceMap
+  name: string
 }
 
-export type AuthType = 'none' | 'bearer' | 'apiKey' | 'basic';
+export type AuthType = 'none' | 'bearer' | 'apiKey' | 'basic'
 
 export interface AuthConfig {
-  type: AuthType;
-  bearerToken: string;
-  apiKeyName: string;
-  apiKeyValue: string;
-  apiKeyLocation: 'header' | 'query';
-  username: string;
-  password: string;
+  type: AuthType
+  bearerToken: string
+  apiKeyName: string
+  apiKeyValue: string
+  apiKeyLocation: 'header' | 'query'
+  username: string
+  password: string
 }
 
 export interface TryItResponse {
-  status: number;
-  statusText: string;
-  headers: Record<string, string>;
-  body: string;
-  responseTimeMs: number;
-  error?: string;
-  isCorsError?: boolean;
+  status: number
+  statusText: string
+  headers: Record<string, string>
+  body: string
+  responseTimeMs: number
+  error?: string
+  isCorsError?: boolean
 }
 
 export interface TryItState {
-  selectedOperationId: string | null;
-  selectedServer: string | null;
-  customServerUrl: string;
-  authConfig: AuthConfig;
-  parameterValues: Record<string, string>;
-  requestBody: string;
-  requestContentType: string;
-  isExecuting: boolean;
-  lastResponse: TryItResponse | null;
+  selectedOperationId: string | null
+  selectedServer: string | null
+  customServerUrl: string
+  authConfig: AuthConfig
+  parameterValues: Record<string, string>
+  requestBody: string
+  requestContentType: string
+  isExecuting: boolean
+  lastResponse: TryItResponse | null
 }
 
 interface EditorState {
-  file: EditorFile | null;
-  parsedSpec: OpenAPIV3.Document | null;
-  sourceMap: SourceMap;
-  isValidating: boolean;
-  syntaxValid: boolean;
-  schemaValid: boolean;
-  errors: ValidationError[];
-  warnings: ValidationError[];
-  showPreview: boolean;
-  showOutline: boolean;
-  showMinimap: boolean;
-  rightPanelView: RightPanelView;
-  graphData: GraphData | null;
-  graphFilter: GraphFilter;
-  isGraphLoading: boolean;
-  comparisonSpec: ComparisonSpec | null;
-  diffResult: DiffResult | null;
-  diffFilter: DiffFilter;
-  isDiffLoading: boolean;
-  tryIt: TryItState;
-  versionHistory: VersionSnapshot[];
-  selectedSnapshotId: string | null;
-  isHistoryLoading: boolean;
-  toasts: Toast[];
-  editorView: EditorView | null;
-  cursorLine: number;
-  cursorColumn: number;
-  currentPath: string | null;
+  file: EditorFile | null
+  parsedSpec: OpenAPIV3.Document | null
+  sourceMap: SourceMap
+  isValidating: boolean
+  syntaxValid: boolean
+  schemaValid: boolean
+  errors: ValidationError[]
+  warnings: ValidationError[]
+  showPreview: boolean
+  showOutline: boolean
+  showMinimap: boolean
+  rightPanelView: RightPanelView
+  graphData: GraphData | null
+  graphFilter: GraphFilter
+  isGraphLoading: boolean
+  comparisonSpec: ComparisonSpec | null
+  diffResult: DiffResult | null
+  diffFilter: DiffFilter
+  isDiffLoading: boolean
+  tryIt: TryItState
+  versionHistory: VersionSnapshot[]
+  selectedSnapshotId: string | null
+  isHistoryLoading: boolean
+  toasts: Toast[]
+  editorView: EditorView | null
+  cursorLine: number
+  cursorColumn: number
+  currentPath: string | null
 }
 
 interface EditorActions {
-  setFile: (file: EditorFile | null) => void;
-  syncFileFromTab: (file: EditorFile) => void;
-  updateContent: (content: string) => void;
-  markClean: () => void;
-  updateFileIdentity: (file: EditorFile) => void;
-  setParsedSpec: (spec: OpenAPIV3.Document | null, sourceMap: SourceMap) => void;
-  setValidating: (isValidating: boolean) => void;
+  setFile: (file: EditorFile | null) => void
+  syncFileFromTab: (file: EditorFile) => void
+  updateContent: (content: string) => void
+  markClean: () => void
+  updateFileIdentity: (file: EditorFile) => void
+  setParsedSpec: (spec: OpenAPIV3.Document | null, sourceMap: SourceMap) => void
+  setValidating: (isValidating: boolean) => void
   setValidationResult: (result: {
-    syntaxValid: boolean;
-    schemaValid: boolean;
-    errors: ValidationError[];
-    warnings: ValidationError[];
-  }) => void;
-  clearValidation: () => void;
-  togglePreview: () => void;
-  toggleOutline: () => void;
-  toggleMinimap: () => void;
-  setRightPanelView: (view: RightPanelView) => void;
-  setGraphData: (data: GraphData | null) => void;
-  setGraphFilter: (filter: GraphFilter) => void;
-  setGraphLoading: (loading: boolean) => void;
-  setComparisonSpec: (spec: ComparisonSpec | null) => void;
-  setDiffResult: (result: DiffResult | null) => void;
-  setDiffFilter: (filter: DiffFilter) => void;
-  setDiffLoading: (loading: boolean) => void;
-  clearComparison: () => void;
-  setTryItOperation: (operationId: string | null) => void;
-  setTryItServer: (server: string | null) => void;
-  setTryItCustomServer: (url: string) => void;
-  setTryItAuth: (config: Partial<AuthConfig>) => void;
-  setTryItParameter: (key: string, value: string) => void;
-  setTryItRequestBody: (body: string) => void;
-  setTryItContentType: (contentType: string) => void;
-  setTryItExecuting: (executing: boolean) => void;
-  setTryItResponse: (response: TryItResponse | null) => void;
-  resetTryItParameters: () => void;
-  setVersionHistory: (history: VersionSnapshot[]) => void;
-  addSnapshot: (snapshot: VersionSnapshot) => void;
-  removeSnapshot: (id: string) => void;
-  setSelectedSnapshot: (id: string | null) => void;
-  setHistoryLoading: (loading: boolean) => void;
-  showToast: (type: Toast['type'], message: string, duration?: number) => void;
-  dismissToast: (id: string) => void;
-  setEditorView: (view: EditorView | null) => void;
-  goToLine: (line: number, column?: number) => void;
-  goToPosition: (pos: number) => void;
-  setCursorPosition: (line: number, column: number) => void;
-  setCurrentPath: (path: string | null) => void;
+    syntaxValid: boolean
+    schemaValid: boolean
+    errors: ValidationError[]
+    warnings: ValidationError[]
+  }) => void
+  clearValidation: () => void
+  togglePreview: () => void
+  toggleOutline: () => void
+  toggleMinimap: () => void
+  setRightPanelView: (view: RightPanelView) => void
+  setGraphData: (data: GraphData | null) => void
+  setGraphFilter: (filter: GraphFilter) => void
+  setGraphLoading: (loading: boolean) => void
+  setComparisonSpec: (spec: ComparisonSpec | null) => void
+  setDiffResult: (result: DiffResult | null) => void
+  setDiffFilter: (filter: DiffFilter) => void
+  setDiffLoading: (loading: boolean) => void
+  clearComparison: () => void
+  setTryItOperation: (operationId: string | null) => void
+  setTryItServer: (server: string | null) => void
+  setTryItCustomServer: (url: string) => void
+  setTryItAuth: (config: Partial<AuthConfig>) => void
+  setTryItParameter: (key: string, value: string) => void
+  setTryItRequestBody: (body: string) => void
+  setTryItContentType: (contentType: string) => void
+  setTryItExecuting: (executing: boolean) => void
+  setTryItResponse: (response: TryItResponse | null) => void
+  resetTryItParameters: () => void
+  setVersionHistory: (history: VersionSnapshot[]) => void
+  addSnapshot: (snapshot: VersionSnapshot) => void
+  removeSnapshot: (id: string) => void
+  setSelectedSnapshot: (id: string | null) => void
+  setHistoryLoading: (loading: boolean) => void
+  showToast: (type: Toast['type'], message: string, duration?: number) => void
+  dismissToast: (id: string) => void
+  setEditorView: (view: EditorView | null) => void
+  goToLine: (line: number, column?: number) => void
+  goToPosition: (pos: number) => void
+  setCursorPosition: (line: number, column: number) => void
+  setCurrentPath: (path: string | null) => void
 }
 
-type EditorStore = EditorState & EditorActions;
+type EditorStore = EditorState & EditorActions
 
 const DEFAULT_SPEC = `openapi: 3.0.3
 info:
@@ -592,7 +592,7 @@ components:
                 type: string
               reason:
                 type: string
-`;
+`
 
 export const useEditorStore = create<EditorStore>()(
   persist(
@@ -650,64 +650,78 @@ export const useEditorStore = create<EditorStore>()(
       cursorColumn: 1,
       currentPath: null,
 
-      setFile: (file) => set({
-        file,
-        parsedSpec: null,
-        sourceMap: {},
-        errors: [],
-        warnings: [],
-        versionHistory: [],
-        selectedSnapshotId: null,
-      }),
-
-      syncFileFromTab: (file) => set((state) => {
-        if (state.file?.id === file.id && state.file?.content === file.content) {
-          return {};
-        }
-        const isSameFile = state.file?.id === file.id;
-        return {
+      setFile: (file) =>
+        set({
           file,
-          ...(isSameFile ? {} : {
-            parsedSpec: null,
-            sourceMap: {},
-            errors: [],
-            warnings: [],
-            versionHistory: [],
-            selectedSnapshotId: null,
-          }),
-        };
-      }),
+          parsedSpec: null,
+          sourceMap: {},
+          errors: [],
+          warnings: [],
+          versionHistory: [],
+          selectedSnapshotId: null,
+        }),
 
-      updateContent: (content) => set((state) => ({
-        file: state.file ? { ...state.file, content, isDirty: true } : null,
-      })),
+      syncFileFromTab: (file) =>
+        set((state) => {
+          if (
+            state.file?.id === file.id &&
+            state.file?.content === file.content
+          ) {
+            return {}
+          }
+          const isSameFile = state.file?.id === file.id
+          return {
+            file,
+            ...(isSameFile
+              ? {}
+              : {
+                  parsedSpec: null,
+                  sourceMap: {},
+                  errors: [],
+                  warnings: [],
+                  versionHistory: [],
+                  selectedSnapshotId: null,
+                }),
+          }
+        }),
 
-      markClean: () => set((state) => ({
-        file: state.file ? { ...state.file, isDirty: false } : null,
-      })),
+      updateContent: (content) =>
+        set((state) => ({
+          file: state.file ? { ...state.file, content, isDirty: true } : null,
+        })),
+
+      markClean: () =>
+        set((state) => ({
+          file: state.file ? { ...state.file, isDirty: false } : null,
+        })),
 
       updateFileIdentity: (file) => set({ file }),
       setParsedSpec: (spec, sourceMap) => set({ parsedSpec: spec, sourceMap }),
       setValidating: (isValidating) => set({ isValidating }),
 
-      setValidationResult: (result) => set({
-        syntaxValid: result.syntaxValid,
-        schemaValid: result.schemaValid,
-        errors: result.errors,
-        warnings: result.warnings,
-        isValidating: false,
-      }),
+      setValidationResult: (result) =>
+        set({
+          syntaxValid: result.syntaxValid,
+          schemaValid: result.schemaValid,
+          errors: result.errors,
+          warnings: result.warnings,
+          isValidating: false,
+        }),
 
-      clearValidation: () => set({
-        errors: [],
-        warnings: [],
-        syntaxValid: true,
-        schemaValid: true,
-      }),
+      clearValidation: () =>
+        set({
+          errors: [],
+          warnings: [],
+          syntaxValid: true,
+          schemaValid: true,
+        }),
 
-      togglePreview: () => set((state) => ({ showPreview: !state.showPreview })),
-      toggleOutline: () => set((state) => ({ showOutline: !state.showOutline })),
-      toggleMinimap: () => set((state) => ({ showMinimap: !state.showMinimap })),
+      togglePreview: () =>
+        set((state) => ({ showPreview: !state.showPreview })),
+      toggleOutline: () =>
+        set((state) => ({ showOutline: !state.showOutline })),
+      toggleMinimap: () =>
+        set((state) => ({ showMinimap: !state.showMinimap })),
       setRightPanelView: (view) => set({ rightPanelView: view }),
       setGraphData: (data) => set({ graphData: data }),
       setGraphFilter: (filter) => set({ graphFilter: filter }),
@@ -717,90 +731,118 @@ export const useEditorStore = create<EditorStore>()(
       setDiffFilter: (filter) => set({ diffFilter: filter }),
       setDiffLoading: (loading) => set({ isDiffLoading: loading }),
       clearComparison: () => set({ comparisonSpec: null, diffResult: null }),
-      setTryItOperation: (operationId) => set((state) => ({
-        tryIt: { ...state.tryIt, selectedOperationId: operationId, parameterValues: {}, requestBody: '', lastResponse: null },
-      })),
-      setTryItServer: (server) => set((state) => ({
-        tryIt: { ...state.tryIt, selectedServer: server },
-      })),
-      setTryItCustomServer: (url) => set((state) => ({
-        tryIt: { ...state.tryIt, customServerUrl: url },
-      })),
-      setTryItAuth: (config) => set((state) => ({
-        tryIt: { ...state.tryIt, authConfig: { ...state.tryIt.authConfig, ...config } },
-      })),
-      setTryItParameter: (key, value) => set((state) => ({
-        tryIt: { ...state.tryIt, parameterValues: { ...state.tryIt.parameterValues, [key]: value } },
-      })),
-      setTryItRequestBody: (body) => set((state) => ({
-        tryIt: { ...state.tryIt, requestBody: body },
-      })),
-      setTryItContentType: (contentType) => set((state) => ({
-        tryIt: { ...state.tryIt, requestContentType: contentType },
-      })),
-      setTryItExecuting: (executing) => set((state) => ({
-        tryIt: { ...state.tryIt, isExecuting: executing },
-      })),
-      setTryItResponse: (response) => set((state) => ({
-        tryIt: { ...state.tryIt, lastResponse: response, isExecuting: false },
-      })),
-      resetTryItParameters: () => set((state) => ({
-        tryIt: { ...state.tryIt, parameterValues: {}, requestBody: '' },
-      })),
+      setTryItOperation: (operationId) =>
+        set((state) => ({
+          tryIt: {
+            ...state.tryIt,
+            selectedOperationId: operationId,
+            parameterValues: {},
+            requestBody: '',
+            lastResponse: null,
+          },
+        })),
+      setTryItServer: (server) =>
+        set((state) => ({
+          tryIt: { ...state.tryIt, selectedServer: server },
+        })),
+      setTryItCustomServer: (url) =>
+        set((state) => ({
+          tryIt: { ...state.tryIt, customServerUrl: url },
+        })),
+      setTryItAuth: (config) =>
+        set((state) => ({
+          tryIt: {
+            ...state.tryIt,
+            authConfig: { ...state.tryIt.authConfig, ...config },
+          },
+        })),
+      setTryItParameter: (key, value) =>
+        set((state) => ({
+          tryIt: {
+            ...state.tryIt,
+            parameterValues: { ...state.tryIt.parameterValues, [key]: value },
+          },
+        })),
+      setTryItRequestBody: (body) =>
+        set((state) => ({
+          tryIt: { ...state.tryIt, requestBody: body },
+        })),
+      setTryItContentType: (contentType) =>
+        set((state) => ({
+          tryIt: { ...state.tryIt, requestContentType: contentType },
+        })),
+      setTryItExecuting: (executing) =>
+        set((state) => ({
+          tryIt: { ...state.tryIt, isExecuting: executing },
+        })),
+      setTryItResponse: (response) =>
+        set((state) => ({
+          tryIt: { ...state.tryIt, lastResponse: response, isExecuting: false },
+        })),
+      resetTryItParameters: () =>
+        set((state) => ({
+          tryIt: { ...state.tryIt, parameterValues: {}, requestBody: '' },
+        })),
 
       setVersionHistory: (history) => set({ versionHistory: history }),
-      addSnapshot: (snapshot) => set((state) => ({
-        versionHistory: [snapshot, ...state.versionHistory],
-      })),
-      removeSnapshot: (id) => set((state) => ({
-        versionHistory: state.versionHistory.filter((s) => s.id !== id),
-        selectedSnapshotId: state.selectedSnapshotId === id ? null : state.selectedSnapshotId,
-      })),
+      addSnapshot: (snapshot) =>
+        set((state) => ({
+          versionHistory: [snapshot, ...state.versionHistory],
+        })),
+      removeSnapshot: (id) =>
+        set((state) => ({
+          versionHistory: state.versionHistory.filter((s) => s.id !== id),
+          selectedSnapshotId:
+            state.selectedSnapshotId === id ? null : state.selectedSnapshotId,
+        })),
       setSelectedSnapshot: (id) => set({ selectedSnapshotId: id }),
       setHistoryLoading: (loading) => set({ isHistoryLoading: loading }),
 
-      showToast: (type, message, duration = 4000) => set((state) => ({
-        toasts: [
-          ...state.toasts,
-          { id: crypto.randomUUID(), type, message, duration },
-        ],
-      })),
-      dismissToast: (id) => set((state) => ({
-        toasts: state.toasts.filter((t) => t.id !== id),
-      })),
+      showToast: (type, message, duration = 4000) =>
+        set((state) => ({
+          toasts: [
+            ...state.toasts,
+            { id: crypto.randomUUID(), type, message, duration },
+          ],
+        })),
+      dismissToast: (id) =>
+        set((state) => ({
+          toasts: state.toasts.filter((t) => t.id !== id),
+        })),
 
       setEditorView: (view) => set({ editorView: view }),
 
       goToLine: (line, column = 1) => {
-        const { editorView } = get();
-        if (!editorView) return;
+        const { editorView } = get()
+        if (!editorView) return
 
         try {
-          const lineInfo = editorView.state.doc.line(line);
-          const pos = lineInfo.from + Math.max(0, column - 1);
+          const lineInfo = editorView.state.doc.line(line)
+          const pos = lineInfo.from + Math.max(0, column - 1)
 
           editorView.dispatch({
             selection: { anchor: pos },
             scrollIntoView: true,
-          });
-          editorView.focus();
+          })
+          editorView.focus()
         } catch {
           // Silently ignore invalid line numbers
         }
       },
 
-      setCursorPosition: (line, column) => set({ cursorLine: line, cursorColumn: column }),
+      setCursorPosition: (line, column) =>
+        set({ cursorLine: line, cursorColumn: column }),
       setCurrentPath: (path) => set({ currentPath: path }),
 
       goToPosition: (pos) => {
-        const { editorView } = get();
-        if (!editorView) return;
+        const { editorView } = get()
+        if (!editorView) return
 
         editorView.dispatch({
           selection: { anchor: pos },
           scrollIntoView: true,
-        });
-        editorView.focus();
+        })
+        editorView.focus()
       },
     }),
     {
@@ -824,6 +866,6 @@ export const useEditorStore = create<EditorStore>()(
           requestContentType: state.tryIt.requestContentType,
         },
       }),
-    }
-  )
-);
+    },
+  ),
+)

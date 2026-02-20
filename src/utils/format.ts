@@ -1,21 +1,24 @@
-import { useEditorStore } from '../store';
-import { parseContent, stringifyAsJson, stringifyAsYaml } from './content';
+import { useEditorStore } from '../store'
+import { parseContent, stringifyAsJson, stringifyAsYaml } from './content'
 
-export function formatContent(content: string, language: 'json' | 'yaml'): string {
-  const parsed = parseContent(content);
+export function formatContent(
+  content: string,
+  language: 'json' | 'yaml',
+): string {
+  const parsed = parseContent(content)
   if (language === 'json') {
-    return stringifyAsJson(parsed);
+    return stringifyAsJson(parsed)
   }
-  return stringifyAsYaml(parsed);
+  return stringifyAsYaml(parsed)
 }
 
 export function formatEditorContent(): boolean {
-  const { editorView, file } = useEditorStore.getState();
-  if (!editorView || !file) return false;
+  const { editorView, file } = useEditorStore.getState()
+  if (!editorView || !file) return false
 
-  const content = editorView.state.doc.toString();
+  const content = editorView.state.doc.toString()
   try {
-    const formatted = formatContent(content, file.language);
+    const formatted = formatContent(content, file.language)
     if (formatted !== content) {
       editorView.dispatch({
         changes: {
@@ -23,10 +26,10 @@ export function formatEditorContent(): boolean {
           to: editorView.state.doc.length,
           insert: formatted,
         },
-      });
+      })
     }
-    return true;
+    return true
   } catch {
-    return false;
+    return false
   }
 }

@@ -1,19 +1,19 @@
-import { useEffect } from 'react';
-import { DocumentationView } from './DocumentationView';
-import { useValidation } from '../../hooks/useValidation';
-import { useStorageSync } from '../../hooks/useStorageSync';
-import { useEditorStore } from '../../store';
+import { useEffect } from 'react'
+import { DocumentationView } from './DocumentationView'
+import { useValidation } from '../../hooks/useValidation'
+import { useStorageSync } from '../../hooks/useStorageSync'
+import { useEditorStore } from '../../store'
 
 export function FullscreenPreview() {
-  const fileName = useEditorStore((state) => state.file?.name ?? 'Untitled');
-  const specTitle = useEditorStore((state) => state.parsedSpec?.info?.title);
+  const fileName = useEditorStore((state) => state.file?.name ?? 'Untitled')
+  const specTitle = useEditorStore((state) => state.parsedSpec?.info?.title)
 
-  useValidation();
-  useStorageSync();
+  useValidation()
+  useStorageSync()
 
   useEffect(() => {
-    document.title = specTitle ? `${specTitle} - Preview` : 'Specable Preview';
-  }, [specTitle]);
+    document.title = specTitle ? `${specTitle} - Preview` : 'Specable Preview'
+  }, [specTitle])
 
   return (
     <div className="h-screen flex flex-col bg-zinc-950">
@@ -22,17 +22,13 @@ export function FullscreenPreview() {
           <span className="text-zinc-100 tracking-tight font-mono font-bold text-sm">
             SPECABLE
           </span>
-          <span className="text-zinc-500 text-sm truncate">
-            {fileName}
-          </span>
+          <span className="text-zinc-500 text-sm truncate">{fileName}</span>
         </div>
-        <span className="text-xs text-zinc-600">
-          Preview mode
-        </span>
+        <span className="text-xs text-zinc-600">Preview mode</span>
       </header>
       <main className="flex-1 min-h-0 overflow-hidden">
         <DocumentationView />
       </main>
     </div>
-  );
+  )
 }

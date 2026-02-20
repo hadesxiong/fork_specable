@@ -1,71 +1,71 @@
-import { X } from "lucide-react";
+import { X } from 'lucide-react'
 
 interface KeyboardShortcutsModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen: boolean
+  onClose: () => void
 }
 
 interface ShortcutGroup {
-  title: string;
-  shortcuts: { keys: string; description: string }[];
+  title: string
+  shortcuts: { keys: string; description: string }[]
 }
 
 const SHORTCUT_GROUPS: ShortcutGroup[] = [
   {
-    title: "File",
+    title: 'File',
     shortcuts: [
-      { keys: "Ctrl+N", description: "New file" },
-      { keys: "Ctrl+O", description: "Open file" },
-      { keys: "Ctrl+S", description: "Save file" },
-      { keys: "Ctrl+Shift+S", description: "Save as" },
+      { keys: 'Ctrl+N', description: 'New file' },
+      { keys: 'Ctrl+O', description: 'Open file' },
+      { keys: 'Ctrl+S', description: 'Save file' },
+      { keys: 'Ctrl+Shift+S', description: 'Save as' },
     ],
   },
   {
-    title: "Navigation",
+    title: 'Navigation',
     shortcuts: [
-      { keys: "Ctrl+G", description: "Go to line" },
-      { keys: "F12", description: "Go to definition" },
-      { keys: "Ctrl+Shift+P", description: "Command palette" },
-      { keys: "F1", description: "Keyboard shortcuts" },
+      { keys: 'Ctrl+G', description: 'Go to line' },
+      { keys: 'F12', description: 'Go to definition' },
+      { keys: 'Ctrl+Shift+P', description: 'Command palette' },
+      { keys: 'F1', description: 'Keyboard shortcuts' },
     ],
   },
   {
-    title: "View",
+    title: 'View',
     shortcuts: [
-      { keys: "Ctrl+Shift+E", description: "Toggle outline panel" },
-      { keys: "Ctrl+\\", description: "Toggle preview panel" },
-      { keys: "Ctrl+1", description: "Show Docs view" },
-      { keys: "Ctrl+2", description: "Show Graph view" },
-      { keys: "Ctrl+3", description: "Show Diff view" },
-      { keys: "Ctrl+4", description: "Show Try It view" },
-      { keys: "Ctrl+5", description: "Show History view" },
+      { keys: 'Ctrl+Shift+E', description: 'Toggle outline panel' },
+      { keys: 'Ctrl+\\', description: 'Toggle preview panel' },
+      { keys: 'Ctrl+1', description: 'Show Docs view' },
+      { keys: 'Ctrl+2', description: 'Show Graph view' },
+      { keys: 'Ctrl+3', description: 'Show Diff view' },
+      { keys: 'Ctrl+4', description: 'Show Try It view' },
+      { keys: 'Ctrl+5', description: 'Show History view' },
     ],
   },
   {
-    title: "Editor",
+    title: 'Editor',
     shortcuts: [
-      { keys: "Ctrl+Z", description: "Undo" },
-      { keys: "Ctrl+Y", description: "Redo" },
-      { keys: "Ctrl+A", description: "Select all" },
-      { keys: "Ctrl+F", description: "Find" },
-      { keys: "Ctrl+H", description: "Find and replace" },
-      { keys: "Shift+Alt+F", description: "Format document" },
+      { keys: 'Ctrl+Z', description: 'Undo' },
+      { keys: 'Ctrl+Y', description: 'Redo' },
+      { keys: 'Ctrl+A', description: 'Select all' },
+      { keys: 'Ctrl+F', description: 'Find' },
+      { keys: 'Ctrl+H', description: 'Find and replace' },
+      { keys: 'Shift+Alt+F', description: 'Format document' },
     ],
   },
   {
-    title: "Code Folding",
+    title: 'Code Folding',
     shortcuts: [
-      { keys: "Ctrl+K Ctrl+0", description: "Fold all" },
-      { keys: "Ctrl+K Ctrl+J", description: "Unfold all" },
+      { keys: 'Ctrl+K Ctrl+0', description: 'Fold all' },
+      { keys: 'Ctrl+K Ctrl+J', description: 'Unfold all' },
     ],
   },
-];
+]
 
 export function KeyboardShortcutsModal({
   isOpen,
   onClose,
 }: KeyboardShortcutsModalProps) {
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -131,5 +131,5 @@ export function KeyboardShortcutsModal({
         </div>
       </div>
     </div>
-  );
+  )
 }

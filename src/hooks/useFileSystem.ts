@@ -1,49 +1,51 @@
-import { useCallback } from 'react';
-import { useEditorStore } from '../store';
-import { getFileSystem } from '../services/file-system';
-import { formatEditorContent } from '../utils/format';
-import { detectLanguage } from '../utils/content';
+import { useCallback } from 'react'
+import { useEditorStore } from '../store'
+import { getFileSystem } from '../services/file-system'
+import { formatEditorContent } from '../utils/format'
+import { detectLanguage } from '../utils/content'
 
 function confirmDiscardChanges(): boolean {
-  const file = useEditorStore.getState().file;
+  const file = useEditorStore.getState().file
   if (file?.isDirty) {
-    return window.confirm('You have unsaved changes that will be lost. Continue?');
+    return window.confirm(
+      'You have unsaved changes that will be lost. Continue?',
+    )
   }
-  return true;
+  return true
 }
 
 export function useFileSystem() {
-  const setFile = useEditorStore((state) => state.setFile);
-  const updateFileIdentity = useEditorStore((state) => state.updateFileIdentity);
-  const file = useEditorStore((state) => state.file);
+  const setFile = useEditorStore((state) => state.setFile)
+  const updateFileIdentity = useEditorStore((state) => state.updateFileIdentity)
+  const file = useEditorStore((state) => state.file)
 
   const openFile = useCallback(async () => {
-    if (!confirmDiscardChanges()) return;
-    const fs = getFileSystem();
-    const newFile = await fs.openFile();
+    if (!confirmDiscardChanges()) return
+    const fs = getFileSystem()
+    const newFile = await fs.openFile()
     if (newFile) {
-      setFile(newFile);
+      setFile(newFile)
     }
-  }, [setFile]);
+  }, [setFile])
 
   const importFromFile = useCallback(async () => {
-    if (!confirmDiscardChanges()) return false;
+    if (!confirmDiscardChanges()) return false
     // Use a regular file input to import without File System Access API handle
     return new Promise<boolean>((resolve) => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = '.yaml,.yml,.json';
+      const input = document.createElement('input')
+      input.type = 'file'
+      input.accept = '.yaml,.yml,.json'
 
       input.onchange = async () => {
-        const selectedFile = input.files?.[0];
+        const selectedFile = input.files?.[0]
         if (!selectedFile) {
-          resolve(false);
-          return;
+          resolve(false)
+          return
         }
 
         try {
-          const content = await selectedFile.text();
-          const language = detectLanguage(selectedFile.name, content);
+          const content = await selectedFile.text()
+          const language = detectLanguage(selectedFile.name, content)
 
           setFile({
             id: crypto.randomUUID(),
@@ -51,85 +53,91 @@ export function useFileSystem() {
             content,
             isDirty: false,
             language,
-          });
-          resolve(true);
+          })
+          resolve(true)
         } catch (error) {
-          console.error('Failed to import file:', error);
-          resolve(false);
+          console.error('Failed to import file:', error)
+          resolve(false)
         }
-      };
-
-      input.oncancel = () => resolve(false);
-      input.click();
-    });
-  }, [setFile]);
-
-  const importFromUrl = useCallback(async (url?: string) => {
-    if (!confirmDiscardChanges()) return false;
-    const targetUrl = url ?? prompt('Enter URL to import OpenAPI specification:');
-    if (!targetUrl) return false;
-
-    try {
-      const response = await fetch(targetUrl);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const content = await response.text();
-      const urlPath = new URL(targetUrl).pathname;
-      const filename = urlPath.split('/').pop() || 'imported-spec';
-      const language = detectLanguage(filename, content);
+      input.oncancel = () => resolve(false)
+      input.click()
+    })
+  }, [setFile])
 
-      setFile({
-        id: crypto.randomUUID(),
-        name: `imported-${filename}${language === 'json' ? '.json' : '.yaml'}`,
-        content,
-        isDirty: false,
-        language,
-      });
-      return true;
-    } catch (error) {
-      console.error('Failed to import from URL:', error);
-      alert(`Failed to import from URL: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      return false;
-    }
-  }, [setFile]);
+  const importFromUrl = useCallback(
+    async (url?: string) => {
+      if (!confirmDiscardChanges()) return false
+      const targetUrl =
+        url ?? prompt('Enter URL to import OpenAPI specification:')
+      if (!targetUrl) return false
+
+      try {
+        const response = await fetch(targetUrl)
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        }
+
+        const content = await response.text()
+        const urlPath = new URL(targetUrl).pathname
+        const filename = urlPath.split('/').pop() || 'imported-spec'
+        const language = detectLanguage(filename, content)
+
+        setFile({
+          id: crypto.randomUUID(),
+          name: `imported-${filename}${language === 'json' ? '.json' : '.yaml'}`,
+          content,
+          isDirty: false,
+          language,
+        })
+        return true
+      } catch (error) {
+        console.error('Failed to import from URL:', error)
+        alert(
+          `Failed to import from URL: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        )
+        return false
+      }
+    },
+    [setFile],
+  )
 
   const saveFile = useCallback(async () => {
-    if (!file) return false;
+    if (!file) return false
 
-    formatEditorContent();
+    formatEditorContent()
 
-    const currentFile = useEditorStore.getState().file;
-    if (!currentFile) return false;
+    const currentFile = useEditorStore.getState().file
+    if (!currentFile) return false
 
-    const fs = getFileSystem();
-    const savedFile = await fs.saveFile(currentFile);
+    const fs = getFileSystem()
+    const savedFile = await fs.saveFile(currentFile)
     if (savedFile) {
-      updateFileIdentity(savedFile);
+      updateFileIdentity(savedFile)
     }
-    return savedFile !== null;
-  }, [file, updateFileIdentity]);
+    return savedFile !== null
+  }, [file, updateFileIdentity])
 
   const saveFileAs = useCallback(async () => {
-    if (!file) return false;
+    if (!file) return false
 
-    const fs = getFileSystem();
-    const savedFile = await fs.saveFileAs(file);
+    const fs = getFileSystem()
+    const savedFile = await fs.saveFileAs(file)
     if (savedFile) {
-      updateFileIdentity(savedFile);
+      updateFileIdentity(savedFile)
     }
-    return savedFile !== null;
-  }, [file, updateFileIdentity]);
+    return savedFile !== null
+  }, [file, updateFileIdentity])
 
   const newFile = useCallback(() => {
-    if (!confirmDiscardChanges()) return;
+    if (!confirmDiscardChanges()) return
     const defaultContent = `openapi: 3.0.3
 info:
   title: New API
   version: 1.0.0
 paths: {}
-`;
+`
 
     setFile({
       id: crypto.randomUUID(),
@@ -137,22 +145,22 @@ paths: {}
       content: defaultContent,
       isDirty: false,
       language: 'yaml',
-    });
-  }, [setFile]);
+    })
+  }, [setFile])
 
   const exportAsJson = useCallback(async () => {
-    if (!file) return false;
+    if (!file) return false
 
-    const fs = getFileSystem();
-    return fs.exportAsJson(file.content, file.name);
-  }, [file]);
+    const fs = getFileSystem()
+    return fs.exportAsJson(file.content, file.name)
+  }, [file])
 
   const exportAsYaml = useCallback(async () => {
-    if (!file) return false;
+    if (!file) return false
 
-    const fs = getFileSystem();
-    return fs.exportAsYaml(file.content, file.name);
-  }, [file]);
+    const fs = getFileSystem()
+    return fs.exportAsYaml(file.content, file.name)
+  }, [file])
 
   return {
     openFile,
@@ -163,5 +171,5 @@ paths: {}
     newFile,
     exportAsJson,
     exportAsYaml,
-  };
+  }
 }

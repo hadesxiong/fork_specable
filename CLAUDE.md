@@ -27,11 +27,14 @@ pnpm test -t "source map"
 ## Architecture
 
 ### State Management
+
 - **Zustand store** (`src/store/index.ts`): Single store managing file state, parsed spec, validation results, and UI state (panel visibility, editor reference)
 - State is persisted to localStorage for panel preferences and current file
 
 ### Web Workers
+
 All heavy processing is offloaded to Web Workers using Comlink for typed RPC:
+
 - `validator.worker.ts`: YAML/JSON parsing, OpenAPI schema validation (swagger-parser)
 - `linter.worker.ts`: Spectral linting for best practices
 - `graph.worker.ts`: Builds schema relationship graph (nodes and edges) from parsed spec
@@ -42,6 +45,7 @@ Worker API types are defined in `src/workers/types.ts`. The store (`src/store/in
 Workers are created using the factory in `src/services/worker-factory.ts` which provides `createWorker()` and `createLazyWorker()` helpers.
 
 ### Validation Pipeline
+
 - **ValidationPipeline** (`src/services/validation-pipeline.ts`): Coordinates validator and linter workers with debouncing (300ms) and cancellation
 - **Singleton**: Use `getValidationPipeline()` to get the shared instance
 - **Data flow**: Content change → `useValidation` hook → debounced `ValidationPipeline.validate()` → worker → store update
@@ -49,12 +53,14 @@ Workers are created using the factory in `src/services/worker-factory.ts` which 
 - **Limitation**: OpenAPI 3.1.x specs only get syntax validation (swagger-parser doesn't support 3.1 schema validation). OpenAPI 3.0.x and 2.0 (Swagger) specs get full schema validation.
 
 ### Editor
+
 - **CodeMirror 6** (`src/components/Editor/`):
   - `extensions.ts`: Language modes (YAML/JSON), syntax highlighting, folding, autocomplete
   - `theme.ts`: Custom dark theme
   - `ref-navigation.ts`: `$ref` click-to-navigate and F12 go-to-definition
 
 ### Layout
+
 - **Three-panel layout** (`src/components/Layout/MainLayout.tsx`):
   - Left: OutlineView (hierarchical spec navigation)
   - Centre: CodeMirror editor
@@ -63,6 +69,7 @@ Workers are created using the factory in `src/services/worker-factory.ts` which 
 - StatusBar shows validation status and diagnostics count
 
 ### Right Panel Views
+
 - **DocumentationView**: Rendered API documentation preview
 - **GraphView**: Interactive schema relationship graph using PixiJS and d3-force for layout
 - **DiffView**: API comparison tool with breaking change detection (load a second spec to compare)
@@ -70,26 +77,31 @@ Workers are created using the factory in `src/services/worker-factory.ts` which 
 - **HistoryView**: Version history with IndexedDB-backed snapshots (deduped by content hash)
 
 ### Command Palette
+
 - `Ctrl+Shift+P` to open
 - Fuzzy search via Fuse.js
 - Commands for navigation, editing, view toggles, and file operations
 
 ### Keyboard Shortcuts
+
 - **File**: `Ctrl+N` (new), `Ctrl+O` (open), `Ctrl+S` (save), `Ctrl+Shift+S` (save as)
 - **Navigation**: `Ctrl+G` (go to line), `F12` (go to definition), `Ctrl+Click` (navigate to `$ref`), `Ctrl+Shift+P` (command palette), `F1` (keyboard shortcuts)
 - **View**: `Ctrl+Shift+E` (toggle outline), `Ctrl+\` (toggle preview), `Ctrl+1`-`Ctrl+5` (switch right panel view)
 - **Editor**: `Shift+Alt+F` (format), `Ctrl+K Ctrl+0` (fold all), `Ctrl+K Ctrl+J` (unfold all)
 
 ### File System
+
 - Uses File System Access API for native file open/save (`src/services/file-system.ts`)
 - `useFileSystem` hook wraps operations and updates store
 
 ### Version History
+
 - **IndexedDB storage** (`src/services/version-history-db.ts`): Persists spec snapshots with SHA-256 deduplication
 - **Singleton**: Use `getVersionHistoryDB()` to get the shared instance
 - Automatically prunes old snapshots (default 50 per file)
 
 ### Custom Hooks
+
 - `useValidation`: Triggers validation pipeline on content changes, updates store with results
 - `useFileSystem`: Wraps File System Access API operations, handles open/save with store updates
 - `useVersionHistory`: Manages snapshot loading/saving with IndexedDB
@@ -99,7 +111,9 @@ Workers are created using the factory in `src/services/worker-factory.ts` which 
 ## Key Patterns
 
 ### Singleton Services
+
 Several services use singleton patterns - always use the getter functions rather than instantiating directly:
+
 - `getValidationPipeline()` - validation/linting coordinator
 - `getVersionHistoryDB()` - IndexedDB version storage
 - `getFileSystem()` - file system access (native or fallback)

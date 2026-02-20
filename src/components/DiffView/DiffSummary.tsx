@@ -1,7 +1,7 @@
-import type { DiffSummary as DiffSummaryType } from '../../store';
+import type { DiffSummary as DiffSummaryType } from '../../store'
 
 interface DiffSummaryProps {
-  summary: DiffSummaryType;
+  summary: DiffSummaryType
 }
 
 export function DiffSummary({ summary }: DiffSummaryProps) {
@@ -10,7 +10,10 @@ export function DiffSummary({ summary }: DiffSummaryProps) {
       <dt className="text-xs text-zinc-500">Changes:</dt>
 
       <dd className="flex items-center gap-1.5">
-        <span className="w-2 h-2 rounded-full bg-emerald-400" aria-hidden="true" />
+        <span
+          className="w-2 h-2 rounded-full bg-emerald-400"
+          aria-hidden="true"
+        />
         <span className="text-xs text-zinc-300">{summary.added} added</span>
       </dd>
 
@@ -20,15 +23,25 @@ export function DiffSummary({ summary }: DiffSummaryProps) {
       </dd>
 
       <dd className="flex items-center gap-1.5">
-        <span className="w-2 h-2 rounded-full bg-amber-400" aria-hidden="true" />
-        <span className="text-xs text-zinc-300">{summary.modified} modified</span>
+        <span
+          className="w-2 h-2 rounded-full bg-amber-400"
+          aria-hidden="true"
+        />
+        <span className="text-xs text-zinc-300">
+          {summary.modified} modified
+        </span>
       </dd>
 
       <div className="h-4 w-px bg-zinc-700" role="separator" />
 
       {summary.breaking > 0 ? (
         <dd className="flex items-center gap-1.5 text-amber-400">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -36,11 +49,18 @@ export function DiffSummary({ summary }: DiffSummaryProps) {
               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
             />
           </svg>
-          <span className="text-xs font-medium">{summary.breaking} breaking</span>
+          <span className="text-xs font-medium">
+            {summary.breaking} breaking
+          </span>
         </dd>
       ) : (
         <dd className="flex items-center gap-1.5 text-emerald-400">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -52,5 +72,5 @@ export function DiffSummary({ summary }: DiffSummaryProps) {
         </dd>
       )}
     </dl>
-  );
+  )
 }
