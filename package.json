@@ -52,7 +52,7 @@
     "@stoplight/spectral-parsers": "^1.0.5",
     "@stoplight/spectral-rulesets": "^1.22.0",
     "@tailwindcss/vite": "^4.1.18",
-    "ajv": "^8.17.1",
+    "ajv": "^8.18.0",
     "ajv-formats": "^3.0.1",
     "comlink": "^4.4.2",
     "d3-force": "^3.0.0",
