@@ -1,86 +1,98 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
-import { useEditorStore } from '../../store';
-import type { GraphWorkerApi, GraphResult, GraphData, GraphNode, GraphEdge } from '../../workers/types';
-import { GraphCanvas } from './GraphCanvas';
-import { GraphToolbar } from './GraphToolbar';
-import { GraphLegend } from './GraphLegend';
-import { createLazyWorker } from '../../services/worker-factory';
+import { useEffect, useRef, useCallback, useState } from 'react'
+import { useEditorStore } from '../../store'
+import type {
+  GraphWorkerApi,
+  GraphResult,
+  GraphData,
+  GraphNode,
+  GraphEdge,
+} from '../../workers/types'
+import { GraphCanvas } from './GraphCanvas'
+import { GraphToolbar } from './GraphToolbar'
+import { GraphLegend } from './GraphLegend'
+import { createLazyWorker } from '../../services/worker-factory'
 
 const getGraphWorker = createLazyWorker<GraphWorkerApi>(
-  () => new Worker(new URL('../../workers/graph.worker.ts', import.meta.url), { type: 'module' })
-);
+  () =>
+    new Worker(new URL('../../workers/graph.worker.ts', import.meta.url), {
+      type: 'module',
+    }),
+)
 
 export function GraphView() {
-  const parsedSpec = useEditorStore((state) => state.parsedSpec);
-  const graphData = useEditorStore((state) => state.graphData);
-  const graphFilter = useEditorStore((state) => state.graphFilter);
-  const isGraphLoading = useEditorStore((state) => state.isGraphLoading);
-  const setGraphData = useEditorStore((state) => state.setGraphData);
-  const setGraphLoading = useEditorStore((state) => state.setGraphLoading);
-  const sourceMap = useEditorStore((state) => state.sourceMap);
-  const goToLine = useEditorStore((state) => state.goToLine);
+  const parsedSpec = useEditorStore((state) => state.parsedSpec)
+  const graphData = useEditorStore((state) => state.graphData)
+  const graphFilter = useEditorStore((state) => state.graphFilter)
+  const isGraphLoading = useEditorStore((state) => state.isGraphLoading)
+  const setGraphData = useEditorStore((state) => state.setGraphData)
+  const setGraphLoading = useEditorStore((state) => state.setGraphLoading)
+  const sourceMap = useEditorStore((state) => state.sourceMap)
+  const goToLine = useEditorStore((state) => state.goToLine)
 
-  const [includeEndpoints, setIncludeEndpoints] = useState(false);
-  const abortRef = useRef<AbortController | null>(null);
+  const [includeEndpoints, setIncludeEndpoints] = useState(false)
+  const abortRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
     if (!parsedSpec) {
-      setGraphData(null);
-      return;
+      setGraphData(null)
+      return
     }
 
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
 
     const buildGraph = async () => {
-      setGraphLoading(true);
+      setGraphLoading(true)
       try {
-        const worker = getGraphWorker();
-        const result: GraphResult = await worker.buildGraph(parsedSpec, includeEndpoints);
+        const worker = getGraphWorker()
+        const result: GraphResult = await worker.buildGraph(
+          parsedSpec,
+          includeEndpoints,
+        )
 
         if (!controller.signal.aborted) {
-          setGraphData(result.data);
+          setGraphData(result.data)
         }
       } catch (error) {
         if (!controller.signal.aborted) {
-          console.error('Graph build error:', error);
-          setGraphData(null);
+          console.error('Graph build error:', error)
+          setGraphData(null)
         }
       } finally {
         if (!controller.signal.aborted) {
-          setGraphLoading(false);
+          setGraphLoading(false)
         }
       }
-    };
+    }
 
-    buildGraph();
+    buildGraph()
 
     return () => {
-      controller.abort();
-    };
-  }, [parsedSpec, includeEndpoints, setGraphData, setGraphLoading]);
+      controller.abort()
+    }
+  }, [parsedSpec, includeEndpoints, setGraphData, setGraphLoading])
 
   const handleNodeClick = useCallback(
     (_nodeId: string, jsonPath: string) => {
-      const position = sourceMap[jsonPath];
+      const position = sourceMap[jsonPath]
       if (position) {
-        goToLine(position.line, position.column);
+        goToLine(position.line, position.column)
       }
     },
-    [sourceMap, goToLine]
-  );
+    [sourceMap, goToLine],
+  )
 
   const filteredData = graphData
     ? filterGraphData(graphData, graphFilter)
-    : null;
+    : null
 
   if (!parsedSpec) {
     return (
       <div className="h-full flex items-center justify-center bg-zinc-950 text-zinc-500">
         No valid specification to visualise
       </div>
-    );
+    )
   }
 
   return (
@@ -124,31 +136,33 @@ export function GraphView() {
           <GraphCanvas data={filteredData} onNodeClick={handleNodeClick} />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-zinc-500">
-            {graphFilter !== 'all' ? 'No schemas match the current filter' : 'No schemas found in specification'}
+            {graphFilter !== 'all'
+              ? 'No schemas match the current filter'
+              : 'No schemas found in specification'}
           </div>
         )}
       </div>
 
       <GraphLegend />
     </div>
-  );
+  )
 }
 
 function filterGraphData(
   data: GraphData,
-  filter: 'all' | 'referenced' | 'orphaned'
+  filter: 'all' | 'referenced' | 'orphaned',
 ): GraphData {
-  if (filter === 'all') return data;
+  if (filter === 'all') return data
 
   const filteredNodes = data.nodes.filter((node: GraphNode) => {
-    if (node.type === 'endpoint') return true;
-    return filter === 'referenced' ? node.referenced : !node.referenced;
-  });
+    if (node.type === 'endpoint') return true
+    return filter === 'referenced' ? node.referenced : !node.referenced
+  })
 
-  const nodeIds = new Set(filteredNodes.map((n: GraphNode) => n.id));
+  const nodeIds = new Set(filteredNodes.map((n: GraphNode) => n.id))
   const filteredEdges = data.edges.filter(
-    (edge: GraphEdge) => nodeIds.has(edge.source) && nodeIds.has(edge.target)
-  );
+    (edge: GraphEdge) => nodeIds.has(edge.source) && nodeIds.has(edge.target),
+  )
 
-  return { nodes: filteredNodes, edges: filteredEdges };
+  return { nodes: filteredNodes, edges: filteredEdges }
 }

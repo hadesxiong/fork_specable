@@ -1,16 +1,16 @@
-import { Key, Lock, User } from 'lucide-react';
-import { useEditorStore, type AuthType } from '../../store';
+import { Key, Lock, User } from 'lucide-react'
+import { useEditorStore, type AuthType } from '../../store'
 
 const AUTH_TYPES: { value: AuthType; label: string }[] = [
   { value: 'none', label: 'No Auth' },
   { value: 'bearer', label: 'Bearer Token' },
   { value: 'apiKey', label: 'API Key' },
   { value: 'basic', label: 'Basic Auth' },
-];
+]
 
 export function AuthConfig() {
-  const authConfig = useEditorStore((state) => state.tryIt.authConfig);
-  const setTryItAuth = useEditorStore((state) => state.setTryItAuth);
+  const authConfig = useEditorStore((state) => state.tryIt.authConfig)
+  const setTryItAuth = useEditorStore((state) => state.setTryItAuth)
 
   return (
     <div>
@@ -130,7 +130,8 @@ export function AuthConfig() {
             />
           </div>
           <p className="text-xs text-zinc-500 ml-6">
-            Credentials will be Base64 encoded and sent as: Authorization: Basic &lt;encoded&gt;
+            Credentials will be Base64 encoded and sent as: Authorization: Basic
+            &lt;encoded&gt;
           </p>
         </div>
       )}
@@ -141,5 +142,5 @@ export function AuthConfig() {
         </p>
       )}
     </div>
-  );
+  )
 }

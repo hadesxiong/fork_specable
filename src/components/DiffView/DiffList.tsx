@@ -1,36 +1,36 @@
-import type { DiffChange } from "../../store";
+import type { DiffChange } from '../../store'
 
 interface DiffListProps {
-  changes: DiffChange[];
-  onChangeClick: (jsonPath: string) => void;
+  changes: DiffChange[]
+  onChangeClick: (jsonPath: string) => void
 }
 
 const TYPE_STYLES = {
   added: {
-    bg: "bg-emerald-400/10",
-    border: "border-emerald-400/30",
-    text: "text-emerald-400",
-    icon: "+",
+    bg: 'bg-emerald-400/10',
+    border: 'border-emerald-400/30',
+    text: 'text-emerald-400',
+    icon: '+',
   },
   removed: {
-    bg: "bg-red-400/10",
-    border: "border-red-400/30",
-    text: "text-red-400",
-    icon: "-",
+    bg: 'bg-red-400/10',
+    border: 'border-red-400/30',
+    text: 'text-red-400',
+    icon: '-',
   },
   modified: {
-    bg: "bg-amber-400/10",
-    border: "border-amber-400/30",
-    text: "text-amber-400",
-    icon: "~",
+    bg: 'bg-amber-400/10',
+    border: 'border-amber-400/30',
+    text: 'text-amber-400',
+    icon: '~',
   },
-};
+}
 
 export function DiffList({ changes, onChangeClick }: DiffListProps) {
   return (
     <ul className="space-y-2">
       {changes.map((change, index) => {
-        const style = TYPE_STYLES[change.type];
+        const style = TYPE_STYLES[change.type]
 
         return (
           <li key={`${change.path}-${index}`}>
@@ -76,7 +76,7 @@ export function DiffList({ changes, onChangeClick }: DiffListProps) {
                   </span>
                 )}
 
-                {change.type === "modified" && (
+                {change.type === 'modified' && (
                   <span className="block mt-2 text-xs text-zinc-500">
                     <span className="line-through">
                       {formatValue(change.oldValue)}
@@ -104,15 +104,15 @@ export function DiffList({ changes, onChangeClick }: DiffListProps) {
               </svg>
             </button>
           </li>
-        );
+        )
       })}
     </ul>
-  );
+  )
 }
 
 function formatValue(value: unknown): string {
-  if (value === undefined || value === null) return "null";
-  if (typeof value === "string") return `"${value}"`;
-  if (typeof value === "object") return JSON.stringify(value);
-  return String(value);
+  if (value === undefined || value === null) return 'null'
+  if (typeof value === 'string') return `"${value}"`
+  if (typeof value === 'object') return JSON.stringify(value)
+  return String(value)
 }

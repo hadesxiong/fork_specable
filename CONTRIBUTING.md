@@ -60,7 +60,6 @@ src/
    ```
 
 2. **Make your changes**
-
    - Keep commits focused and atomic
    - Use conventional commit messages:
      - `feat:` for new features

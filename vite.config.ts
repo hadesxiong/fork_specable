@@ -1,7 +1,7 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
-import { nodePolyfills } from "vite-plugin-node-polyfills";
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -9,11 +9,11 @@ export default defineConfig({
     tailwindcss(),
     react({
       babel: {
-        plugins: [["babel-plugin-react-compiler"]],
+        plugins: [['babel-plugin-react-compiler']],
       },
     }),
     nodePolyfills({
-      include: ["util", "path", "buffer", "process"],
+      include: ['util', 'path', 'buffer', 'process'],
       globals: {
         process: true,
         Buffer: true,
@@ -23,7 +23,7 @@ export default defineConfig({
   worker: {
     plugins: () => [
       nodePolyfills({
-        include: ["util", "path", "buffer", "process"],
+        include: ['util', 'path', 'buffer', 'process'],
         globals: {
           process: true,
           Buffer: true,
@@ -31,4 +31,4 @@ export default defineConfig({
       }),
     ],
   },
-});
+})

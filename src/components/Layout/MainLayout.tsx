@@ -1,62 +1,62 @@
-import { useRef, useState, useCallback, useEffect, useMemo } from "react";
-import { useEditorStore, type RightPanelView } from "../../store";
-import { Editor } from "../Editor";
-import { OutlineView } from "../Outline";
-import { DocumentationView } from "../Preview";
-import { GraphView } from "../GraphView";
-import { DiffView } from "../DiffView";
-import { TryItOutView } from "../TryItOut";
-import { HistoryView } from "../HistoryView";
-import { ToastContainer } from "../Toast";
-import { StatusBar } from "./StatusBar";
-import { DiagnosticsPanel } from "./DiagnosticsPanel";
-import { KeyboardShortcutsModal } from "./KeyboardShortcutsModal";
-import { AboutModal } from "./AboutModal";
-import { AppMenu } from "./AppMenu";
-import { MobileLayout } from "./MobileLayout";
+import { useRef, useState, useCallback, useEffect, useMemo } from 'react'
+import { useEditorStore, type RightPanelView } from '../../store'
+import { Editor } from '../Editor'
+import { OutlineView } from '../Outline'
+import { DocumentationView } from '../Preview'
+import { GraphView } from '../GraphView'
+import { DiffView } from '../DiffView'
+import { TryItOutView } from '../TryItOut'
+import { HistoryView } from '../HistoryView'
+import { ToastContainer } from '../Toast'
+import { StatusBar } from './StatusBar'
+import { DiagnosticsPanel } from './DiagnosticsPanel'
+import { KeyboardShortcutsModal } from './KeyboardShortcutsModal'
+import { AboutModal } from './AboutModal'
+import { AppMenu } from './AppMenu'
+import { MobileLayout } from './MobileLayout'
 import {
   CommandPalette,
   useCommandPalette,
   type Command,
-} from "../CommandPalette";
-import { useValidation } from "../../hooks/useValidation";
-import { useFileSystem } from "../../hooks/useFileSystem";
-import { useVersionHistory } from "../../hooks/useVersionHistory";
-import { useViewport } from "../../hooks/useViewport";
-import { formatEditorContent } from "../../utils/format";
-import { sortEditorContent } from "../../utils/sort";
+} from '../CommandPalette'
+import { useValidation } from '../../hooks/useValidation'
+import { useFileSystem } from '../../hooks/useFileSystem'
+import { useVersionHistory } from '../../hooks/useVersionHistory'
+import { useViewport } from '../../hooks/useViewport'
+import { formatEditorContent } from '../../utils/format'
+import { sortEditorContent } from '../../utils/sort'
 
-const MIN_PANEL_WIDTH = 150;
-const DEFAULT_OUTLINE_WIDTH = 220;
-const DEFAULT_PREVIEW_WIDTH = 350;
-const MIN_DIAGNOSTICS_HEIGHT = 100;
-const MAX_DIAGNOSTICS_HEIGHT = 600;
-const DEFAULT_DIAGNOSTICS_HEIGHT = 300;
+const MIN_PANEL_WIDTH = 150
+const DEFAULT_OUTLINE_WIDTH = 220
+const DEFAULT_PREVIEW_WIDTH = 350
+const MIN_DIAGNOSTICS_HEIGHT = 100
+const MAX_DIAGNOSTICS_HEIGHT = 600
+const DEFAULT_DIAGNOSTICS_HEIGHT = 300
 
 export function MainLayout() {
-  const { isMobile } = useViewport();
-  const showOutline = useEditorStore((state) => state.showOutline);
-  const showPreview = useEditorStore((state) => state.showPreview);
-  const toggleOutline = useEditorStore((state) => state.toggleOutline);
-  const togglePreview = useEditorStore((state) => state.togglePreview);
-  const rightPanelView = useEditorStore((state) => state.rightPanelView);
-  const setRightPanelView = useEditorStore((state) => state.setRightPanelView);
+  const { isMobile } = useViewport()
+  const showOutline = useEditorStore((state) => state.showOutline)
+  const showPreview = useEditorStore((state) => state.showPreview)
+  const toggleOutline = useEditorStore((state) => state.toggleOutline)
+  const togglePreview = useEditorStore((state) => state.togglePreview)
+  const rightPanelView = useEditorStore((state) => state.rightPanelView)
+  const setRightPanelView = useEditorStore((state) => state.setRightPanelView)
 
-  const [outlineWidth, setOutlineWidth] = useState(DEFAULT_OUTLINE_WIDTH);
-  const [previewWidth, setPreviewWidth] = useState(DEFAULT_PREVIEW_WIDTH);
+  const [outlineWidth, setOutlineWidth] = useState(DEFAULT_OUTLINE_WIDTH)
+  const [previewWidth, setPreviewWidth] = useState(DEFAULT_PREVIEW_WIDTH)
   const [diagnosticsHeight, setDiagnosticsHeight] = useState(
     DEFAULT_DIAGNOSTICS_HEIGHT,
-  );
-  const [showDiagnostics, setShowDiagnostics] = useState(false);
-  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
-  const [showAbout, setShowAbout] = useState(false);
+  )
+  const [showDiagnostics, setShowDiagnostics] = useState(false)
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false)
+  const [showAbout, setShowAbout] = useState(false)
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const isDraggingOutline = useRef(false);
-  const isDraggingPreview = useRef(false);
-  const isDraggingDiagnostics = useRef(false);
-  const diagnosticsStartY = useRef(0);
-  const diagnosticsStartHeight = useRef(0);
+  const containerRef = useRef<HTMLDivElement>(null)
+  const isDraggingOutline = useRef(false)
+  const isDraggingPreview = useRef(false)
+  const isDraggingDiagnostics = useRef(false)
+  const diagnosticsStartY = useRef(0)
+  const diagnosticsStartHeight = useRef(0)
 
   const {
     openFile,
@@ -67,162 +67,175 @@ export function MainLayout() {
     newFile,
     exportAsJson,
     exportAsYaml,
-  } = useFileSystem();
+  } = useFileSystem()
 
-  const { createSnapshot } = useVersionHistory();
+  const { createSnapshot } = useVersionHistory()
 
   const fileCommands: Command[] = useMemo(
     () => [
       {
-        id: "file.new",
-        label: "New File",
-        shortcut: "Ctrl+N",
-        category: "file",
+        id: 'file.new',
+        label: 'New File',
+        shortcut: 'Ctrl+N',
+        category: 'file',
         action: newFile,
       },
       {
-        id: "file.open",
-        label: "Open File...",
-        shortcut: "Ctrl+O",
-        category: "file",
+        id: 'file.open',
+        label: 'Open File...',
+        shortcut: 'Ctrl+O',
+        category: 'file',
         action: openFile,
       },
       {
-        id: "file.importFile",
-        label: "Import from File...",
-        category: "file",
+        id: 'file.importFile',
+        label: 'Import from File...',
+        category: 'file',
         action: () => {
-          importFromFile();
+          importFromFile()
         },
       },
       {
-        id: "file.importUrl",
-        label: "Import from URL...",
-        category: "file",
+        id: 'file.importUrl',
+        label: 'Import from URL...',
+        category: 'file',
         action: () => {
-          importFromUrl();
+          importFromUrl()
         },
       },
       {
-        id: "file.save",
-        label: "Save",
-        shortcut: "Ctrl+S",
-        category: "file",
+        id: 'file.save',
+        label: 'Save',
+        shortcut: 'Ctrl+S',
+        category: 'file',
         action: saveFile,
       },
       {
-        id: "file.saveAs",
-        label: "Save As...",
-        shortcut: "Ctrl+Shift+S",
-        category: "file",
+        id: 'file.saveAs',
+        label: 'Save As...',
+        shortcut: 'Ctrl+Shift+S',
+        category: 'file',
         action: saveFileAs,
       },
       {
-        id: "file.exportJson",
-        label: "Export as JSON...",
-        category: "file",
+        id: 'file.exportJson',
+        label: 'Export as JSON...',
+        category: 'file',
         action: exportAsJson,
       },
       {
-        id: "file.exportYaml",
-        label: "Export as YAML...",
-        category: "file",
+        id: 'file.exportYaml',
+        label: 'Export as YAML...',
+        category: 'file',
         action: exportAsYaml,
       },
       {
-        id: "history.show",
-        label: "Show Version History",
-        shortcut: "Ctrl+5",
-        category: "view",
+        id: 'history.show',
+        label: 'Show Version History',
+        shortcut: 'Ctrl+5',
+        category: 'view',
         action: () => {
-          setRightPanelView("history");
-          if (!showPreview) togglePreview();
+          setRightPanelView('history')
+          if (!showPreview) togglePreview()
         },
       },
       {
-        id: "history.createSnapshot",
-        label: "Create Snapshot",
-        category: "edit",
+        id: 'history.createSnapshot',
+        label: 'Create Snapshot',
+        category: 'edit',
         action: () => {
-          createSnapshot("Manual snapshot");
+          createSnapshot('Manual snapshot')
         },
       },
     ],
-    [newFile, openFile, importFromFile, importFromUrl, saveFile, saveFileAs, exportAsJson, exportAsYaml, setRightPanelView, showPreview, togglePreview, createSnapshot],
-  );
+    [
+      newFile,
+      openFile,
+      importFromFile,
+      importFromUrl,
+      saveFile,
+      saveFileAs,
+      exportAsJson,
+      exportAsYaml,
+      setRightPanelView,
+      showPreview,
+      togglePreview,
+      createSnapshot,
+    ],
+  )
 
   const {
     isOpen: isCommandPaletteOpen,
     open: openCommandPalette,
     close: closeCommandPalette,
     commands,
-  } = useCommandPalette(fileCommands);
+  } = useCommandPalette(fileCommands)
 
-  useValidation();
+  useValidation()
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "E") {
-        e.preventDefault();
-        toggleOutline();
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'E') {
+        e.preventDefault()
+        toggleOutline()
       }
-      if ((e.ctrlKey || e.metaKey) && e.key === "\\") {
-        e.preventDefault();
-        togglePreview();
+      if ((e.ctrlKey || e.metaKey) && e.key === '\\') {
+        e.preventDefault()
+        togglePreview()
       }
-      if ((e.ctrlKey || e.metaKey) && e.key === "n") {
-        e.preventDefault();
-        newFile();
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault()
+        newFile()
       }
-      if ((e.ctrlKey || e.metaKey) && e.key === "o") {
-        e.preventDefault();
-        openFile();
+      if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
+        e.preventDefault()
+        openFile()
       }
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === "s") {
-        e.preventDefault();
-        saveFile();
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 's') {
+        e.preventDefault()
+        saveFile()
       }
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "S") {
-        e.preventDefault();
-        saveFileAs();
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') {
+        e.preventDefault()
+        saveFileAs()
       }
-      if (e.key === "F1") {
-        e.preventDefault();
-        setShowKeyboardShortcuts((prev) => !prev);
+      if (e.key === 'F1') {
+        e.preventDefault()
+        setShowKeyboardShortcuts((prev) => !prev)
       }
-      if ((e.ctrlKey || e.metaKey) && e.key === "1") {
-        e.preventDefault();
-        setRightPanelView("preview");
-        if (!showPreview) togglePreview();
+      if ((e.ctrlKey || e.metaKey) && e.key === '1') {
+        e.preventDefault()
+        setRightPanelView('preview')
+        if (!showPreview) togglePreview()
       }
-      if ((e.ctrlKey || e.metaKey) && e.key === "2") {
-        e.preventDefault();
-        setRightPanelView("graph");
-        if (!showPreview) togglePreview();
+      if ((e.ctrlKey || e.metaKey) && e.key === '2') {
+        e.preventDefault()
+        setRightPanelView('graph')
+        if (!showPreview) togglePreview()
       }
-      if ((e.ctrlKey || e.metaKey) && e.key === "3") {
-        e.preventDefault();
-        setRightPanelView("diff");
-        if (!showPreview) togglePreview();
+      if ((e.ctrlKey || e.metaKey) && e.key === '3') {
+        e.preventDefault()
+        setRightPanelView('diff')
+        if (!showPreview) togglePreview()
       }
-      if ((e.ctrlKey || e.metaKey) && e.key === "4") {
-        e.preventDefault();
-        setRightPanelView("tryit");
-        if (!showPreview) togglePreview();
+      if ((e.ctrlKey || e.metaKey) && e.key === '4') {
+        e.preventDefault()
+        setRightPanelView('tryit')
+        if (!showPreview) togglePreview()
       }
-      if ((e.ctrlKey || e.metaKey) && e.key === "5") {
-        e.preventDefault();
-        setRightPanelView("history");
-        if (!showPreview) togglePreview();
+      if ((e.ctrlKey || e.metaKey) && e.key === '5') {
+        e.preventDefault()
+        setRightPanelView('history')
+        if (!showPreview) togglePreview()
       }
-      if (e.shiftKey && e.altKey && e.key === "F") {
-        e.preventDefault();
-        formatEditorContent();
+      if (e.shiftKey && e.altKey && e.key === 'F') {
+        e.preventDefault()
+        formatEditorContent()
       }
-    };
+    }
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
   }, [
     toggleOutline,
     togglePreview,
@@ -232,81 +245,81 @@ export function MainLayout() {
     saveFileAs,
     setRightPanelView,
     showPreview,
-  ]);
+  ])
 
   const handlePointerMove = useCallback((e: PointerEvent) => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) return
 
-    const rect = containerRef.current.getBoundingClientRect();
+    const rect = containerRef.current.getBoundingClientRect()
 
     if (isDraggingOutline.current) {
       const newWidth = Math.max(
         MIN_PANEL_WIDTH,
         Math.min(e.clientX - rect.left, rect.width / 3),
-      );
-      setOutlineWidth(newWidth);
+      )
+      setOutlineWidth(newWidth)
     }
 
     if (isDraggingPreview.current) {
       const newWidth = Math.max(
         MIN_PANEL_WIDTH,
         Math.min(rect.right - e.clientX, rect.width / 2),
-      );
-      setPreviewWidth(newWidth);
+      )
+      setPreviewWidth(newWidth)
     }
 
     if (isDraggingDiagnostics.current) {
-      const deltaY = diagnosticsStartY.current - e.clientY;
+      const deltaY = diagnosticsStartY.current - e.clientY
       const newHeight = Math.max(
         MIN_DIAGNOSTICS_HEIGHT,
         Math.min(
           diagnosticsStartHeight.current + deltaY,
           MAX_DIAGNOSTICS_HEIGHT,
         ),
-      );
-      setDiagnosticsHeight(newHeight);
+      )
+      setDiagnosticsHeight(newHeight)
     }
-  }, []);
+  }, [])
 
   const handlePointerUp = useCallback(() => {
-    isDraggingOutline.current = false;
-    isDraggingPreview.current = false;
-    isDraggingDiagnostics.current = false;
-    document.body.style.cursor = "";
-    document.body.style.userSelect = "";
-  }, []);
+    isDraggingOutline.current = false
+    isDraggingPreview.current = false
+    isDraggingDiagnostics.current = false
+    document.body.style.cursor = ''
+    document.body.style.userSelect = ''
+  }, [])
 
   useEffect(() => {
-    document.addEventListener("pointermove", handlePointerMove);
-    document.addEventListener("pointerup", handlePointerUp);
+    document.addEventListener('pointermove', handlePointerMove)
+    document.addEventListener('pointerup', handlePointerUp)
     return () => {
-      document.removeEventListener("pointermove", handlePointerMove);
-      document.removeEventListener("pointerup", handlePointerUp);
-    };
-  }, [handlePointerMove, handlePointerUp]);
+      document.removeEventListener('pointermove', handlePointerMove)
+      document.removeEventListener('pointerup', handlePointerUp)
+    }
+  }, [handlePointerMove, handlePointerUp])
 
   const startDraggingOutline = useCallback(() => {
-    isDraggingOutline.current = true;
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
-  }, []);
+    isDraggingOutline.current = true
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+  }, [])
 
   const startDraggingPreview = useCallback(() => {
-    isDraggingPreview.current = true;
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
-  }, []);
+    isDraggingPreview.current = true
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+  }, [])
 
   const startDraggingDiagnostics = useCallback(
     (e: React.MouseEvent) => {
-      isDraggingDiagnostics.current = true;
-      diagnosticsStartY.current = e.clientY;
-      diagnosticsStartHeight.current = diagnosticsHeight;
-      document.body.style.cursor = "row-resize";
-      document.body.style.userSelect = "none";
+      isDraggingDiagnostics.current = true
+      diagnosticsStartY.current = e.clientY
+      diagnosticsStartHeight.current = diagnosticsHeight
+      document.body.style.cursor = 'row-resize'
+      document.body.style.userSelect = 'none'
     },
     [diagnosticsHeight],
-  );
+  )
 
   if (isMobile) {
     return (
@@ -320,7 +333,7 @@ export function MainLayout() {
         <AboutModal isOpen={showAbout} onClose={() => setShowAbout(false)} />
         <ToastContainer />
       </>
-    );
+    )
   }
 
   return (
@@ -350,7 +363,7 @@ export function MainLayout() {
           onExportYaml={exportAsYaml}
           onFormatDocument={formatEditorContent}
           onSortContent={sortEditorContent}
-          onCreateSnapshot={() => createSnapshot("Manual snapshot")}
+          onCreateSnapshot={() => createSnapshot('Manual snapshot')}
           onToggleOutline={toggleOutline}
           onTogglePreview={togglePreview}
           onShowKeyboardShortcuts={() => setShowKeyboardShortcuts(true)}
@@ -400,11 +413,11 @@ export function MainLayout() {
                 onViewChange={setRightPanelView}
               />
               <div className="flex-1 min-h-0">
-                {rightPanelView === "preview" && <DocumentationView />}
-                {rightPanelView === "graph" && <GraphView />}
-                {rightPanelView === "diff" && <DiffView />}
-                {rightPanelView === "tryit" && <TryItOutView />}
-                {rightPanelView === "history" && <HistoryView />}
+                {rightPanelView === 'preview' && <DocumentationView />}
+                {rightPanelView === 'graph' && <GraphView />}
+                {rightPanelView === 'diff' && <DiffView />}
+                {rightPanelView === 'tryit' && <TryItOutView />}
+                {rightPanelView === 'history' && <HistoryView />}
               </div>
             </aside>
           </>
@@ -437,21 +450,21 @@ export function MainLayout() {
 
       <ToastContainer />
     </div>
-  );
+  )
 }
 
 interface RightPanelTabsProps {
-  activeView: RightPanelView;
-  onViewChange: (view: RightPanelView) => void;
+  activeView: RightPanelView
+  onViewChange: (view: RightPanelView) => void
 }
 
 const VIEW_TABS: { id: RightPanelView; label: string; shortcut: string }[] = [
-  { id: "preview", label: "Docs", shortcut: "Ctrl+1" },
-  { id: "graph", label: "Graph", shortcut: "Ctrl+2" },
-  { id: "diff", label: "Diff", shortcut: "Ctrl+3" },
-  { id: "tryit", label: "Try It", shortcut: "Ctrl+4" },
-  { id: "history", label: "History", shortcut: "Ctrl+5" },
-];
+  { id: 'preview', label: 'Docs', shortcut: 'Ctrl+1' },
+  { id: 'graph', label: 'Graph', shortcut: 'Ctrl+2' },
+  { id: 'diff', label: 'Diff', shortcut: 'Ctrl+3' },
+  { id: 'tryit', label: 'Try It', shortcut: 'Ctrl+4' },
+  { id: 'history', label: 'History', shortcut: 'Ctrl+5' },
+]
 
 function RightPanelTabs({ activeView, onViewChange }: RightPanelTabsProps) {
   return (
@@ -462,8 +475,8 @@ function RightPanelTabs({ activeView, onViewChange }: RightPanelTabsProps) {
           onClick={() => onViewChange(tab.id)}
           className={`px-3 py-2 text-xs font-medium transition-colors ${
             activeView === tab.id
-              ? "text-purple-400 border-b-2 border-purple-400 -mb-px"
-              : "text-zinc-500 hover:text-zinc-300"
+              ? 'text-purple-400 border-b-2 border-purple-400 -mb-px'
+              : 'text-zinc-500 hover:text-zinc-300'
           }`}
           title={tab.shortcut}
         >
@@ -471,5 +484,5 @@ function RightPanelTabs({ activeView, onViewChange }: RightPanelTabsProps) {
         </button>
       ))}
     </div>
-  );
+  )
 }

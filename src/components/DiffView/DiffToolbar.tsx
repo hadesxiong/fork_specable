@@ -1,41 +1,41 @@
-import { useEditorStore, type DiffFilter, type DiffResult } from '../../store';
-import { generateChangelog } from '../../services/diff-engine';
+import { useEditorStore, type DiffFilter, type DiffResult } from '../../store'
+import { generateChangelog } from '../../services/diff-engine'
 
 interface DiffToolbarProps {
-  comparisonName: string;
-  onClear: () => void;
-  diffResult: DiffResult | null;
+  comparisonName: string
+  onClear: () => void
+  diffResult: DiffResult | null
 }
 
 const FILTER_OPTIONS: { value: DiffFilter; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'breaking', label: 'Breaking' },
   { value: 'non-breaking', label: 'Non-breaking' },
-];
+]
 
 export function DiffToolbar({
   comparisonName,
   onClear,
   diffResult,
 }: DiffToolbarProps) {
-  const diffFilter = useEditorStore((state) => state.diffFilter);
-  const setDiffFilter = useEditorStore((state) => state.setDiffFilter);
+  const diffFilter = useEditorStore((state) => state.diffFilter)
+  const setDiffFilter = useEditorStore((state) => state.setDiffFilter)
 
   const handleExport = () => {
-    if (!diffResult) return;
+    if (!diffResult) return
 
-    const changelog = generateChangelog(diffResult);
-    const blob = new Blob([changelog], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
+    const changelog = generateChangelog(diffResult)
+    const blob = new Blob([changelog], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
 
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `changelog-${new Date().toISOString().split('T')[0]}.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `changelog-${new Date().toISOString().split('T')[0]}.md`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-800 bg-zinc-900/50">
@@ -50,8 +50,18 @@ export function DiffToolbar({
             className="text-zinc-500 hover:text-zinc-300 transition-colors"
             title="Clear comparison"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -82,7 +92,12 @@ export function DiffToolbar({
           className="flex items-center gap-1.5 px-2 py-1 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
           title="Export changelog as Markdown"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -94,5 +109,5 @@ export function DiffToolbar({
         </button>
       )}
     </div>
-  );
+  )
 }

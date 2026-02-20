@@ -1,22 +1,22 @@
-import { useState } from "react";
-import { X, Download } from "lucide-react";
-import { useEditorStore, type ValidationError } from "../../store";
-import { SEVERITY_ICONS, SEVERITY_COLOURS } from "../ui/style-constants";
+import { useState } from 'react'
+import { X, Download } from 'lucide-react'
+import { useEditorStore, type ValidationError } from '../../store'
+import { SEVERITY_ICONS, SEVERITY_COLOURS } from '../ui/style-constants'
 
-type FilterType = "all" | "errors" | "warnings";
+type FilterType = 'all' | 'errors' | 'warnings'
 
 interface DiagnosticsPanelProps {
-  isOpen: boolean;
-  onClose: () => void;
-  height: number;
-  onResizeStart: (e: React.MouseEvent) => void;
+  isOpen: boolean
+  onClose: () => void
+  height: number
+  onResizeStart: (e: React.MouseEvent) => void
 }
 
 const FILTER_OPTIONS: { value: FilterType; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "errors", label: "Errors" },
-  { value: "warnings", label: "Warnings" },
-];
+  { value: 'all', label: 'All' },
+  { value: 'errors', label: 'Errors' },
+  { value: 'warnings', label: 'Warnings' },
+]
 
 export function DiagnosticsPanel({
   isOpen,
@@ -24,39 +24,37 @@ export function DiagnosticsPanel({
   height,
   onResizeStart,
 }: DiagnosticsPanelProps) {
-  const [filter, setFilter] = useState<FilterType>("all");
-  const errors = useEditorStore((state) => state.errors);
-  const warnings = useEditorStore((state) => state.warnings);
-  const goToLine = useEditorStore((state) => state.goToLine);
+  const [filter, setFilter] = useState<FilterType>('all')
+  const errors = useEditorStore((state) => state.errors)
+  const warnings = useEditorStore((state) => state.warnings)
+  const goToLine = useEditorStore((state) => state.goToLine)
 
   const allDiagnostics = [
     ...errors.map((e) => ({
       ...e,
-      severity: e.severity || ("error" as const),
+      severity: e.severity || ('error' as const),
     })),
     ...warnings.map((w) => ({
       ...w,
-      severity: w.severity || ("warning" as const),
+      severity: w.severity || ('warning' as const),
     })),
   ].sort((a, b) => {
-    if (a.line !== b.line) return a.line - b.line;
-    const severityOrder = { error: 0, warning: 1, info: 2 };
-    return severityOrder[a.severity] - severityOrder[b.severity];
-  });
+    if (a.line !== b.line) return a.line - b.line
+    const severityOrder = { error: 0, warning: 1, info: 2 }
+    return severityOrder[a.severity] - severityOrder[b.severity]
+  })
 
   const filteredDiagnostics = allDiagnostics.filter((diagnostic) => {
-    if (filter === "all") return true;
-    if (filter === "errors") return diagnostic.severity === "error";
-    if (filter === "warnings")
-      return (
-        diagnostic.severity === "warning" || diagnostic.severity === "info"
-      );
-    return true;
-  });
+    if (filter === 'all') return true
+    if (filter === 'errors') return diagnostic.severity === 'error'
+    if (filter === 'warnings')
+      return diagnostic.severity === 'warning' || diagnostic.severity === 'info'
+    return true
+  })
 
   const handleDiagnosticClick = (diagnostic: ValidationError) => {
-    goToLine(diagnostic.line, diagnostic.column);
-  };
+    goToLine(diagnostic.line, diagnostic.column)
+  }
 
   const handleExport = () => {
     const exportData = filteredDiagnostics.map((d) => ({
@@ -66,20 +64,20 @@ export function DiagnosticsPanel({
       column: d.column,
       path: d.path,
       rule: d.rule,
-    }));
+    }))
 
     const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "diagnostics.json";
-    link.click();
-    URL.revokeObjectURL(url);
-  };
+      type: 'application/json',
+    })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'diagnostics.json'
+    link.click()
+    URL.revokeObjectURL(url)
+  }
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
     <section
@@ -103,7 +101,7 @@ export function DiagnosticsPanel({
             className="text-xs font-medium text-zinc-300"
           >
             Problems ({filteredDiagnostics.length}
-            {filter !== "all" ? ` of ${allDiagnostics.length}` : ""})
+            {filter !== 'all' ? ` of ${allDiagnostics.length}` : ''})
           </h2>
           <div
             className="flex items-center gap-1"
@@ -116,8 +114,8 @@ export function DiagnosticsPanel({
                 onClick={() => setFilter(option.value)}
                 className={`px-2 py-1 text-xs rounded-md transition-colors ${
                   filter === option.value
-                    ? "bg-purple-600 text-white"
-                    : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
                 }`}
                 aria-pressed={filter === option.value}
               >
@@ -158,13 +156,13 @@ export function DiagnosticsPanel({
             role="status"
           >
             {allDiagnostics.length === 0
-              ? "No problems detected"
-              : "No matching problems"}
+              ? 'No problems detected'
+              : 'No matching problems'}
           </li>
         ) : (
           filteredDiagnostics.map((diagnostic, index) => {
-            const Icon = SEVERITY_ICONS[diagnostic.severity];
-            const colourClass = SEVERITY_COLOURS[diagnostic.severity];
+            const Icon = SEVERITY_ICONS[diagnostic.severity]
+            const colourClass = SEVERITY_COLOURS[diagnostic.severity]
 
             return (
               <li
@@ -202,10 +200,10 @@ export function DiagnosticsPanel({
                   </div>
                 </button>
               </li>
-            );
+            )
           })
         )}
       </ul>
     </section>
-  );
+  )
 }

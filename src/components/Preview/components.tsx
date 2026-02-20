@@ -1,7 +1,7 @@
-import { useState, useCallback, useMemo, type ReactNode } from 'react';
-import { ChevronDown, ChevronRight, Lock, Key, Copy, Check } from 'lucide-react';
-import type { OpenAPIV3 } from 'openapi-types';
-import { Markdown } from './Markdown';
+import { useState, useCallback, useMemo, type ReactNode } from 'react'
+import { ChevronDown, ChevronRight, Lock, Key, Copy, Check } from 'lucide-react'
+import type { OpenAPIV3 } from 'openapi-types'
+import { Markdown } from './Markdown'
 import {
   resolveRef,
   isRef,
@@ -16,14 +16,14 @@ import {
   type SchemaObject,
   type CompositionInfo,
   type DiscriminatorInfo,
-} from './schema-utils';
-import { LOCATION_STYLES } from '../ui/style-constants';
+} from './schema-utils'
+import { LOCATION_STYLES } from '../ui/style-constants'
 
 interface CollapsibleSectionProps {
-  title: string;
-  defaultExpanded?: boolean;
-  badge?: ReactNode;
-  children: ReactNode;
+  title: string
+  defaultExpanded?: boolean
+  badge?: ReactNode
+  children: ReactNode
 }
 
 export function CollapsibleSection({
@@ -32,7 +32,7 @@ export function CollapsibleSection({
   badge,
   children,
 }: CollapsibleSectionProps) {
-  const [expanded, setExpanded] = useState(defaultExpanded);
+  const [expanded, setExpanded] = useState(defaultExpanded)
 
   return (
     <div className="mt-3">
@@ -52,50 +52,58 @@ export function CollapsibleSection({
       </button>
       {expanded && <div className="mt-2">{children}</div>}
     </div>
-  );
+  )
 }
 
 interface TypeBadgeProps {
-  type: string;
+  type: string
 }
 
 export function TypeBadge({ type }: TypeBadgeProps) {
-  return (
-    <span className="text-xs text-zinc-500 font-mono">
-      {type}
-    </span>
-  );
+  return <span className="text-xs text-zinc-500 font-mono">{type}</span>
 }
 
 interface ParameterLocationProps {
-  location: string;
+  location: string
 }
 
 export function ParameterLocation({ location }: ParameterLocationProps) {
-  const style = LOCATION_STYLES[location] ?? { bg: 'bg-zinc-800', text: 'text-zinc-500' };
+  const style = LOCATION_STYLES[location] ?? {
+    bg: 'bg-zinc-800',
+    text: 'text-zinc-500',
+  }
   return (
-    <span className={`px-1.5 py-0.5 text-xs rounded font-medium ${style.bg} ${style.text}`}>
+    <span
+      className={`px-1.5 py-0.5 text-xs rounded font-medium ${style.bg} ${style.text}`}
+    >
       {location}
     </span>
-  );
+  )
 }
 
 interface CopyAsTypeScriptProps {
-  schema: SchemaObject;
-  spec: OpenAPIV3.Document;
-  name?: string;
+  schema: SchemaObject
+  spec: OpenAPIV3.Document
+  name?: string
 }
 
-export function CopyAsTypeScript({ schema, spec, name }: CopyAsTypeScriptProps) {
-  const [copied, setCopied] = useState(false);
+export function CopyAsTypeScript({
+  schema,
+  spec,
+  name,
+}: CopyAsTypeScriptProps) {
+  const [copied, setCopied] = useState(false)
 
-  const handleCopy = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    const typescript = schemaToTypeScript(schema, spec, { name });
-    navigator.clipboard.writeText(typescript);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  }, [schema, spec, name]);
+  const handleCopy = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      const typescript = schemaToTypeScript(schema, spec, { name })
+      navigator.clipboard.writeText(typescript)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    },
+    [schema, spec, name],
+  )
 
   return (
     <button
@@ -111,19 +119,19 @@ export function CopyAsTypeScript({ schema, spec, name }: CopyAsTypeScriptProps) 
         <Copy className="w-3.5 h-3.5" />
       )}
     </button>
-  );
+  )
 }
 
 interface ParameterRowProps {
-  param: OpenAPIV3.ParameterObject;
-  spec: OpenAPIV3.Document;
+  param: OpenAPIV3.ParameterObject
+  spec: OpenAPIV3.Document
 }
 
 export function ParameterRow({ param, spec }: ParameterRowProps) {
-  const schema = param.schema as SchemaObject | undefined;
-  const type = getSchemaType(schema, spec);
-  const constraints = schema && !isRef(schema) ? getConstraints(schema) : {};
-  const constraintStrings = formatConstraints(constraints);
+  const schema = param.schema as SchemaObject | undefined
+  const type = getSchemaType(schema, spec)
+  const constraints = schema && !isRef(schema) ? getConstraints(schema) : {}
+  const constraintStrings = formatConstraints(constraints)
 
   return (
     <div className="py-2 border-b border-zinc-800 last:border-b-0">
@@ -150,14 +158,19 @@ export function ParameterRow({ param, spec }: ParameterRowProps) {
           {constraintStrings.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-1">
               {constraintStrings.map((c, i) => (
-                <span key={i} className="text-xs text-zinc-500">{c}</span>
+                <span key={i} className="text-xs text-zinc-500">
+                  {c}
+                </span>
               ))}
             </div>
           )}
           {constraints.enum && (
             <div className="mt-1 flex flex-wrap gap-1">
               {constraints.enum.map((v, i) => (
-                <span key={i} className="px-1.5 py-0.5 bg-zinc-800 text-zinc-400 text-xs rounded font-mono">
+                <span
+                  key={i}
+                  className="px-1.5 py-0.5 bg-zinc-800 text-zinc-400 text-xs rounded font-mono"
+                >
                   {String(v)}
                 </span>
               ))}
@@ -165,21 +178,24 @@ export function ParameterRow({ param, spec }: ParameterRowProps) {
           )}
           {constraints.example !== undefined && (
             <div className="mt-1 text-xs text-zinc-500">
-              Example: <code className="text-zinc-400">{JSON.stringify(constraints.example)}</code>
+              Example:{' '}
+              <code className="text-zinc-400">
+                {JSON.stringify(constraints.example)}
+              </code>
             </div>
           )}
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 interface SchemaDisplayProps {
-  schema: SchemaObject;
-  spec: OpenAPIV3.Document;
-  name?: string;
-  depth?: number;
-  maxDepth?: number;
+  schema: SchemaObject
+  spec: OpenAPIV3.Document
+  name?: string
+  depth?: number
+  maxDepth?: number
 }
 
 export function SchemaDisplay({
@@ -190,12 +206,12 @@ export function SchemaDisplay({
   maxDepth = 5,
 }: SchemaDisplayProps) {
   if (depth > maxDepth) {
-    return <span className="text-xs text-zinc-500">...</span>;
+    return <span className="text-xs text-zinc-500">...</span>
   }
 
   if (isRef(schema)) {
-    const refName = getRefName(schema);
-    const resolved = resolveRef(schema, spec);
+    const refName = getRefName(schema)
+    const resolved = resolveRef(schema, spec)
     if (resolved) {
       return (
         <SchemaDisplay
@@ -205,19 +221,19 @@ export function SchemaDisplay({
           depth={depth}
           maxDepth={maxDepth}
         />
-      );
+      )
     }
-    return <span className="text-xs text-zinc-500">{refName}</span>;
+    return <span className="text-xs text-zinc-500">{refName}</span>
   }
 
-  const schemaObj = schema;
-  const composition = getComposition(schemaObj);
-  const properties = schemaObj.properties ?? {};
-  const required = schemaObj.required ?? [];
-  const propertyEntries = Object.entries(properties);
+  const schemaObj = schema
+  const composition = getComposition(schemaObj)
+  const properties = schemaObj.properties ?? {}
+  const required = schemaObj.required ?? []
+  const propertyEntries = Object.entries(properties)
 
   if (propertyEntries.length === 0 && !schemaObj.type && !composition) {
-    return null;
+    return null
   }
 
   return (
@@ -270,32 +286,42 @@ export function SchemaDisplay({
         </div>
       )}
     </div>
-  );
+  )
 }
 
 interface PropertyRowProps {
-  name: string;
-  schema: SchemaObject;
-  required: boolean;
-  spec: OpenAPIV3.Document;
-  depth: number;
-  maxDepth: number;
+  name: string
+  schema: SchemaObject
+  required: boolean
+  spec: OpenAPIV3.Document
+  depth: number
+  maxDepth: number
 }
 
-function PropertyRow({ name, schema, required, spec, depth, maxDepth }: PropertyRowProps) {
-  const type = getSchemaType(schema, spec);
-  const isObject = !isRef(schema) && (schema.type === 'object' || schema.properties);
-  const isArray = !isRef(schema) && schema.type === 'array';
-  const hasCompositionSchema = !isRef(schema) && getComposition(schema) !== null;
-  const [expanded, setExpanded] = useState(false);
+function PropertyRow({
+  name,
+  schema,
+  required,
+  spec,
+  depth,
+  maxDepth,
+}: PropertyRowProps) {
+  const type = getSchemaType(schema, spec)
+  const isObject =
+    !isRef(schema) && (schema.type === 'object' || schema.properties)
+  const isArray = !isRef(schema) && schema.type === 'array'
+  const hasCompositionSchema = !isRef(schema) && getComposition(schema) !== null
+  const [expanded, setExpanded] = useState(false)
 
-  const showExpandButton = (isObject || isArray || hasCompositionSchema) && depth < maxDepth;
+  const showExpandButton =
+    (isObject || isArray || hasCompositionSchema) && depth < maxDepth
 
   // Extract readOnly/writeOnly and const from schema
-  const schemaObj = isRef(schema) ? null : schema;
-  const isReadOnly = schemaObj?.readOnly;
-  const isWriteOnly = schemaObj?.writeOnly;
-  const constValue = schemaObj && 'const' in schemaObj ? schemaObj.const : undefined;
+  const schemaObj = isRef(schema) ? null : schema
+  const isReadOnly = schemaObj?.readOnly
+  const isWriteOnly = schemaObj?.writeOnly
+  const constValue =
+    schemaObj && 'const' in schemaObj ? schemaObj.const : undefined
 
   return (
     <div>
@@ -309,9 +335,15 @@ function PropertyRow({ name, schema, required, spec, depth, maxDepth }: Property
             aria-label={expanded ? `Collapse ${name}` : `Expand ${name}`}
           >
             {expanded ? (
-              <ChevronDown className="w-3 h-3 text-zinc-500" aria-hidden="true" />
+              <ChevronDown
+                className="w-3 h-3 text-zinc-500"
+                aria-hidden="true"
+              />
             ) : (
-              <ChevronRight className="w-3 h-3 text-zinc-500" aria-hidden="true" />
+              <ChevronRight
+                className="w-3 h-3 text-zinc-500"
+                aria-hidden="true"
+              />
             )}
           </button>
         ) : (
@@ -354,26 +386,50 @@ function PropertyRow({ name, schema, required, spec, depth, maxDepth }: Property
         </div>
       )}
     </div>
-  );
+  )
 }
 
 interface CompositionDisplayProps {
-  composition: CompositionInfo;
-  spec: OpenAPIV3.Document;
-  depth: number;
-  maxDepth: number;
-  ancestorRefs?: Set<string>;
+  composition: CompositionInfo
+  spec: OpenAPIV3.Document
+  depth: number
+  maxDepth: number
+  ancestorRefs?: Set<string>
 }
 
-const COMPOSITION_STYLES: Record<string, { bg: string; border: string; text: string; label: string }> = {
-  oneOf: { bg: 'bg-amber-900/20', border: 'border-amber-800/50', text: 'text-amber-400', label: 'One of' },
-  anyOf: { bg: 'bg-cyan-900/20', border: 'border-cyan-800/50', text: 'text-cyan-400', label: 'Any of' },
-  allOf: { bg: 'bg-violet-900/20', border: 'border-violet-800/50', text: 'text-violet-400', label: 'All of' },
-};
+const COMPOSITION_STYLES: Record<
+  string,
+  { bg: string; border: string; text: string; label: string }
+> = {
+  oneOf: {
+    bg: 'bg-amber-900/20',
+    border: 'border-amber-800/50',
+    text: 'text-amber-400',
+    label: 'One of',
+  },
+  anyOf: {
+    bg: 'bg-cyan-900/20',
+    border: 'border-cyan-800/50',
+    text: 'text-cyan-400',
+    label: 'Any of',
+  },
+  allOf: {
+    bg: 'bg-violet-900/20',
+    border: 'border-violet-800/50',
+    text: 'text-violet-400',
+    label: 'All of',
+  },
+}
 
-function CompositionDisplay({ composition, spec, depth, maxDepth, ancestorRefs = new Set() }: CompositionDisplayProps) {
-  const style = COMPOSITION_STYLES[composition.type];
-  const { discriminator } = composition;
+function CompositionDisplay({
+  composition,
+  spec,
+  depth,
+  maxDepth,
+  ancestorRefs = new Set(),
+}: CompositionDisplayProps) {
+  const style = COMPOSITION_STYLES[composition.type]
+  const { discriminator } = composition
 
   return (
     <div className="space-y-2 mb-2">
@@ -401,50 +457,66 @@ function CompositionDisplay({ composition, spec, depth, maxDepth, ancestorRefs =
         />
       ))}
     </div>
-  );
+  )
 }
 
 interface CompositionVariantProps {
-  variant: SchemaObject;
-  index: number;
-  style: { bg: string; border: string; text: string };
-  spec: OpenAPIV3.Document;
-  depth: number;
-  maxDepth: number;
-  discriminator?: DiscriminatorInfo;
-  ancestorRefs?: Set<string>;
+  variant: SchemaObject
+  index: number
+  style: { bg: string; border: string; text: string }
+  spec: OpenAPIV3.Document
+  depth: number
+  maxDepth: number
+  discriminator?: DiscriminatorInfo
+  ancestorRefs?: Set<string>
 }
 
-function CompositionVariant({ variant, index, style, spec, depth, maxDepth, discriminator, ancestorRefs = new Set() }: CompositionVariantProps) {
-  const variantType = getSchemaType(variant, spec);
-  const resolved = isRef(variant) ? resolveRef(variant, spec) : null;
-  const resolvedName = resolved?.name;
-  const variantSchema = resolved?.schema ?? (isRef(variant) ? null : variant);
+function CompositionVariant({
+  variant,
+  index,
+  style,
+  spec,
+  depth,
+  maxDepth,
+  discriminator,
+  ancestorRefs = new Set(),
+}: CompositionVariantProps) {
+  const variantType = getSchemaType(variant, spec)
+  const resolved = isRef(variant) ? resolveRef(variant, spec) : null
+  const resolvedName = resolved?.name
+  const variantSchema = resolved?.schema ?? (isRef(variant) ? null : variant)
 
   // Check for recursive reference
-  const isRecursive = isRecursiveRef(variant, ancestorRefs);
+  const isRecursive = isRecursiveRef(variant, ancestorRefs)
 
   // Get discriminator value if this variant is referenced
-  const discriminatorValue = getDiscriminatorValue(variant, discriminator);
+  const discriminatorValue = getDiscriminatorValue(variant, discriminator)
 
   // Track this ref for nested recursion detection
-  const newAncestorRefs = new Set(ancestorRefs);
+  const newAncestorRefs = new Set(ancestorRefs)
   if (isRef(variant)) {
-    newAncestorRefs.add(variant.$ref);
+    newAncestorRefs.add(variant.$ref)
   }
 
-  const properties = variantSchema?.properties ? Object.entries(variantSchema.properties) : [];
-  const required = variantSchema?.required ?? [];
-  const nestedComposition = variantSchema ? getComposition(variantSchema) : null;
-  const hasStructure = properties.length > 0 || nestedComposition;
+  const properties = variantSchema?.properties
+    ? Object.entries(variantSchema.properties)
+    : []
+  const required = variantSchema?.required ?? []
+  const nestedComposition = variantSchema ? getComposition(variantSchema) : null
+  const hasStructure = properties.length > 0 || nestedComposition
 
   // Get const value from variant schema if present
-  const constValue = variantSchema && 'const' in variantSchema ? variantSchema.const : undefined;
+  const constValue =
+    variantSchema && 'const' in variantSchema ? variantSchema.const : undefined
 
   return (
-    <div className={`rounded border ${style.border} ${style.bg} overflow-hidden`}>
+    <div
+      className={`rounded border ${style.border} ${style.bg} overflow-hidden`}
+    >
       <div className="flex items-center gap-2 px-2 py-1.5">
-        <span className={`px-1.5 py-0.5 text-xs rounded bg-zinc-800 ${style.text} font-medium`}>
+        <span
+          className={`px-1.5 py-0.5 text-xs rounded bg-zinc-800 ${style.text} font-medium`}
+        >
           {index + 1}
         </span>
         <span className="text-xs text-zinc-200 font-mono font-medium">
@@ -461,9 +533,7 @@ function CompositionVariant({ variant, index, style, spec, depth, maxDepth, disc
           </span>
         )}
         {resolvedName && variantSchema?.type && (
-          <span className="text-xs text-zinc-500">
-            {variantSchema.type}
-          </span>
+          <span className="text-xs text-zinc-500">{variantSchema.type}</span>
         )}
         {isRecursive && (
           <span className="px-1.5 py-0.5 bg-blue-900/30 text-blue-400 text-xs rounded">
@@ -507,40 +577,47 @@ function CompositionVariant({ variant, index, style, spec, depth, maxDepth, disc
         </div>
       )}
     </div>
-  );
+  )
 }
 
 interface RequestBodySectionProps {
-  requestBody: OpenAPIV3.RequestBodyObject | OpenAPIV3.ReferenceObject;
-  spec: OpenAPIV3.Document;
+  requestBody: OpenAPIV3.RequestBodyObject | OpenAPIV3.ReferenceObject
+  spec: OpenAPIV3.Document
 }
 
-export function RequestBodySection({ requestBody, spec }: RequestBodySectionProps) {
+export function RequestBodySection({
+  requestBody,
+  spec,
+}: RequestBodySectionProps) {
   const body: OpenAPIV3.RequestBodyObject | null = useMemo(() => {
     if ('$ref' in requestBody) {
-      const resolved = resolveRef(requestBody as SchemaObject, spec);
-      if (!resolved) return null;
-      return resolved.schema as unknown as OpenAPIV3.RequestBodyObject;
+      const resolved = resolveRef(requestBody as SchemaObject, spec)
+      if (!resolved) return null
+      return resolved.schema as unknown as OpenAPIV3.RequestBodyObject
     }
-    return requestBody;
-  }, [requestBody, spec]);
+    return requestBody
+  }, [requestBody, spec])
 
-  const contentTypes = Object.keys(body?.content ?? {});
-  const [selectedType, setSelectedType] = useState(contentTypes[0] ?? 'application/json');
+  const contentTypes = Object.keys(body?.content ?? {})
+  const [selectedType, setSelectedType] = useState(
+    contentTypes[0] ?? 'application/json',
+  )
 
-  if (!body) return null;
+  if (!body) return null
 
-  const mediaType = body.content?.[selectedType];
-  const schema = mediaType?.schema as SchemaObject | undefined;
+  const mediaType = body.content?.[selectedType]
+  const schema = mediaType?.schema as SchemaObject | undefined
 
   return (
     <CollapsibleSection
       title="Request Body"
-      badge={body.required ? (
-        <span className="px-1.5 py-0.5 bg-red-900/50 text-red-400 text-xs rounded ml-2">
-          required
-        </span>
-      ) : undefined}
+      badge={
+        body.required ? (
+          <span className="px-1.5 py-0.5 bg-red-900/50 text-red-400 text-xs rounded ml-2">
+            required
+          </span>
+        ) : undefined
+      }
     >
       <div className="bg-zinc-800/50 rounded p-3">
         {body.description && (
@@ -569,7 +646,13 @@ export function RequestBodySection({ requestBody, spec }: RequestBodySectionProp
         {contentTypes.length === 1 && (
           <div className="flex items-center gap-2 mb-2">
             <span className="text-xs text-zinc-500">{selectedType}</span>
-            {schema && <CopyAsTypeScript schema={schema} spec={spec} name="RequestBody" />}
+            {schema && (
+              <CopyAsTypeScript
+                schema={schema}
+                spec={spec}
+                name="RequestBody"
+              />
+            )}
           </div>
         )}
         {contentTypes.length > 1 && schema && (
@@ -580,16 +663,16 @@ export function RequestBodySection({ requestBody, spec }: RequestBodySectionProp
         {schema && <SchemaDisplay schema={schema} spec={spec} />}
       </div>
     </CollapsibleSection>
-  );
+  )
 }
 
 interface ResponseSectionProps {
-  responses: OpenAPIV3.ResponsesObject;
-  spec: OpenAPIV3.Document;
+  responses: OpenAPIV3.ResponsesObject
+  spec: OpenAPIV3.Document
 }
 
 export function ResponseSection({ responses, spec }: ResponseSectionProps) {
-  const entries = Object.entries(responses);
+  const entries = Object.entries(responses)
 
   return (
     <CollapsibleSection title="Responses">
@@ -598,51 +681,53 @@ export function ResponseSection({ responses, spec }: ResponseSectionProps) {
           <ResponseCard
             key={code}
             code={code}
-            response={response as OpenAPIV3.ResponseObject | OpenAPIV3.ReferenceObject}
+            response={
+              response as OpenAPIV3.ResponseObject | OpenAPIV3.ReferenceObject
+            }
             spec={spec}
           />
         ))}
       </div>
     </CollapsibleSection>
-  );
+  )
 }
 
 interface ResponseCardProps {
-  code: string;
-  response: OpenAPIV3.ResponseObject | OpenAPIV3.ReferenceObject;
-  spec: OpenAPIV3.Document;
+  code: string
+  response: OpenAPIV3.ResponseObject | OpenAPIV3.ReferenceObject
+  spec: OpenAPIV3.Document
 }
 
 function ResponseCard({ code, response, spec }: ResponseCardProps) {
   const resp: OpenAPIV3.ResponseObject | null = useMemo(() => {
     if ('$ref' in response) {
-      const resolved = resolveRef(response as SchemaObject, spec);
-      if (!resolved) return null;
-      return resolved.schema as unknown as OpenAPIV3.ResponseObject;
+      const resolved = resolveRef(response as SchemaObject, spec)
+      if (!resolved) return null
+      return resolved.schema as unknown as OpenAPIV3.ResponseObject
     }
-    return response;
-  }, [response, spec]);
+    return response
+  }, [response, spec])
 
-  const contentTypes = Object.keys(resp?.content ?? {});
-  const [selectedType, setSelectedType] = useState(contentTypes[0]);
+  const contentTypes = Object.keys(resp?.content ?? {})
+  const [selectedType, setSelectedType] = useState(contentTypes[0])
 
-  if (!resp) return null;
+  if (!resp) return null
 
-  const isSuccess = code.startsWith('2');
-  const isClientError = code.startsWith('4');
-  const isServerError = code.startsWith('5');
+  const isSuccess = code.startsWith('2')
+  const isClientError = code.startsWith('4')
+  const isServerError = code.startsWith('5')
 
   const codeStyle = isSuccess
     ? 'bg-emerald-900/50 text-emerald-400'
     : isClientError
-    ? 'bg-yellow-900/50 text-yellow-400'
-    : isServerError
-    ? 'bg-red-900/50 text-red-400'
-    : 'bg-zinc-800 text-zinc-500';
-  const mediaType = selectedType ? resp.content?.[selectedType] : undefined;
-  const schema = mediaType?.schema as SchemaObject | undefined;
+      ? 'bg-yellow-900/50 text-yellow-400'
+      : isServerError
+        ? 'bg-red-900/50 text-red-400'
+        : 'bg-zinc-800 text-zinc-500'
+  const mediaType = selectedType ? resp.content?.[selectedType] : undefined
+  const schema = mediaType?.schema as SchemaObject | undefined
 
-  const defaultExpanded = isSuccess;
+  const defaultExpanded = isSuccess
 
   return (
     <div className="bg-zinc-800/50 rounded overflow-hidden">
@@ -675,12 +760,22 @@ function ResponseCard({ code, response, spec }: ResponseCardProps) {
             {contentTypes.length === 1 && (
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xs text-zinc-500">{selectedType}</span>
-                {schema && <CopyAsTypeScript schema={schema} spec={spec} name={`Response${code}`} />}
+                {schema && (
+                  <CopyAsTypeScript
+                    schema={schema}
+                    spec={spec}
+                    name={`Response${code}`}
+                  />
+                )}
               </div>
             )}
             {contentTypes.length > 1 && schema && (
               <div className="flex items-center gap-2 mb-2">
-                <CopyAsTypeScript schema={schema} spec={spec} name={`Response${code}`} />
+                <CopyAsTypeScript
+                  schema={schema}
+                  spec={spec}
+                  name={`Response${code}`}
+                />
               </div>
             )}
             {schema && <SchemaDisplay schema={schema} spec={spec} />}
@@ -688,20 +783,26 @@ function ResponseCard({ code, response, spec }: ResponseCardProps) {
         )}
       </ResponseHeader>
     </div>
-  );
+  )
 }
 
 interface ResponseHeaderProps {
-  code: string;
-  codeStyle: string;
-  description: string;
-  defaultExpanded: boolean;
-  children: ReactNode;
+  code: string
+  codeStyle: string
+  description: string
+  defaultExpanded: boolean
+  children: ReactNode
 }
 
-function ResponseHeader({ code, codeStyle, description, defaultExpanded, children }: ResponseHeaderProps) {
-  const [expanded, setExpanded] = useState(defaultExpanded);
-  const hasContent = children !== undefined && children !== null;
+function ResponseHeader({
+  code,
+  codeStyle,
+  description,
+  defaultExpanded,
+  children,
+}: ResponseHeaderProps) {
+  const [expanded, setExpanded] = useState(defaultExpanded)
+  const hasContent = children !== undefined && children !== null
 
   return (
     <>
@@ -711,13 +812,15 @@ function ResponseHeader({ code, codeStyle, description, defaultExpanded, childre
         onClick={() => setExpanded(!expanded)}
         aria-expanded={expanded}
       >
-        {hasContent && (
-          expanded ? (
+        {hasContent &&
+          (expanded ? (
             <ChevronDown className="w-3 h-3 text-zinc-500" aria-hidden="true" />
           ) : (
-            <ChevronRight className="w-3 h-3 text-zinc-500" aria-hidden="true" />
-          )
-        )}
+            <ChevronRight
+              className="w-3 h-3 text-zinc-500"
+              aria-hidden="true"
+            />
+          ))}
         {!hasContent && <span className="w-3" />}
         <span className={`px-2 py-0.5 text-xs font-bold rounded ${codeStyle}`}>
           {code}
@@ -726,17 +829,24 @@ function ResponseHeader({ code, codeStyle, description, defaultExpanded, childre
       </button>
       {expanded && hasContent && children}
     </>
-  );
+  )
 }
 
 interface SecuritySectionProps {
-  security?: OpenAPIV3.SecurityRequirementObject[];
-  securitySchemes?: Record<string, OpenAPIV3.SecuritySchemeObject | OpenAPIV3.ReferenceObject>;
-  spec: OpenAPIV3.Document;
+  security?: OpenAPIV3.SecurityRequirementObject[]
+  securitySchemes?: Record<
+    string,
+    OpenAPIV3.SecuritySchemeObject | OpenAPIV3.ReferenceObject
+  >
+  spec: OpenAPIV3.Document
 }
 
-export function SecuritySection({ security, securitySchemes, spec }: SecuritySectionProps) {
-  if (!security || security.length === 0) return null;
+export function SecuritySection({
+  security,
+  securitySchemes,
+  spec,
+}: SecuritySectionProps) {
+  if (!security || security.length === 0) return null
 
   return (
     <CollapsibleSection title="Security">
@@ -751,38 +861,46 @@ export function SecuritySection({ security, securitySchemes, spec }: SecuritySec
         ))}
       </div>
     </CollapsibleSection>
-  );
+  )
 }
 
 interface SecurityRequirementProps {
-  requirement: OpenAPIV3.SecurityRequirementObject;
-  securitySchemes?: Record<string, OpenAPIV3.SecuritySchemeObject | OpenAPIV3.ReferenceObject>;
-  spec: OpenAPIV3.Document;
+  requirement: OpenAPIV3.SecurityRequirementObject
+  securitySchemes?: Record<
+    string,
+    OpenAPIV3.SecuritySchemeObject | OpenAPIV3.ReferenceObject
+  >
+  spec: OpenAPIV3.Document
 }
 
-function SecurityRequirement({ requirement, securitySchemes, spec }: SecurityRequirementProps) {
-  const entries = Object.entries(requirement);
+function SecurityRequirement({
+  requirement,
+  securitySchemes,
+  spec,
+}: SecurityRequirementProps) {
+  const entries = Object.entries(requirement)
 
   if (entries.length === 0) {
     return (
       <div className="p-2 bg-zinc-800/50 rounded text-xs text-zinc-400">
         No authentication required
       </div>
-    );
+    )
   }
 
   return (
     <div className="p-2 bg-zinc-800/50 rounded space-y-2">
       {entries.map(([schemeName, scopes]) => {
-        const schemeRef = securitySchemes?.[schemeName];
-        let scheme: OpenAPIV3.SecuritySchemeObject | undefined;
+        const schemeRef = securitySchemes?.[schemeName]
+        let scheme: OpenAPIV3.SecuritySchemeObject | undefined
 
         if (schemeRef) {
           if ('$ref' in schemeRef) {
-            const resolved = resolveRef(schemeRef as SchemaObject, spec);
-            scheme = resolved?.schema as unknown as OpenAPIV3.SecuritySchemeObject;
+            const resolved = resolveRef(schemeRef as SchemaObject, spec)
+            scheme =
+              resolved?.schema as unknown as OpenAPIV3.SecuritySchemeObject
           } else {
-            scheme = schemeRef;
+            scheme = schemeRef
           }
         }
 
@@ -793,48 +911,52 @@ function SecurityRequirement({ requirement, securitySchemes, spec }: SecurityReq
             scheme={scheme}
             scopes={scopes}
           />
-        );
+        )
       })}
     </div>
-  );
+  )
 }
 
 interface SecuritySchemeDisplayProps {
-  name: string;
-  scheme?: OpenAPIV3.SecuritySchemeObject;
-  scopes: string[];
+  name: string
+  scheme?: OpenAPIV3.SecuritySchemeObject
+  scopes: string[]
 }
 
-function SecuritySchemeDisplay({ name, scheme, scopes }: SecuritySchemeDisplayProps) {
+function SecuritySchemeDisplay({
+  name,
+  scheme,
+  scopes,
+}: SecuritySchemeDisplayProps) {
   const getSchemeIcon = () => {
-    if (!scheme) return <Lock className="w-3 h-3" aria-hidden="true" />;
+    if (!scheme) return <Lock className="w-3 h-3" aria-hidden="true" />
 
     switch (scheme.type) {
       case 'oauth2':
-        return <Key className="w-3 h-3" aria-hidden="true" />;
+        return <Key className="w-3 h-3" aria-hidden="true" />
       case 'apiKey':
-        return <Key className="w-3 h-3" aria-hidden="true" />;
+        return <Key className="w-3 h-3" aria-hidden="true" />
       default:
-        return <Lock className="w-3 h-3" aria-hidden="true" />;
+        return <Lock className="w-3 h-3" aria-hidden="true" />
     }
-  };
+  }
 
   const getSchemeTypeLabel = () => {
-    if (!scheme) return 'Unknown';
+    if (!scheme) return 'Unknown'
 
     switch (scheme.type) {
       case 'http':
-        return `HTTP ${(scheme as OpenAPIV3.HttpSecurityScheme).scheme}`;
+        return `HTTP ${(scheme as OpenAPIV3.HttpSecurityScheme).scheme}`
       case 'apiKey':
-        return `API Key (${(scheme as OpenAPIV3.ApiKeySecurityScheme).in})`;
+        return `API Key (${(scheme as OpenAPIV3.ApiKeySecurityScheme).in})`
       case 'oauth2':
-        return 'OAuth2';
+        return 'OAuth2'
       case 'openIdConnect':
-        return 'OpenID Connect';
+        return 'OpenID Connect'
       default:
-        return 'Unknown';
+        return 'Unknown'
     }
-  };
+  }
 
   return (
     <div className="flex items-start gap-2">
@@ -842,7 +964,9 @@ function SecuritySchemeDisplay({ name, scheme, scopes }: SecuritySchemeDisplayPr
       <div className="flex-1">
         <div className="flex items-center gap-2">
           <span className="text-sm text-zinc-200 font-medium">{name}</span>
-          <span className="text-xs text-zinc-500">({getSchemeTypeLabel()})</span>
+          <span className="text-xs text-zinc-500">
+            ({getSchemeTypeLabel()})
+          </span>
         </div>
         {scheme?.description && (
           <div className="text-xs text-zinc-400 mt-0.5">
@@ -864,5 +988,5 @@ function SecuritySchemeDisplay({ name, scheme, scopes }: SecuritySchemeDisplayPr
         )}
       </div>
     </div>
-  );
+  )
 }

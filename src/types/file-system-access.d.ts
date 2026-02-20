@@ -1,27 +1,31 @@
 interface FileSystemFileHandle {
-  getFile(): Promise<File>;
-  createWritable(): Promise<FileSystemWritableFileStream>;
+  getFile(): Promise<File>
+  createWritable(): Promise<FileSystemWritableFileStream>
 }
 
 interface FileSystemWritableFileStream extends WritableStream {
-  write(data: string | BufferSource | Blob): Promise<void>;
-  close(): Promise<void>;
+  write(data: string | BufferSource | Blob): Promise<void>
+  close(): Promise<void>
 }
 
 interface FilePickerOptions {
   types?: {
-    description: string;
-    accept: Record<string, string[]>;
-  }[];
-  multiple?: boolean;
-  excludeAcceptAllOption?: boolean;
+    description: string
+    accept: Record<string, string[]>
+  }[]
+  multiple?: boolean
+  excludeAcceptAllOption?: boolean
 }
 
 interface SaveFilePickerOptions extends FilePickerOptions {
-  suggestedName?: string;
+  suggestedName?: string
 }
 
 interface Window {
-  showOpenFilePicker(options?: FilePickerOptions): Promise<FileSystemFileHandle[]>;
-  showSaveFilePicker(options?: SaveFilePickerOptions): Promise<FileSystemFileHandle>;
+  showOpenFilePicker(
+    options?: FilePickerOptions,
+  ): Promise<FileSystemFileHandle[]>
+  showSaveFilePicker(
+    options?: SaveFilePickerOptions,
+  ): Promise<FileSystemFileHandle>
 }

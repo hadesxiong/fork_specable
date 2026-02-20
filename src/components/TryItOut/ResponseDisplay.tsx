@@ -1,45 +1,46 @@
-import { useState, useMemo } from 'react';
-import { ChevronDown, Copy, Check, AlertTriangle } from 'lucide-react';
-import type { TryItResponse } from '../../store';
+import { useState, useMemo } from 'react'
+import { ChevronDown, Copy, Check, AlertTriangle } from 'lucide-react'
+import type { TryItResponse } from '../../store'
 
 interface ResponseDisplayProps {
-  response: TryItResponse;
+  response: TryItResponse
 }
 
 export function ResponseDisplay({ response }: ResponseDisplayProps) {
-  const [showHeaders, setShowHeaders] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [showHeaders, setShowHeaders] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const statusClass = useMemo(() => {
-    if (response.status === 0) return 'text-red-400';
-    if (response.status >= 200 && response.status < 300) return 'text-emerald-400';
-    if (response.status >= 400 && response.status < 500) return 'text-amber-400';
-    if (response.status >= 500) return 'text-red-400';
-    return 'text-zinc-400';
-  }, [response.status]);
+    if (response.status === 0) return 'text-red-400'
+    if (response.status >= 200 && response.status < 300)
+      return 'text-emerald-400'
+    if (response.status >= 400 && response.status < 500) return 'text-amber-400'
+    if (response.status >= 500) return 'text-red-400'
+    return 'text-zinc-400'
+  }, [response.status])
 
   const formattedBody = useMemo(() => {
-    if (!response.body) return '';
+    if (!response.body) return ''
 
     try {
-      const parsed = JSON.parse(response.body);
-      return JSON.stringify(parsed, null, 2);
+      const parsed = JSON.parse(response.body)
+      return JSON.stringify(parsed, null, 2)
     } catch {
-      return response.body;
+      return response.body
     }
-  }, [response.body]);
+  }, [response.body])
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(formattedBody || response.body);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(formattedBody || response.body)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     } catch {
       // Clipboard API not available
     }
-  };
+  }
 
-  const headerEntries = Object.entries(response.headers);
+  const headerEntries = Object.entries(response.headers)
 
   return (
     <div className="border border-zinc-800 rounded-lg overflow-hidden">
@@ -47,7 +48,8 @@ export function ResponseDisplay({ response }: ResponseDisplayProps) {
       <div className="flex items-center justify-between px-3 py-2 bg-zinc-900/50 border-b border-zinc-800">
         <div className="flex items-center gap-3">
           <span className={`text-sm font-medium ${statusClass}`}>
-            {response.status === 0 ? 'Error' : response.status} {response.statusText}
+            {response.status === 0 ? 'Error' : response.status}{' '}
+            {response.statusText}
           </span>
           <span className="text-xs text-zinc-500">
             {response.responseTimeMs}ms
@@ -82,11 +84,14 @@ export function ResponseDisplay({ response }: ResponseDisplayProps) {
             <div className="text-sm text-red-200">
               <p className="font-medium mb-1">CORS Error</p>
               <p className="text-xs text-red-300/80">
-                The server did not include the required CORS headers. To test this API:
+                The server did not include the required CORS headers. To test
+                this API:
               </p>
               <ul className="text-xs text-red-300/80 mt-1 ml-4 list-disc space-y-0.5">
                 <li>Configure the API server to allow cross-origin requests</li>
-                <li>Use a browser extension to disable CORS (development only)</li>
+                <li>
+                  Use a browser extension to disable CORS (development only)
+                </li>
                 <li>Run a local proxy server</li>
               </ul>
             </div>
@@ -118,7 +123,9 @@ export function ResponseDisplay({ response }: ResponseDisplayProps) {
             <span className="text-xs font-medium text-zinc-400">
               Headers ({headerEntries.length})
             </span>
-            <ChevronDown className={`w-4 h-4 text-zinc-500 transition-transform ${showHeaders ? 'rotate-180' : ''}`} />
+            <ChevronDown
+              className={`w-4 h-4 text-zinc-500 transition-transform ${showHeaders ? 'rotate-180' : ''}`}
+            />
           </button>
           {showHeaders && (
             <div className="px-3 pb-2 space-y-1">
@@ -149,5 +156,5 @@ export function ResponseDisplay({ response }: ResponseDisplayProps) {
         </div>
       )}
     </div>
-  );
+  )
 }

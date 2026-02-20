@@ -1,2 +1,2 @@
-export { DocumentationView } from './DocumentationView';
-export { FullscreenPreview } from './FullscreenPreview';
+export { DocumentationView } from './DocumentationView'
+export { FullscreenPreview } from './FullscreenPreview'

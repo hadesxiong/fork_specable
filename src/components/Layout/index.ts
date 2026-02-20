@@ -1,2 +1,2 @@
-export { MainLayout } from './MainLayout';
-export { StatusBar } from './StatusBar';
+export { MainLayout } from './MainLayout'
+export { StatusBar } from './StatusBar'

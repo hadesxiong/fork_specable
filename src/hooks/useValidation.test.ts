@@ -1,11 +1,11 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
-import { useEditorStore } from '../store';
-import type { PipelineResult } from '../services/validation-pipeline';
-import type { ValidationResult, LintResult } from '../workers/types';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { renderHook, act } from '@testing-library/react'
+import { useEditorStore } from '../store'
+import type { PipelineResult } from '../services/validation-pipeline'
+import type { ValidationResult, LintResult } from '../workers/types'
 
-const mockValidateDebounced = vi.fn();
-const mockCancel = vi.fn();
+const mockValidateDebounced = vi.fn()
+const mockCancel = vi.fn()
 
 vi.mock('../services/validation-pipeline', () => ({
   getValidationPipeline: () => ({
@@ -23,37 +23,45 @@ vi.mock('../services/validation-pipeline', () => ({
       severity: d.severity === 'hint' ? 'info' : d.severity,
       rule: d.code,
     })),
-}));
+}))
 
-function createValidationResult(overrides: Partial<ValidationResult> = {}): ValidationResult {
+function createValidationResult(
+  overrides: Partial<ValidationResult> = {},
+): ValidationResult {
   return {
     valid: true,
     syntaxValid: true,
     schemaValid: true,
     errors: [],
     warnings: [],
-    parsedSpec: { openapi: '3.0.3', info: { title: 'Test', version: '1.0.0' }, paths: {} } as ValidationResult['parsedSpec'],
+    parsedSpec: {
+      openapi: '3.0.3',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {},
+    } as ValidationResult['parsedSpec'],
     sourceMap: {},
     parseTimeMs: 5,
     validateTimeMs: 10,
     ...overrides,
-  };
+  }
 }
 
-function createPipelineResult(overrides: Partial<PipelineResult> = {}): PipelineResult {
+function createPipelineResult(
+  overrides: Partial<PipelineResult> = {},
+): PipelineResult {
   return {
     validation: createValidationResult(),
     lint: { diagnostics: [], lintTimeMs: 3 },
     totalTimeMs: 15,
     ...overrides,
-  };
+  }
 }
 
 describe('useValidation', () => {
-  let useValidation: typeof import('../hooks/useValidation').useValidation;
+  let useValidation: typeof import('../hooks/useValidation').useValidation
 
   beforeEach(async () => {
-    vi.clearAllMocks();
+    vi.clearAllMocks()
 
     // Reset store to known state
     useEditorStore.setState({
@@ -71,41 +79,41 @@ describe('useValidation', () => {
       schemaValid: true,
       errors: [],
       warnings: [],
-    });
+    })
 
     // Dynamic import to pick up the mocked pipeline
-    const mod = await import('../hooks/useValidation');
-    useValidation = mod.useValidation;
-  });
+    const mod = await import('../hooks/useValidation')
+    useValidation = mod.useValidation
+  })
 
   afterEach(() => {
-    vi.clearAllMocks();
-  });
+    vi.clearAllMocks()
+  })
 
   describe('initial debounce', () => {
     it('uses debounceMs=0 on first validation', () => {
-      mockValidateDebounced.mockReturnValue(new Promise(() => {}));
+      mockValidateDebounced.mockReturnValue(new Promise(() => {}))
 
-      renderHook(() => useValidation());
+      renderHook(() => useValidation())
 
       expect(mockValidateDebounced).toHaveBeenCalledWith(
         'openapi: 3.0.3',
         expect.any(Function),
         0,
-      );
-    });
+      )
+    })
 
     it('uses debounceMs=300 on subsequent validations', async () => {
-      const result = createPipelineResult();
-      mockValidateDebounced.mockResolvedValueOnce(result);
+      const result = createPipelineResult()
+      mockValidateDebounced.mockResolvedValueOnce(result)
 
-      const { rerender } = renderHook(() => useValidation());
+      const { rerender } = renderHook(() => useValidation())
 
       // Wait for first validation to complete
-      await act(async () => {});
+      await act(async () => {})
 
       // Update content to trigger second validation
-      mockValidateDebounced.mockReturnValue(new Promise(() => {}));
+      mockValidateDebounced.mockReturnValue(new Promise(() => {}))
       act(() => {
         useEditorStore.setState({
           file: {
@@ -115,155 +123,174 @@ describe('useValidation', () => {
             isDirty: true,
             language: 'yaml',
           },
-        });
-      });
-      rerender();
+        })
+      })
+      rerender()
 
-      const secondCall = mockValidateDebounced.mock.calls[1];
-      expect(secondCall[0]).toBe('openapi: 3.0.4');
-      expect(secondCall[2]).toBe(300);
-    });
-  });
+      const secondCall = mockValidateDebounced.mock.calls[1]
+      expect(secondCall[0]).toBe('openapi: 3.0.4')
+      expect(secondCall[2]).toBe(300)
+    })
+  })
 
   describe('stale effect guard', () => {
     it('ignores .then() after cleanup', async () => {
-      let resolveValidation!: (value: PipelineResult) => void;
+      let resolveValidation!: (value: PipelineResult) => void
       mockValidateDebounced.mockReturnValue(
         new Promise<PipelineResult>((resolve) => {
-          resolveValidation = resolve;
+          resolveValidation = resolve
         }),
-      );
+      )
 
-      const { unmount } = renderHook(() => useValidation());
+      const { unmount } = renderHook(() => useValidation())
 
       // isValidating is false -- setValidating(true) only fires inside onProgress after debounce
-      expect(useEditorStore.getState().isValidating).toBe(false);
+      expect(useEditorStore.getState().isValidating).toBe(false)
 
       // Unmount triggers cleanup (sets active=false)
-      unmount();
-      expect(mockCancel).toHaveBeenCalled();
+      unmount()
+      expect(mockCancel).toHaveBeenCalled()
 
       // Now resolve the promise -- handler should be ignored
       await act(async () => {
-        resolveValidation(createPipelineResult());
-      });
+        resolveValidation(createPipelineResult())
+      })
 
       // isValidating stays false (was never set to true, stale .then() was ignored)
-      expect(useEditorStore.getState().isValidating).toBe(false);
-      expect(useEditorStore.getState().parsedSpec).toBeNull();
-    });
+      expect(useEditorStore.getState().isValidating).toBe(false)
+      expect(useEditorStore.getState().parsedSpec).toBeNull()
+    })
 
     it('ignores .catch() after cleanup', async () => {
-      let rejectValidation!: (reason: Error) => void;
+      let rejectValidation!: (reason: Error) => void
       mockValidateDebounced.mockReturnValue(
         new Promise<PipelineResult>((_, reject) => {
-          rejectValidation = reject;
+          rejectValidation = reject
         }),
-      );
+      )
 
-      const { unmount } = renderHook(() => useValidation());
+      const { unmount } = renderHook(() => useValidation())
 
-      expect(useEditorStore.getState().isValidating).toBe(false);
+      expect(useEditorStore.getState().isValidating).toBe(false)
 
-      unmount();
+      unmount()
 
       // Reject the promise -- handler should be ignored
       await act(async () => {
-        rejectValidation(new Error('Worker failed'));
-      });
+        rejectValidation(new Error('Worker failed'))
+      })
 
       // isValidating stays false (was never set to true, stale .catch() was ignored)
-      expect(useEditorStore.getState().isValidating).toBe(false);
-    });
+      expect(useEditorStore.getState().isValidating).toBe(false)
+    })
 
     it('ignores onProgress after cleanup', async () => {
-      let capturedOnProgress!: (stage: string, result: Partial<PipelineResult>) => void;
+      let capturedOnProgress!: (
+        stage: string,
+        result: Partial<PipelineResult>,
+      ) => void
       mockValidateDebounced.mockImplementation((_content, onProgress) => {
-        capturedOnProgress = onProgress;
-        return new Promise(() => {});
-      });
+        capturedOnProgress = onProgress
+        return new Promise(() => {})
+      })
 
-      const { unmount } = renderHook(() => useValidation());
+      const { unmount } = renderHook(() => useValidation())
 
-      unmount();
+      unmount()
 
       // Call onProgress with a parsedSpec -- should be ignored
       act(() => {
         capturedOnProgress('validating', {
           validation: createValidationResult(),
-        });
-      });
+        })
+      })
 
-      expect(useEditorStore.getState().parsedSpec).toBeNull();
-    });
-  });
+      expect(useEditorStore.getState().parsedSpec).toBeNull()
+    })
+  })
 
   describe('content change detection', () => {
     it('does not validate when file is null', () => {
-      useEditorStore.setState({ file: null });
+      useEditorStore.setState({ file: null })
 
-      renderHook(() => useValidation());
+      renderHook(() => useValidation())
 
-      expect(mockValidateDebounced).not.toHaveBeenCalled();
-    });
+      expect(mockValidateDebounced).not.toHaveBeenCalled()
+    })
 
     it('does not validate when content is empty', () => {
       useEditorStore.setState({
-        file: { id: 'test', name: 'test.yaml', content: '', isDirty: false, language: 'yaml' },
-      });
+        file: {
+          id: 'test',
+          name: 'test.yaml',
+          content: '',
+          isDirty: false,
+          language: 'yaml',
+        },
+      })
 
-      renderHook(() => useValidation());
+      renderHook(() => useValidation())
 
-      expect(mockValidateDebounced).not.toHaveBeenCalled();
-    });
+      expect(mockValidateDebounced).not.toHaveBeenCalled()
+    })
 
     it('validates when content changes', async () => {
-      const result = createPipelineResult();
-      mockValidateDebounced.mockResolvedValue(result);
+      const result = createPipelineResult()
+      mockValidateDebounced.mockResolvedValue(result)
 
-      const { rerender } = renderHook(() => useValidation());
-      await act(async () => {});
+      const { rerender } = renderHook(() => useValidation())
+      await act(async () => {})
 
-      mockValidateDebounced.mockReturnValue(new Promise(() => {}));
+      mockValidateDebounced.mockReturnValue(new Promise(() => {}))
       act(() => {
         useEditorStore.setState({
-          file: { id: 'test', name: 'test.yaml', content: 'openapi: 3.1.0', isDirty: true, language: 'yaml' },
-        });
-      });
-      rerender();
+          file: {
+            id: 'test',
+            name: 'test.yaml',
+            content: 'openapi: 3.1.0',
+            isDirty: true,
+            language: 'yaml',
+          },
+        })
+      })
+      rerender()
 
-      expect(mockValidateDebounced).toHaveBeenCalledTimes(2);
-      expect(mockValidateDebounced.mock.calls[1][0]).toBe('openapi: 3.1.0');
-    });
-  });
+      expect(mockValidateDebounced).toHaveBeenCalledTimes(2)
+      expect(mockValidateDebounced.mock.calls[1][0]).toBe('openapi: 3.1.0')
+    })
+  })
 
   describe('store updates on success', () => {
     it('sets parsedSpec and validation results', async () => {
-      const spec = { openapi: '3.0.3', info: { title: 'API', version: '1.0.0' }, paths: {} } as ValidationResult['parsedSpec'];
+      const spec = {
+        openapi: '3.0.3',
+        info: { title: 'API', version: '1.0.0' },
+        paths: {},
+      } as ValidationResult['parsedSpec']
       const result = createPipelineResult({
         validation: createValidationResult({ parsedSpec: spec }),
-      });
-      mockValidateDebounced.mockResolvedValue(result);
+      })
+      mockValidateDebounced.mockResolvedValue(result)
 
-      renderHook(() => useValidation());
-      await act(async () => {});
+      renderHook(() => useValidation())
+      await act(async () => {})
 
-      const state = useEditorStore.getState();
-      expect(state.parsedSpec).toEqual(spec);
-      expect(state.isValidating).toBe(false);
-      expect(state.syntaxValid).toBe(true);
-      expect(state.schemaValid).toBe(true);
-    });
-  });
+      const state = useEditorStore.getState()
+      expect(state.parsedSpec).toEqual(spec)
+      expect(state.isValidating).toBe(false)
+      expect(state.syntaxValid).toBe(true)
+      expect(state.schemaValid).toBe(true)
+    })
+  })
 
   describe('cleanup', () => {
     it('calls pipeline.cancel() on unmount', () => {
-      mockValidateDebounced.mockReturnValue(new Promise(() => {}));
+      mockValidateDebounced.mockReturnValue(new Promise(() => {}))
 
-      const { unmount } = renderHook(() => useValidation());
-      unmount();
+      const { unmount } = renderHook(() => useValidation())
+      unmount()
 
-      expect(mockCancel).toHaveBeenCalled();
-    });
-  });
-});
+      expect(mockCancel).toHaveBeenCalled()
+    })
+  })
+})

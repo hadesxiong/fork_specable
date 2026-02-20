@@ -1,18 +1,18 @@
-import { useEditorStore, type GraphFilter } from '../../store';
+import { useEditorStore, type GraphFilter } from '../../store'
 
 interface GraphToolbarProps {
-  includeEndpoints: boolean;
-  onToggleEndpoints: (include: boolean) => void;
-  nodeCount: number;
-  edgeCount: number;
-  isLoading: boolean;
+  includeEndpoints: boolean
+  onToggleEndpoints: (include: boolean) => void
+  nodeCount: number
+  edgeCount: number
+  isLoading: boolean
 }
 
 const FILTER_OPTIONS: { value: GraphFilter; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'referenced', label: 'Referenced' },
   { value: 'orphaned', label: 'Orphaned' },
-];
+]
 
 export function GraphToolbar({
   includeEndpoints,
@@ -21,14 +21,16 @@ export function GraphToolbar({
   edgeCount,
   isLoading,
 }: GraphToolbarProps) {
-  const graphFilter = useEditorStore((state) => state.graphFilter);
-  const setGraphFilter = useEditorStore((state) => state.setGraphFilter);
+  const graphFilter = useEditorStore((state) => state.graphFilter)
+  const setGraphFilter = useEditorStore((state) => state.setGraphFilter)
 
   return (
     <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-800 bg-zinc-900/50">
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
-          <label htmlFor="graph-filter" className="text-xs text-zinc-500">Filter:</label>
+          <label htmlFor="graph-filter" className="text-xs text-zinc-500">
+            Filter:
+          </label>
           <select
             id="graph-filter"
             value={graphFilter}
@@ -63,5 +65,5 @@ export function GraphToolbar({
         )}
       </div>
     </div>
-  );
+  )
 }

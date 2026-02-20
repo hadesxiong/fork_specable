@@ -1,1 +1,1 @@
-export { TryItOutView } from './TryItOutView';
+export { TryItOutView } from './TryItOutView'

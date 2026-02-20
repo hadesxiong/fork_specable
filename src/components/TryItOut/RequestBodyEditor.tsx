@@ -1,64 +1,74 @@
-import { useMemo } from 'react';
-import type { OpenAPIV3 } from 'openapi-types';
-import { useEditorStore } from '../../store';
-import { resolveRef } from '../Preview/schema-utils';
+import { useMemo } from 'react'
+import type { OpenAPIV3 } from 'openapi-types'
+import { useEditorStore } from '../../store'
+import { resolveRef } from '../Preview/schema-utils'
 
 interface RequestBodyEditorProps {
-  operation: OpenAPIV3.OperationObject;
-  spec: OpenAPIV3.Document;
+  operation: OpenAPIV3.OperationObject
+  spec: OpenAPIV3.Document
 }
 
 const CONTENT_TYPES = [
   { value: 'application/json', label: 'JSON' },
   { value: 'application/x-www-form-urlencoded', label: 'Form URL Encoded' },
   { value: 'text/plain', label: 'Plain Text' },
-];
+]
 
 export function RequestBodyEditor({ operation, spec }: RequestBodyEditorProps) {
-  const requestBody = useEditorStore((state) => state.tryIt.requestBody);
-  const requestContentType = useEditorStore((state) => state.tryIt.requestContentType);
-  const setTryItRequestBody = useEditorStore((state) => state.setTryItRequestBody);
-  const setTryItContentType = useEditorStore((state) => state.setTryItContentType);
+  const requestBody = useEditorStore((state) => state.tryIt.requestBody)
+  const requestContentType = useEditorStore(
+    (state) => state.tryIt.requestContentType,
+  )
+  const setTryItRequestBody = useEditorStore(
+    (state) => state.setTryItRequestBody,
+  )
+  const setTryItContentType = useEditorStore(
+    (state) => state.setTryItContentType,
+  )
 
   const requestBodySpec = useMemo(() => {
-    if (!operation.requestBody) return null;
+    if (!operation.requestBody) return null
 
     if ('$ref' in operation.requestBody) {
-      const resolved = resolveRef(operation.requestBody as OpenAPIV3.ReferenceObject, spec);
-      return resolved?.schema as OpenAPIV3.RequestBodyObject | undefined;
+      const resolved = resolveRef(
+        operation.requestBody as OpenAPIV3.ReferenceObject,
+        spec,
+      )
+      return resolved?.schema as OpenAPIV3.RequestBodyObject | undefined
     }
 
-    return operation.requestBody as OpenAPIV3.RequestBodyObject;
-  }, [operation.requestBody, spec]);
+    return operation.requestBody as OpenAPIV3.RequestBodyObject
+  }, [operation.requestBody, spec])
 
   const availableContentTypes = useMemo(() => {
-    if (!requestBodySpec?.content) return CONTENT_TYPES;
+    if (!requestBodySpec?.content) return CONTENT_TYPES
 
-    const specContentTypes = Object.keys(requestBodySpec.content);
+    const specContentTypes = Object.keys(requestBodySpec.content)
     return CONTENT_TYPES.filter((ct) =>
-      specContentTypes.some((sct) => sct.includes(ct.value.split('/')[1]))
-    );
-  }, [requestBodySpec]);
+      specContentTypes.some((sct) => sct.includes(ct.value.split('/')[1])),
+    )
+  }, [requestBodySpec])
 
   const schemaInfo = useMemo(() => {
-    if (!requestBodySpec?.content) return null;
+    if (!requestBodySpec?.content) return null
 
-    const mediaType = requestBodySpec.content[requestContentType] ??
-                      requestBodySpec.content['application/json'] ??
-                      Object.values(requestBodySpec.content)[0];
+    const mediaType =
+      requestBodySpec.content[requestContentType] ??
+      requestBodySpec.content['application/json'] ??
+      Object.values(requestBodySpec.content)[0]
 
-    if (!mediaType?.schema) return null;
+    if (!mediaType?.schema) return null
 
-    let schema = mediaType.schema;
+    let schema = mediaType.schema
     if ('$ref' in schema) {
-      const resolved = resolveRef(schema as OpenAPIV3.ReferenceObject, spec);
-      schema = resolved?.schema as OpenAPIV3.SchemaObject;
+      const resolved = resolveRef(schema as OpenAPIV3.ReferenceObject, spec)
+      schema = resolved?.schema as OpenAPIV3.SchemaObject
     }
 
-    return schema as OpenAPIV3.SchemaObject;
-  }, [requestBodySpec, requestContentType, spec]);
+    return schema as OpenAPIV3.SchemaObject
+  }, [requestBodySpec, requestContentType, spec])
 
-  const isRequired = requestBodySpec?.required ?? false;
+  const isRequired = requestBodySpec?.required ?? false
 
   return (
     <div>
@@ -89,7 +99,11 @@ export function RequestBodyEditor({ operation, spec }: RequestBodyEditorProps) {
       <textarea
         value={requestBody}
         onChange={(e) => setTryItRequestBody(e.target.value)}
-        placeholder={requestContentType === 'application/json' ? '{\n  "key": "value"\n}' : 'Enter request body...'}
+        placeholder={
+          requestContentType === 'application/json'
+            ? '{\n  "key": "value"\n}'
+            : 'Enter request body...'
+        }
         rows={8}
         className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-md text-sm text-zinc-200 font-mono placeholder-zinc-600 outline-none focus:border-purple-500 transition-colors resize-y"
         spellCheck={false}
@@ -100,5 +114,5 @@ export function RequestBodyEditor({ operation, spec }: RequestBodyEditorProps) {
         <p className="text-xs text-zinc-500 mt-1">{schemaInfo.description}</p>
       )}
     </div>
-  );
+  )
 }

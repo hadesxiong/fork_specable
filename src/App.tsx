@@ -1,15 +1,15 @@
-import { MainLayout } from './components/Layout';
-import { FullscreenPreview } from './components/Preview/FullscreenPreview';
+import { MainLayout } from './components/Layout'
+import { FullscreenPreview } from './components/Preview/FullscreenPreview'
 
 function App() {
-  const params = new URLSearchParams(window.location.search);
-  const isPreviewMode = params.get('view') === 'preview';
+  const params = new URLSearchParams(window.location.search)
+  const isPreviewMode = params.get('view') === 'preview'
 
   if (isPreviewMode) {
-    return <FullscreenPreview />;
+    return <FullscreenPreview />
   }
 
-  return <MainLayout />;
+  return <MainLayout />
 }
 
-export default App;
+export default App

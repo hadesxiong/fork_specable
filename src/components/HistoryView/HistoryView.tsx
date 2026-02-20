@@ -1,41 +1,52 @@
-import { useCallback } from 'react';
-import { Clock, RotateCcw, Trash2, Plus } from 'lucide-react';
-import { useEditorStore } from '../../store';
-import { useVersionHistory } from '../../hooks/useVersionHistory';
-import { HistoryDiff } from './HistoryDiff';
-import { formatRelativeTime, formatTime } from '../../utils/time';
+import { useCallback } from 'react'
+import { Clock, RotateCcw, Trash2, Plus } from 'lucide-react'
+import { useEditorStore } from '../../store'
+import { useVersionHistory } from '../../hooks/useVersionHistory'
+import { HistoryDiff } from './HistoryDiff'
+import { formatRelativeTime, formatTime } from '../../utils/time'
 
 export function HistoryView() {
-  const file = useEditorStore((state) => state.file);
-  const versionHistory = useEditorStore((state) => state.versionHistory);
-  const selectedSnapshotId = useEditorStore((state) => state.selectedSnapshotId);
-  const isHistoryLoading = useEditorStore((state) => state.isHistoryLoading);
-  const setSelectedSnapshot = useEditorStore((state) => state.setSelectedSnapshot);
+  const file = useEditorStore((state) => state.file)
+  const versionHistory = useEditorStore((state) => state.versionHistory)
+  const selectedSnapshotId = useEditorStore((state) => state.selectedSnapshotId)
+  const isHistoryLoading = useEditorStore((state) => state.isHistoryLoading)
+  const setSelectedSnapshot = useEditorStore(
+    (state) => state.setSelectedSnapshot,
+  )
 
-  const { createSnapshot, deleteSnapshot, restoreSnapshot } = useVersionHistory();
+  const { createSnapshot, deleteSnapshot, restoreSnapshot } =
+    useVersionHistory()
 
   const handleCreateSnapshot = useCallback(async () => {
-    await createSnapshot('Manual snapshot');
-  }, [createSnapshot]);
+    await createSnapshot('Manual snapshot')
+  }, [createSnapshot])
 
-  const handleRestoreSnapshot = useCallback(async (id: string) => {
-    await restoreSnapshot(id);
-    setSelectedSnapshot(null);
-  }, [restoreSnapshot, setSelectedSnapshot]);
+  const handleRestoreSnapshot = useCallback(
+    async (id: string) => {
+      await restoreSnapshot(id)
+      setSelectedSnapshot(null)
+    },
+    [restoreSnapshot, setSelectedSnapshot],
+  )
 
-  const handleDeleteSnapshot = useCallback(async (id: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-    await deleteSnapshot(id);
-  }, [deleteSnapshot]);
+  const handleDeleteSnapshot = useCallback(
+    async (id: string, event: React.MouseEvent) => {
+      event.stopPropagation()
+      await deleteSnapshot(id)
+    },
+    [deleteSnapshot],
+  )
 
-  const selectedSnapshot = versionHistory.find((s) => s.id === selectedSnapshotId);
+  const selectedSnapshot = versionHistory.find(
+    (s) => s.id === selectedSnapshotId,
+  )
 
   if (!file) {
     return (
       <div className="h-full flex items-center justify-center bg-zinc-950 text-zinc-500">
         No file open
       </div>
-    );
+    )
   }
 
   if (isHistoryLoading) {
@@ -65,7 +76,7 @@ export function HistoryView() {
           <span>Loading history...</span>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -85,13 +96,16 @@ export function HistoryView() {
 
       <div className="flex-1 overflow-hidden flex flex-col min-h-0">
         {/* Snapshot list */}
-        <div className={`overflow-auto ${selectedSnapshot ? 'h-48 flex-shrink-0 border-b border-zinc-800' : 'flex-1'}`}>
+        <div
+          className={`overflow-auto ${selectedSnapshot ? 'h-48 flex-shrink-0 border-b border-zinc-800' : 'flex-1'}`}
+        >
           {versionHistory.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-zinc-500 p-4">
               <Clock className="w-12 h-12 mb-4 text-zinc-600" />
               <p className="text-sm text-center">No snapshots yet</p>
               <p className="text-xs text-zinc-600 mt-1 text-center">
-                Click the + button or use the command palette to create a snapshot
+                Click the + button or use the command palette to create a
+                snapshot
               </p>
             </div>
           ) : (
@@ -99,9 +113,11 @@ export function HistoryView() {
               {versionHistory.map((snapshot) => (
                 <li
                   key={snapshot.id}
-                  onClick={() => setSelectedSnapshot(
-                    selectedSnapshotId === snapshot.id ? null : snapshot.id
-                  )}
+                  onClick={() =>
+                    setSelectedSnapshot(
+                      selectedSnapshotId === snapshot.id ? null : snapshot.id,
+                    )
+                  }
                   className={`mx-1 px-3 py-2 flex items-center justify-between cursor-pointer rounded-lg transition-colors ${
                     selectedSnapshotId === snapshot.id
                       ? 'bg-purple-500/20 text-zinc-100'
@@ -112,12 +128,18 @@ export function HistoryView() {
                     <Clock className="w-4 h-4 flex-shrink-0 text-zinc-500" />
                     <div className="min-w-0">
                       <div className="text-sm truncate">
-                        {snapshot.label || formatRelativeTime(snapshot.timestamp)}
+                        {snapshot.label ||
+                          formatRelativeTime(snapshot.timestamp)}
                       </div>
-                      <time dateTime={new Date(snapshot.timestamp).toISOString()} className="block text-xs text-zinc-500">
+                      <time
+                        dateTime={new Date(snapshot.timestamp).toISOString()}
+                        className="block text-xs text-zinc-500"
+                      >
                         {formatTime(snapshot.timestamp)}
                         {snapshot.label && (
-                          <span className="ml-2">{formatRelativeTime(snapshot.timestamp)}</span>
+                          <span className="ml-2">
+                            {formatRelativeTime(snapshot.timestamp)}
+                          </span>
                         )}
                       </time>
                     </div>
@@ -126,8 +148,8 @@ export function HistoryView() {
                     <button
                       type="button"
                       onClick={(e) => {
-                        e.stopPropagation();
-                        handleRestoreSnapshot(snapshot.id);
+                        e.stopPropagation()
+                        handleRestoreSnapshot(snapshot.id)
                       }}
                       className="p-1.5 rounded-md text-zinc-500 hover:text-purple-400 hover:bg-zinc-800 transition-colors"
                       title="Restore this version"
@@ -156,7 +178,8 @@ export function HistoryView() {
               <span className="text-xs text-zinc-400">
                 Changes from{' '}
                 <span className="text-zinc-300">
-                  {selectedSnapshot.label || formatRelativeTime(selectedSnapshot.timestamp)}
+                  {selectedSnapshot.label ||
+                    formatRelativeTime(selectedSnapshot.timestamp)}
                 </span>
               </span>
               <button
@@ -174,5 +197,5 @@ export function HistoryView() {
         )}
       </div>
     </div>
-  );
+  )
 }

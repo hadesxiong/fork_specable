@@ -1,20 +1,23 @@
-import { AlertCircle, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
-import { useEditorStore } from '../../store';
+import { AlertCircle, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react'
+import { useEditorStore } from '../../store'
 
-type ActivePanel = 'editor' | 'preview';
+type ActivePanel = 'editor' | 'preview'
 
 interface MobileStatusBarProps {
-  activePanel: ActivePanel;
-  onPanelChange: (panel: ActivePanel) => void;
+  activePanel: ActivePanel
+  onPanelChange: (panel: ActivePanel) => void
 }
 
-export function MobileStatusBar({ activePanel, onPanelChange }: MobileStatusBarProps) {
-  const isValidating = useEditorStore((state) => state.isValidating);
-  const errors = useEditorStore((state) => state.errors);
-  const warnings = useEditorStore((state) => state.warnings);
+export function MobileStatusBar({
+  activePanel,
+  onPanelChange,
+}: MobileStatusBarProps) {
+  const isValidating = useEditorStore((state) => state.isValidating)
+  const errors = useEditorStore((state) => state.errors)
+  const warnings = useEditorStore((state) => state.warnings)
 
-  const errorCount = errors.length;
-  const warningCount = warnings.length;
+  const errorCount = errors.length
+  const warningCount = warnings.length
 
   return (
     <footer className="h-12 flex items-center justify-between px-4 bg-zinc-900 border-t border-zinc-800 shrink-0">
@@ -58,5 +61,5 @@ export function MobileStatusBar({ activePanel, onPanelChange }: MobileStatusBarP
         )}
       </div>
     </footer>
-  );
+  )
 }

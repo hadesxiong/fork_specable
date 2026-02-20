@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom'
 
 // Mock window.matchMedia for components that use media queries
 Object.defineProperty(window, 'matchMedia', {
@@ -13,7 +13,7 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: () => {},
     dispatchEvent: () => false,
   }),
-});
+})
 
 // Mock ResizeObserver
 class ResizeObserverMock {
@@ -25,7 +25,7 @@ class ResizeObserverMock {
 Object.defineProperty(window, 'ResizeObserver', {
   writable: true,
   value: ResizeObserverMock,
-});
+})
 
 // Mock Element.scrollIntoView - not implemented in jsdom
-Element.prototype.scrollIntoView = () => {};
+Element.prototype.scrollIntoView = () => {}

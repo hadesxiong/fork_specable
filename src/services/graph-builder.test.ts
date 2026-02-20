@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import type { OpenAPIV3 } from 'openapi-types';
-import { buildGraphData, filterGraphData } from './graph-builder';
+import { describe, it, expect } from 'vitest'
+import type { OpenAPIV3 } from 'openapi-types'
+import { buildGraphData, filterGraphData } from './graph-builder'
 
 describe('graph-builder', () => {
   describe('buildGraphData', () => {
@@ -15,14 +15,14 @@ describe('graph-builder', () => {
             Post: { type: 'object', properties: { title: { type: 'string' } } },
           },
         },
-      };
+      }
 
-      const result = buildGraphData(spec);
+      const result = buildGraphData(spec)
 
-      expect(result.nodes).toHaveLength(2);
-      expect(result.nodes.find((n) => n.id === 'User')).toBeDefined();
-      expect(result.nodes.find((n) => n.id === 'Post')).toBeDefined();
-    });
+      expect(result.nodes).toHaveLength(2)
+      expect(result.nodes.find((n) => n.id === 'User')).toBeDefined()
+      expect(result.nodes.find((n) => n.id === 'Post')).toBeDefined()
+    })
 
     it('creates edges for $ref references', () => {
       const spec: OpenAPIV3.Document = {
@@ -43,18 +43,18 @@ describe('graph-builder', () => {
             Post: { type: 'object', properties: { title: { type: 'string' } } },
           },
         },
-      };
+      }
 
-      const result = buildGraphData(spec);
+      const result = buildGraphData(spec)
 
-      expect(result.edges).toHaveLength(1);
+      expect(result.edges).toHaveLength(1)
       expect(result.edges[0]).toEqual({
         source: 'User',
         target: 'Post',
         type: 'items',
         sourceProperty: 'posts',
-      });
-    });
+      })
+    })
 
     it('creates edges for allOf composition', () => {
       const spec: OpenAPIV3.Document = {
@@ -72,17 +72,17 @@ describe('graph-builder', () => {
             },
           },
         },
-      };
+      }
 
-      const result = buildGraphData(spec);
+      const result = buildGraphData(spec)
 
-      expect(result.edges).toHaveLength(1);
+      expect(result.edges).toHaveLength(1)
       expect(result.edges[0]).toEqual({
         source: 'Extended',
         target: 'Base',
         type: 'allOf',
-      });
-    });
+      })
+    })
 
     it('creates edges for oneOf/anyOf composition', () => {
       const spec: OpenAPIV3.Document = {
@@ -101,22 +101,22 @@ describe('graph-builder', () => {
             },
           },
         },
-      };
+      }
 
-      const result = buildGraphData(spec);
+      const result = buildGraphData(spec)
 
-      expect(result.edges).toHaveLength(2);
+      expect(result.edges).toHaveLength(2)
       expect(result.edges).toContainEqual({
         source: 'Pet',
         target: 'Cat',
         type: 'oneOf',
-      });
+      })
       expect(result.edges).toContainEqual({
         source: 'Pet',
         target: 'Dog',
         type: 'oneOf',
-      });
-    });
+      })
+    })
 
     it('marks referenced schemas correctly', () => {
       const spec: OpenAPIV3.Document = {
@@ -135,18 +135,18 @@ describe('graph-builder', () => {
             Orphan: { type: 'object' },
           },
         },
-      };
+      }
 
-      const result = buildGraphData(spec);
+      const result = buildGraphData(spec)
 
-      const userNode = result.nodes.find((n) => n.id === 'User');
-      const postNode = result.nodes.find((n) => n.id === 'Post');
-      const orphanNode = result.nodes.find((n) => n.id === 'Orphan');
+      const userNode = result.nodes.find((n) => n.id === 'User')
+      const postNode = result.nodes.find((n) => n.id === 'Post')
+      const orphanNode = result.nodes.find((n) => n.id === 'Orphan')
 
-      expect(userNode?.referenced).toBe(false);
-      expect(postNode?.referenced).toBe(true);
-      expect(orphanNode?.referenced).toBe(false);
-    });
+      expect(userNode?.referenced).toBe(false)
+      expect(postNode?.referenced).toBe(true)
+      expect(orphanNode?.referenced).toBe(false)
+    })
 
     it('includes endpoints when requested', () => {
       const spec: OpenAPIV3.Document = {
@@ -173,19 +173,19 @@ describe('graph-builder', () => {
             User: { type: 'object' },
           },
         },
-      };
+      }
 
-      const result = buildGraphData(spec, true);
+      const result = buildGraphData(spec, true)
 
-      expect(result.nodes).toHaveLength(2);
-      const endpointNode = result.nodes.find((n) => n.type === 'endpoint');
-      expect(endpointNode).toBeDefined();
-      expect(endpointNode?.label).toBe('GET /users');
+      expect(result.nodes).toHaveLength(2)
+      const endpointNode = result.nodes.find((n) => n.type === 'endpoint')
+      expect(endpointNode).toBeDefined()
+      expect(endpointNode?.label).toBe('GET /users')
 
-      expect(result.edges).toHaveLength(1);
-      expect(result.edges[0].source).toBe('/users.GET');
-      expect(result.edges[0].target).toBe('User');
-    });
+      expect(result.edges).toHaveLength(1)
+      expect(result.edges[0].source).toBe('/users.GET')
+      expect(result.edges[0].target).toBe('User')
+    })
 
     it('sets correct jsonPath for nodes', () => {
       const spec: OpenAPIV3.Document = {
@@ -197,12 +197,12 @@ describe('graph-builder', () => {
             User: { type: 'object' },
           },
         },
-      };
+      }
 
-      const result = buildGraphData(spec);
+      const result = buildGraphData(spec)
 
-      expect(result.nodes[0].jsonPath).toBe('components.schemas.User');
-    });
+      expect(result.nodes[0].jsonPath).toBe('components.schemas.User')
+    })
 
     it('extracts schema properties with types and required flags', () => {
       const spec: OpenAPIV3.Document = {
@@ -229,68 +229,84 @@ describe('graph-builder', () => {
             Role: { type: 'string', enum: ['admin', 'user'] },
           },
         },
-      };
+      }
 
-      const result = buildGraphData(spec);
-      const userNode = result.nodes.find((n) => n.id === 'User');
+      const result = buildGraphData(spec)
+      const userNode = result.nodes.find((n) => n.id === 'User')
 
-      expect(userNode?.properties).toBeDefined();
-      expect(userNode?.properties).toHaveLength(5);
+      expect(userNode?.properties).toBeDefined()
+      expect(userNode?.properties).toHaveLength(5)
 
-      const idProp = userNode?.properties?.find((p) => p.name === 'id');
-      expect(idProp?.type).toBe('integer');
-      expect(idProp?.required).toBe(true);
+      const idProp = userNode?.properties?.find((p) => p.name === 'id')
+      expect(idProp?.type).toBe('integer')
+      expect(idProp?.required).toBe(true)
 
-      const nameProp = userNode?.properties?.find((p) => p.name === 'name');
-      expect(nameProp?.required).toBe(false);
+      const nameProp = userNode?.properties?.find((p) => p.name === 'name')
+      expect(nameProp?.required).toBe(false)
 
-      const postsProp = userNode?.properties?.find((p) => p.name === 'posts');
-      expect(postsProp?.type).toBe('Post[]');
-      expect(postsProp?.refTarget).toBe('Post');
+      const postsProp = userNode?.properties?.find((p) => p.name === 'posts')
+      expect(postsProp?.type).toBe('Post[]')
+      expect(postsProp?.refTarget).toBe('Post')
 
-      const roleProp = userNode?.properties?.find((p) => p.name === 'role');
-      expect(roleProp?.type).toBe('Role');
-      expect(roleProp?.refTarget).toBe('Role');
-    });
-  });
+      const roleProp = userNode?.properties?.find((p) => p.name === 'role')
+      expect(roleProp?.type).toBe('Role')
+      expect(roleProp?.refTarget).toBe('Role')
+    })
+  })
 
   describe('filterGraphData', () => {
     const testData = {
       nodes: [
-        { id: 'A', type: 'schema' as const, label: 'A', jsonPath: 'a', referenced: true },
-        { id: 'B', type: 'schema' as const, label: 'B', jsonPath: 'b', referenced: false },
-        { id: 'C', type: 'endpoint' as const, label: 'C', jsonPath: 'c', referenced: true },
+        {
+          id: 'A',
+          type: 'schema' as const,
+          label: 'A',
+          jsonPath: 'a',
+          referenced: true,
+        },
+        {
+          id: 'B',
+          type: 'schema' as const,
+          label: 'B',
+          jsonPath: 'b',
+          referenced: false,
+        },
+        {
+          id: 'C',
+          type: 'endpoint' as const,
+          label: 'C',
+          jsonPath: 'c',
+          referenced: true,
+        },
       ],
-      edges: [
-        { source: 'C', target: 'A', type: 'ref' as const },
-      ],
-    };
+      edges: [{ source: 'C', target: 'A', type: 'ref' as const }],
+    }
 
     it('returns all data when filter is "all"', () => {
-      const result = filterGraphData(testData, 'all');
-      expect(result.nodes).toHaveLength(3);
-      expect(result.edges).toHaveLength(1);
-    });
+      const result = filterGraphData(testData, 'all')
+      expect(result.nodes).toHaveLength(3)
+      expect(result.edges).toHaveLength(1)
+    })
 
     it('filters to referenced schemas only', () => {
-      const result = filterGraphData(testData, 'referenced');
-      expect(result.nodes).toHaveLength(2);
-      expect(result.nodes.map((n) => n.id)).toContain('A');
-      expect(result.nodes.map((n) => n.id)).toContain('C');
-      expect(result.nodes.map((n) => n.id)).not.toContain('B');
-    });
+      const result = filterGraphData(testData, 'referenced')
+      expect(result.nodes).toHaveLength(2)
+      expect(result.nodes.map((n) => n.id)).toContain('A')
+      expect(result.nodes.map((n) => n.id)).toContain('C')
+      expect(result.nodes.map((n) => n.id)).not.toContain('B')
+    })
 
     it('filters to orphaned schemas only', () => {
-      const result = filterGraphData(testData, 'orphaned');
-      expect(result.nodes).toHaveLength(2);
-      expect(result.nodes.map((n) => n.id)).toContain('B');
-      expect(result.nodes.map((n) => n.id)).toContain('C');
-      expect(result.nodes.map((n) => n.id)).not.toContain('A');
-    });
+      const result = filterGraphData(testData, 'orphaned')
+      expect(result.nodes).toHaveLength(2)
+      expect(result.nodes.map((n) => n.id)).toContain('B')
+      expect(result.nodes.map((n) => n.id)).toContain('C')
+      expect(result.nodes.map((n) => n.id)).not.toContain('A')
+    })
 
     it('removes edges when nodes are filtered out', () => {
-      const result = filterGraphData(testData, 'orphaned');
-      expect(result.edges).toHaveLength(0);
-    });
-  });
-});
+      const result = filterGraphData(testData, 'orphaned')
+      expect(result.edges).toHaveLength(0)
+    })
+  })
+})

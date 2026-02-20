@@ -1,58 +1,62 @@
-import type { AuthConfig, TryItResponse } from '../../store';
-import { isAbortError } from '../../utils/errors';
+import type { AuthConfig, TryItResponse } from '../../store'
+import { isAbortError } from '../../utils/errors'
 
 interface ExecuteRequestOptions {
-  method: string;
-  baseUrl: string;
-  path: string;
-  parameterValues: Record<string, string>;
-  body?: string;
-  contentType?: string;
-  auth: AuthConfig;
+  method: string
+  baseUrl: string
+  path: string
+  parameterValues: Record<string, string>
+  body?: string
+  contentType?: string
+  auth: AuthConfig
 }
 
-export async function executeRequest(options: ExecuteRequestOptions): Promise<TryItResponse> {
-  const { method, baseUrl, path, parameterValues, body, contentType, auth } = options;
+export async function executeRequest(
+  options: ExecuteRequestOptions,
+): Promise<TryItResponse> {
+  const { method, baseUrl, path, parameterValues, body, contentType, auth } =
+    options
 
-  const startTime = performance.now();
+  const startTime = performance.now()
 
   try {
     // Build URL with path parameters substituted
-    const url = buildUrl(baseUrl, path, parameterValues, auth);
+    const url = buildUrl(baseUrl, path, parameterValues, auth)
 
     // Build headers
-    const headers = buildHeaders(contentType, parameterValues, auth);
+    const headers = buildHeaders(contentType, parameterValues, auth)
 
     // Build request options
     const requestOptions: RequestInit = {
       method: method.toUpperCase(),
       headers,
       // Only include body for methods that support it
-      ...(body && ['POST', 'PUT', 'PATCH'].includes(method.toUpperCase()) && { body }),
-    };
+      ...(body &&
+        ['POST', 'PUT', 'PATCH'].includes(method.toUpperCase()) && { body }),
+    }
 
     // Execute fetch with timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000)
 
     try {
       const response = await fetch(url, {
         ...requestOptions,
         signal: controller.signal,
-      });
+      })
 
-      clearTimeout(timeoutId);
+      clearTimeout(timeoutId)
 
-      const responseTime = Math.round(performance.now() - startTime);
+      const responseTime = Math.round(performance.now() - startTime)
 
       // Read response body
-      const responseBody = await response.text();
+      const responseBody = await response.text()
 
       // Collect headers
-      const responseHeaders: Record<string, string> = {};
+      const responseHeaders: Record<string, string> = {}
       response.headers.forEach((value, key) => {
-        responseHeaders[key] = value;
-      });
+        responseHeaders[key] = value
+      })
 
       return {
         status: response.status,
@@ -60,19 +64,19 @@ export async function executeRequest(options: ExecuteRequestOptions): Promise<Tr
         headers: responseHeaders,
         body: responseBody,
         responseTimeMs: responseTime,
-      };
+      }
     } catch (error) {
-      clearTimeout(timeoutId);
-      throw error;
+      clearTimeout(timeoutId)
+      throw error
     }
   } catch (error) {
-    const responseTime = Math.round(performance.now() - startTime);
+    const responseTime = Math.round(performance.now() - startTime)
 
     // Detect CORS errors
-    const isCorsError = isCorsRelatedError(error);
+    const isCorsError = isCorsRelatedError(error)
 
     // Detect timeout
-    const isTimeout = isAbortError(error);
+    const isTimeout = isAbortError(error)
 
     return {
       status: 0,
@@ -86,7 +90,7 @@ export async function executeRequest(options: ExecuteRequestOptions): Promise<Tr
           ? error.message
           : 'Unknown error',
       isCorsError,
-    };
+    }
   }
 }
 
@@ -94,61 +98,68 @@ export function buildUrl(
   baseUrl: string,
   path: string,
   parameterValues: Record<string, string>,
-  auth: AuthConfig
+  auth: AuthConfig,
 ): string {
   // Substitute path parameters
-  let resolvedPath = path;
+  let resolvedPath = path
   for (const [key, value] of Object.entries(parameterValues)) {
     if (key.startsWith('path.')) {
-      const paramName = key.slice(5);
+      const paramName = key.slice(5)
       resolvedPath = resolvedPath.replace(
         new RegExp(`\\{${paramName}\\}`, 'g'),
-        encodeURIComponent(value)
-      );
+        encodeURIComponent(value),
+      )
     }
   }
 
   // Ensure baseUrl doesn't have trailing slash and path has leading slash
-  const normalizedBase = baseUrl.replace(/\/+$/, '');
-  const normalizedPath = resolvedPath.startsWith('/') ? resolvedPath : `/${resolvedPath}`;
+  const normalizedBase = baseUrl.replace(/\/+$/, '')
+  const normalizedPath = resolvedPath.startsWith('/')
+    ? resolvedPath
+    : `/${resolvedPath}`
 
   // Build URL — avoid new URL(path, base) which drops base path prefixes
-  const url = new URL(normalizedBase);
-  url.pathname = url.pathname.replace(/\/+$/, '') + normalizedPath;
+  const url = new URL(normalizedBase)
+  url.pathname = url.pathname.replace(/\/+$/, '') + normalizedPath
 
   // Add query parameters
   for (const [key, value] of Object.entries(parameterValues)) {
     if (key.startsWith('query.') && value) {
-      const paramName = key.slice(6);
-      url.searchParams.append(paramName, value);
+      const paramName = key.slice(6)
+      url.searchParams.append(paramName, value)
     }
   }
 
   // Add API key to query if configured
-  if (auth.type === 'apiKey' && auth.apiKeyLocation === 'query' && auth.apiKeyName && auth.apiKeyValue) {
-    url.searchParams.append(auth.apiKeyName, auth.apiKeyValue);
+  if (
+    auth.type === 'apiKey' &&
+    auth.apiKeyLocation === 'query' &&
+    auth.apiKeyName &&
+    auth.apiKeyValue
+  ) {
+    url.searchParams.append(auth.apiKeyName, auth.apiKeyValue)
   }
 
-  return url.toString();
+  return url.toString()
 }
 
 export function buildHeaders(
   contentType: string | undefined,
   parameterValues: Record<string, string>,
-  auth: AuthConfig
+  auth: AuthConfig,
 ): Record<string, string> {
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = {}
 
   // Content-Type
   if (contentType) {
-    headers['Content-Type'] = contentType;
+    headers['Content-Type'] = contentType
   }
 
   // Header parameters
   for (const [key, value] of Object.entries(parameterValues)) {
     if (key.startsWith('header.') && value) {
-      const headerName = key.slice(7);
-      headers[headerName] = value;
+      const headerName = key.slice(7)
+      headers[headerName] = value
     }
   }
 
@@ -156,31 +167,35 @@ export function buildHeaders(
   switch (auth.type) {
     case 'bearer':
       if (auth.bearerToken) {
-        headers['Authorization'] = `Bearer ${auth.bearerToken}`;
+        headers['Authorization'] = `Bearer ${auth.bearerToken}`
       }
-      break;
+      break
 
     case 'apiKey':
-      if (auth.apiKeyLocation === 'header' && auth.apiKeyName && auth.apiKeyValue) {
-        headers[auth.apiKeyName] = auth.apiKeyValue;
+      if (
+        auth.apiKeyLocation === 'header' &&
+        auth.apiKeyName &&
+        auth.apiKeyValue
+      ) {
+        headers[auth.apiKeyName] = auth.apiKeyValue
       }
-      break;
+      break
 
     case 'basic':
       if (auth.username && auth.password) {
-        const encoded = btoa(`${auth.username}:${auth.password}`);
-        headers['Authorization'] = `Basic ${encoded}`;
+        const encoded = btoa(`${auth.username}:${auth.password}`)
+        headers['Authorization'] = `Basic ${encoded}`
       }
-      break;
+      break
   }
 
-  return headers;
+  return headers
 }
 
 function isCorsRelatedError(error: unknown): boolean {
-  if (!(error instanceof Error)) return false;
+  if (!(error instanceof Error)) return false
 
-  const message = error.message.toLowerCase();
+  const message = error.message.toLowerCase()
 
   // Common CORS error indicators
   return (
@@ -190,5 +205,5 @@ function isCorsRelatedError(error: unknown): boolean {
     message.includes('cors') ||
     message.includes('cross-origin') ||
     message.includes('access-control-allow-origin')
-  );
+  )
 }

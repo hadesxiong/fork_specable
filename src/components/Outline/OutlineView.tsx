@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useEffect, useRef } from "react";
+import { useMemo, useState, useCallback, useEffect, useRef } from 'react'
 import {
   ChevronRight,
   ChevronDown,
@@ -6,26 +6,26 @@ import {
   Box,
   Shield,
   Server,
-} from "lucide-react";
-import { useEditorStore } from "../../store";
-import type { OpenAPIV3 } from "openapi-types";
-import { METHOD_TEXT_COLOURS } from "../ui/style-constants";
+} from 'lucide-react'
+import { useEditorStore } from '../../store'
+import type { OpenAPIV3 } from 'openapi-types'
+import { METHOD_TEXT_COLOURS } from '../ui/style-constants'
 
 interface OutlineNode {
-  id: string;
-  label: string;
+  id: string
+  label: string
   kind:
-    | "paths"
-    | "path"
-    | "operation"
-    | "schemas"
-    | "schema"
-    | "security"
-    | "servers";
-  children?: OutlineNode[];
-  line?: number;
-  method?: string;
-  deprecated?: boolean;
+    | 'paths'
+    | 'path'
+    | 'operation'
+    | 'schemas'
+    | 'schema'
+    | 'security'
+    | 'servers'
+  children?: OutlineNode[]
+  line?: number
+  method?: string
+  deprecated?: boolean
 }
 
 const KIND_ICONS: Record<
@@ -36,120 +36,129 @@ const KIND_ICONS: Record<
   schemas: Box,
   security: Shield,
   servers: Server,
-};
+}
 
 /**
  * Maps a source map path (e.g. "paths./books.get") to the corresponding
  * outline node ID and the IDs of its parent nodes that should be expanded.
  */
-function mapPathToOutlineNode(currentPath: string): { activeId: string | null; expandIds: string[] } {
-  const parts = currentPath.split(".");
+function mapPathToOutlineNode(currentPath: string): {
+  activeId: string | null
+  expandIds: string[]
+} {
+  const parts = currentPath.split('.')
 
   // paths.<pathKey>.<method>
-  if (parts[0] === "paths" && parts.length >= 2) {
-    const pathKey = parts[1];
-    const method = parts[2];
-    if (method && ["get", "post", "put", "patch", "delete", "options", "head"].includes(method)) {
+  if (parts[0] === 'paths' && parts.length >= 2) {
+    const pathKey = parts[1]
+    const method = parts[2]
+    if (
+      method &&
+      ['get', 'post', 'put', 'patch', 'delete', 'options', 'head'].includes(
+        method,
+      )
+    ) {
       return {
         activeId: `${pathKey}-${method}`,
-        expandIds: ["paths", pathKey],
-      };
+        expandIds: ['paths', pathKey],
+      }
     }
-    return { activeId: pathKey, expandIds: ["paths"] };
+    return { activeId: pathKey, expandIds: ['paths'] }
   }
 
   // components.schemas.<name>
-  if (parts[0] === "components" && parts[1] === "schemas" && parts[2]) {
-    return { activeId: `schema-${parts[2]}`, expandIds: ["schemas"] };
+  if (parts[0] === 'components' && parts[1] === 'schemas' && parts[2]) {
+    return { activeId: `schema-${parts[2]}`, expandIds: ['schemas'] }
   }
 
   // components.securitySchemes.<name>
-  if (parts[0] === "components" && parts[1] === "securitySchemes" && parts[2]) {
-    return { activeId: `security-${parts[2]}`, expandIds: ["security"] };
+  if (parts[0] === 'components' && parts[1] === 'securitySchemes' && parts[2]) {
+    return { activeId: `security-${parts[2]}`, expandIds: ['security'] }
   }
 
   // servers.<index>
-  if (parts[0] === "servers" && parts[1]) {
-    return { activeId: `server-${parts[1]}`, expandIds: ["servers"] };
+  if (parts[0] === 'servers' && parts[1]) {
+    return { activeId: `server-${parts[1]}`, expandIds: ['servers'] }
   }
 
-  return { activeId: null, expandIds: [] };
+  return { activeId: null, expandIds: [] }
 }
 
 export function OutlineView() {
-  const parsedSpec = useEditorStore((state) => state.parsedSpec);
-  const sourceMap = useEditorStore((state) => state.sourceMap);
-  const goToLine = useEditorStore((state) => state.goToLine);
-  const currentPath = useEditorStore((state) => state.currentPath);
+  const parsedSpec = useEditorStore((state) => state.parsedSpec)
+  const sourceMap = useEditorStore((state) => state.sourceMap)
+  const goToLine = useEditorStore((state) => state.goToLine)
+  const currentPath = useEditorStore((state) => state.currentPath)
 
   const [expanded, setExpanded] = useState<Set<string>>(
-    new Set(["paths", "schemas"]),
-  );
-  const [filter, setFilter] = useState("");
-  const activeNodeRef = useRef<HTMLButtonElement>(null);
+    new Set(['paths', 'schemas']),
+  )
+  const [filter, setFilter] = useState('')
+  const activeNodeRef = useRef<HTMLButtonElement>(null)
 
   const outline = useMemo(() => {
-    if (!parsedSpec) return [];
-    return buildOutlineTree(parsedSpec, sourceMap);
-  }, [parsedSpec, sourceMap]);
+    if (!parsedSpec) return []
+    return buildOutlineTree(parsedSpec, sourceMap)
+  }, [parsedSpec, sourceMap])
 
   const filteredOutline = useMemo(() => {
-    if (!filter) return outline;
-    return filterOutline(outline, filter.toLowerCase());
-  }, [outline, filter]);
+    if (!filter) return outline
+    return filterOutline(outline, filter.toLowerCase())
+  }, [outline, filter])
 
   const { activeNodeId, autoExpandIds } = useMemo(() => {
-    if (!currentPath) return { activeNodeId: null, autoExpandIds: [] as string[] };
-    const { activeId, expandIds } = mapPathToOutlineNode(currentPath);
-    return { activeNodeId: activeId, autoExpandIds: expandIds };
-  }, [currentPath]);
+    if (!currentPath)
+      return { activeNodeId: null, autoExpandIds: [] as string[] }
+    const { activeId, expandIds } = mapPathToOutlineNode(currentPath)
+    return { activeNodeId: activeId, autoExpandIds: expandIds }
+  }, [currentPath])
 
   // Merge user-toggled expansions with auto-expansions from cursor tracking
   const effectiveExpanded = useMemo(() => {
-    if (autoExpandIds.length === 0) return expanded;
-    const hasAll = autoExpandIds.every((id) => expanded.has(id));
-    if (hasAll) return expanded;
-    const merged = new Set(expanded);
-    for (const id of autoExpandIds) merged.add(id);
-    return merged;
-  }, [expanded, autoExpandIds]);
+    if (autoExpandIds.length === 0) return expanded
+    const hasAll = autoExpandIds.every((id) => expanded.has(id))
+    if (hasAll) return expanded
+    const merged = new Set(expanded)
+    for (const id of autoExpandIds) merged.add(id)
+    return merged
+  }, [expanded, autoExpandIds])
 
   // Scroll the active node into view
   useEffect(() => {
     if (activeNodeRef.current) {
-      activeNodeRef.current.scrollIntoView({ block: "nearest" });
+      activeNodeRef.current.scrollIntoView({ block: 'nearest' })
     }
-  }, [activeNodeId]);
+  }, [activeNodeId])
 
   const toggleExpanded = useCallback((id: string) => {
     setExpanded((prev) => {
-      const next = new Set(prev);
+      const next = new Set(prev)
       if (next.has(id)) {
-        next.delete(id);
+        next.delete(id)
       } else {
-        next.add(id);
+        next.add(id)
       }
-      return next;
-    });
-  }, []);
+      return next
+    })
+  }, [])
 
   const handleClick = useCallback(
     (node: OutlineNode) => {
       if (node.children && node.children.length > 0) {
-        toggleExpanded(node.id);
+        toggleExpanded(node.id)
       }
       if (node.line) {
-        goToLine(node.line);
+        goToLine(node.line)
       }
     },
     [toggleExpanded, goToLine],
-  );
+  )
 
   const renderNode = (node: OutlineNode, depth: number = 0) => {
-    const hasChildren = node.children && node.children.length > 0;
-    const isExpanded = effectiveExpanded.has(node.id);
-    const isActive = node.id === activeNodeId;
-    const Icon = KIND_ICONS[node.kind] ?? Globe;
+    const hasChildren = node.children && node.children.length > 0
+    const isExpanded = effectiveExpanded.has(node.id)
+    const isActive = node.id === activeNodeId
+    const Icon = KIND_ICONS[node.kind] ?? Globe
 
     return (
       <li
@@ -164,8 +173,8 @@ export function OutlineView() {
           className={`
             w-full text-left flex items-center gap-1 px-2 py-1 cursor-pointer rounded
             transition-colors
-            ${isActive ? "bg-purple-500/10 border-l-2 border-purple-500" : "hover:bg-zinc-800"}
-            ${node.deprecated ? "line-through opacity-60" : ""}
+            ${isActive ? 'bg-purple-500/10 border-l-2 border-purple-500' : 'hover:bg-zinc-800'}
+            ${node.deprecated ? 'line-through opacity-60' : ''}
           `}
           style={{ paddingLeft: `${depth * 12 + (isActive ? 6 : 8)}px` }}
           onClick={() => handleClick(node)}
@@ -214,15 +223,15 @@ export function OutlineView() {
           </ul>
         )}
       </li>
-    );
-  };
+    )
+  }
 
   if (!parsedSpec) {
     return (
       <div className="h-full flex items-center justify-center bg-zinc-950 text-zinc-500 text-sm">
         No valid specification
       </div>
-    );
+    )
   }
 
   return (
@@ -243,7 +252,7 @@ export function OutlineView() {
       >
         {filteredOutline.length === 0 ? (
           <div className="px-4 py-4 text-sm text-zinc-600" role="status">
-            {filter ? "No matches found" : "Empty specification"}
+            {filter ? 'No matches found' : 'Empty specification'}
           </div>
         ) : (
           <ul role="tree" aria-label="Specification structure">
@@ -252,66 +261,66 @@ export function OutlineView() {
         )}
       </nav>
     </div>
-  );
+  )
 }
 
 function buildOutlineTree(
   spec: OpenAPIV3.Document,
   sourceMap: Record<string, { line: number; column: number }>,
 ): OutlineNode[] {
-  const nodes: OutlineNode[] = [];
+  const nodes: OutlineNode[] = []
 
   // Paths section
   if (spec.paths && Object.keys(spec.paths).length > 0) {
-    const pathNodes: OutlineNode[] = [];
+    const pathNodes: OutlineNode[] = []
 
     for (const [pathKey, pathItem] of Object.entries(spec.paths)) {
-      if (!pathItem) continue;
+      if (!pathItem) continue
 
-      const operations: OutlineNode[] = [];
+      const operations: OutlineNode[] = []
       const methods = [
-        "get",
-        "post",
-        "put",
-        "patch",
-        "delete",
-        "options",
-        "head",
-      ] as const;
+        'get',
+        'post',
+        'put',
+        'patch',
+        'delete',
+        'options',
+        'head',
+      ] as const
 
       for (const method of methods) {
         const operation = (pathItem as Record<string, unknown>)[method] as
           | OpenAPIV3.OperationObject
-          | undefined;
+          | undefined
         if (operation) {
-          const opPath = `paths.${pathKey}.${method}`;
+          const opPath = `paths.${pathKey}.${method}`
           operations.push({
             id: `${pathKey}-${method}`,
             label: operation.summary || operation.operationId || pathKey,
-            kind: "operation",
+            kind: 'operation',
             method,
             line: sourceMap[opPath]?.line,
             deprecated: operation.deprecated,
-          });
+          })
         }
       }
 
-      const pathPath = `paths.${pathKey}`;
+      const pathPath = `paths.${pathKey}`
       pathNodes.push({
         id: pathKey,
         label: pathKey,
-        kind: "path",
+        kind: 'path',
         children: operations.length > 0 ? operations : undefined,
         line: sourceMap[pathPath]?.line,
-      });
+      })
     }
 
     nodes.push({
-      id: "paths",
+      id: 'paths',
       label: `Paths (${pathNodes.length})`,
-      kind: "paths",
+      kind: 'paths',
       children: pathNodes,
-    });
+    })
   }
 
   // Schemas section
@@ -322,24 +331,24 @@ function buildOutlineTree(
     const schemaNodes: OutlineNode[] = Object.entries(
       spec.components.schemas,
     ).map(([name, schema]) => {
-      const schemaPath = `components.schemas.${name}`;
+      const schemaPath = `components.schemas.${name}`
       return {
         id: `schema-${name}`,
         label: name,
-        kind: "schema" as const,
+        kind: 'schema' as const,
         line: sourceMap[schemaPath]?.line,
         deprecated: (schema as Record<string, unknown>).deprecated as
           | boolean
           | undefined,
-      };
-    });
+      }
+    })
 
     nodes.push({
-      id: "schemas",
+      id: 'schemas',
       label: `Schemas (${schemaNodes.length})`,
-      kind: "schemas",
+      kind: 'schemas',
       children: schemaNodes,
-    });
+    })
   }
 
   // Security schemes
@@ -350,59 +359,59 @@ function buildOutlineTree(
     const securityNodes: OutlineNode[] = Object.keys(
       spec.components.securitySchemes,
     ).map((name) => {
-      const secPath = `components.securitySchemes.${name}`;
+      const secPath = `components.securitySchemes.${name}`
       return {
         id: `security-${name}`,
         label: name,
-        kind: "security" as const,
+        kind: 'security' as const,
         line: sourceMap[secPath]?.line,
-      };
-    });
+      }
+    })
 
     nodes.push({
-      id: "security",
+      id: 'security',
       label: `Security (${securityNodes.length})`,
-      kind: "security",
+      kind: 'security',
       children: securityNodes,
-    });
+    })
   }
 
   // Servers
   if (spec.servers && spec.servers.length > 0) {
     const serverNodes: OutlineNode[] = spec.servers.map((server, index) => {
-      const serverPath = `servers.${index}`;
+      const serverPath = `servers.${index}`
       return {
         id: `server-${index}`,
         label: server.url,
-        kind: "servers" as const,
+        kind: 'servers' as const,
         line: sourceMap[serverPath]?.line,
-      };
-    });
+      }
+    })
 
     nodes.push({
-      id: "servers",
+      id: 'servers',
       label: `Servers (${serverNodes.length})`,
-      kind: "servers",
+      kind: 'servers',
       children: serverNodes,
-    });
+    })
   }
 
-  return nodes;
+  return nodes
 }
 
 function filterOutline(nodes: OutlineNode[], query: string): OutlineNode[] {
   return nodes
     .map((node) => {
       if (node.children) {
-        const filteredChildren = filterOutline(node.children, query);
+        const filteredChildren = filterOutline(node.children, query)
         if (filteredChildren.length > 0) {
-          return { ...node, children: filteredChildren };
+          return { ...node, children: filteredChildren }
         }
       }
       if (node.label.toLowerCase().includes(query)) {
-        return node;
+        return node
       }
-      return null;
+      return null
     })
-    .filter((node): node is OutlineNode => node !== null);
+    .filter((node): node is OutlineNode => node !== null)
 }

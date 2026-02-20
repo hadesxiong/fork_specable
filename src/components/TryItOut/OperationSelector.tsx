@@ -1,8 +1,8 @@
-import { useMemo, useState, useRef, useEffect } from 'react';
-import { ChevronDown, Search } from 'lucide-react';
-import Fuse from 'fuse.js';
-import type { OpenAPIV3 } from 'openapi-types';
-import { useEditorStore } from '../../store';
+import { useMemo, useState, useRef, useEffect } from 'react'
+import { ChevronDown, Search } from 'lucide-react'
+import Fuse from 'fuse.js'
+import type { OpenAPIV3 } from 'openapi-types'
+import { useEditorStore } from '../../store'
 
 const METHOD_STYLES: Record<string, { bg: string; text: string }> = {
   get: { bg: 'bg-emerald-500/15', text: 'text-emerald-400' },
@@ -12,43 +12,55 @@ const METHOD_STYLES: Record<string, { bg: string; text: string }> = {
   delete: { bg: 'bg-red-500/15', text: 'text-red-400' },
   options: { bg: 'bg-zinc-500/15', text: 'text-zinc-400' },
   head: { bg: 'bg-zinc-500/15', text: 'text-zinc-400' },
-};
+}
 
-const HTTP_METHODS = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head'] as const;
+const HTTP_METHODS = [
+  'get',
+  'post',
+  'put',
+  'patch',
+  'delete',
+  'options',
+  'head',
+] as const
 
 interface OperationItem {
-  id: string;
-  method: string;
-  path: string;
-  summary?: string;
-  operationId?: string;
-  tags?: string[];
+  id: string
+  method: string
+  path: string
+  summary?: string
+  operationId?: string
+  tags?: string[]
 }
 
 interface OperationSelectorProps {
-  spec: OpenAPIV3.Document;
+  spec: OpenAPIV3.Document
 }
 
 export function OperationSelector({ spec }: OperationSelectorProps) {
-  const selectedOperationId = useEditorStore((state) => state.tryIt.selectedOperationId);
-  const setTryItOperation = useEditorStore((state) => state.setTryItOperation);
+  const selectedOperationId = useEditorStore(
+    (state) => state.tryIt.selectedOperationId,
+  )
+  const setTryItOperation = useEditorStore((state) => state.setTryItOperation)
 
-  const [isOpen, setIsOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [isOpen, setIsOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const operations = useMemo(() => {
-    const ops: OperationItem[] = [];
+    const ops: OperationItem[] = []
 
-    if (!spec.paths) return ops;
+    if (!spec.paths) return ops
 
     for (const [path, pathItem] of Object.entries(spec.paths)) {
-      if (!pathItem) continue;
+      if (!pathItem) continue
 
       for (const method of HTTP_METHODS) {
-        const operation = pathItem[method] as OpenAPIV3.OperationObject | undefined;
-        if (!operation) continue;
+        const operation = pathItem[method] as
+          | OpenAPIV3.OperationObject
+          | undefined
+        if (!operation) continue
 
         ops.push({
           id: `paths.${path}.${method}`,
@@ -57,51 +69,54 @@ export function OperationSelector({ spec }: OperationSelectorProps) {
           summary: operation.summary,
           operationId: operation.operationId,
           tags: operation.tags,
-        });
+        })
       }
     }
 
-    return ops;
-  }, [spec.paths]);
+    return ops
+  }, [spec.paths])
 
   const fuse = useMemo(() => {
     return new Fuse(operations, {
       keys: ['path', 'method', 'summary', 'operationId'],
       threshold: 0.4,
-    });
-  }, [operations]);
+    })
+  }, [operations])
 
   const filteredOperations = useMemo(() => {
-    if (!searchQuery.trim()) return operations;
-    return fuse.search(searchQuery).map((result) => result.item);
-  }, [operations, fuse, searchQuery]);
+    if (!searchQuery.trim()) return operations
+    return fuse.search(searchQuery).map((result) => result.item)
+  }, [operations, fuse, searchQuery])
 
   const selectedOperation = useMemo(() => {
-    return operations.find((op) => op.id === selectedOperationId);
-  }, [operations, selectedOperationId]);
+    return operations.find((op) => op.id === selectedOperationId)
+  }, [operations, selectedOperationId])
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false)
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
-      inputRef.current.focus();
+      inputRef.current.focus()
     }
-  }, [isOpen]);
+  }, [isOpen])
 
   const handleSelect = (op: OperationItem) => {
-    setTryItOperation(op.id);
-    setIsOpen(false);
-    setSearchQuery('');
-  };
+    setTryItOperation(op.id)
+    setIsOpen(false)
+    setSearchQuery('')
+  }
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -123,7 +138,9 @@ export function OperationSelector({ spec }: OperationSelectorProps) {
         ) : (
           <span className="text-sm text-zinc-500">Select an operation...</span>
         )}
-        <ChevronDown className={`w-4 h-4 text-zinc-500 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          className={`w-4 h-4 text-zinc-500 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+        />
       </button>
 
       {isOpen && (
@@ -177,14 +194,16 @@ export function OperationSelector({ spec }: OperationSelectorProps) {
         </div>
       )}
     </div>
-  );
+  )
 }
 
 function MethodBadge({ method }: { method: string }) {
-  const style = METHOD_STYLES[method.toLowerCase()] ?? METHOD_STYLES.get;
+  const style = METHOD_STYLES[method.toLowerCase()] ?? METHOD_STYLES.get
   return (
-    <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${style.bg} ${style.text}`}>
+    <span
+      className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${style.bg} ${style.text}`}
+    >
       {method}
     </span>
-  );
+  )
 }

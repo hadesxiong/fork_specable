@@ -72,42 +72,42 @@ On macOS, use Cmd instead of Ctrl.
 
 ### File
 
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+N` | New file |
-| `Ctrl+O` | Open file |
-| `Ctrl+S` | Save file |
-| `Ctrl+Shift+S` | Save as |
+| Shortcut       | Action    |
+| -------------- | --------- |
+| `Ctrl+N`       | New file  |
+| `Ctrl+O`       | Open file |
+| `Ctrl+S`       | Save file |
+| `Ctrl+Shift+S` | Save as   |
 
 ### Navigation
 
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+G` | Go to line |
-| `F12` | Go to definition |
-| `Ctrl+Click` | Navigate to `$ref` target |
-| `Ctrl+Shift+P` | Open command palette |
-| `F1` | Keyboard shortcuts |
+| Shortcut       | Action                    |
+| -------------- | ------------------------- |
+| `Ctrl+G`       | Go to line                |
+| `F12`          | Go to definition          |
+| `Ctrl+Click`   | Navigate to `$ref` target |
+| `Ctrl+Shift+P` | Open command palette      |
+| `F1`           | Keyboard shortcuts        |
 
 ### View
 
-| Shortcut | Action |
-|----------|--------|
+| Shortcut       | Action               |
+| -------------- | -------------------- |
 | `Ctrl+Shift+E` | Toggle outline panel |
-| `Ctrl+\` | Toggle preview panel |
-| `Ctrl+1` | Show Docs view |
-| `Ctrl+2` | Show Graph view |
-| `Ctrl+3` | Show Diff view |
-| `Ctrl+4` | Show Try It view |
-| `Ctrl+5` | Show History view |
+| `Ctrl+\`       | Toggle preview panel |
+| `Ctrl+1`       | Show Docs view       |
+| `Ctrl+2`       | Show Graph view      |
+| `Ctrl+3`       | Show Diff view       |
+| `Ctrl+4`       | Show Try It view     |
+| `Ctrl+5`       | Show History view    |
 
 ### Editor
 
-| Shortcut | Action |
-|----------|--------|
-| `Shift+Alt+F` | Format document |
-| `Ctrl+K Ctrl+0` | Fold all |
-| `Ctrl+K Ctrl+J` | Unfold all |
+| Shortcut        | Action          |
+| --------------- | --------------- |
+| `Shift+Alt+F`   | Format document |
+| `Ctrl+K Ctrl+0` | Fold all        |
+| `Ctrl+K Ctrl+J` | Unfold all      |
 
 ## Contributing
 

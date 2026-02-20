@@ -1,7 +1,14 @@
-import { useCallback, useState, useMemo, useRef, useEffect } from 'react';
-import { ChevronDown, ChevronUp, Copy, Check, SlidersHorizontal, ExternalLink } from 'lucide-react';
-import { useEditorStore } from '../../store';
-import type { OpenAPIV3 } from 'openapi-types';
+import { useCallback, useState, useMemo, useRef, useEffect } from 'react'
+import {
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Check,
+  SlidersHorizontal,
+  ExternalLink,
+} from 'lucide-react'
+import { useEditorStore } from '../../store'
+import type { OpenAPIV3 } from 'openapi-types'
 import {
   CollapsibleSection,
   ParameterRow,
@@ -10,19 +17,19 @@ import {
   SecuritySection,
   SchemaDisplay,
   CopyAsTypeScript,
-} from './components';
-import { Markdown } from './Markdown';
-import { CopySnippetButton } from './CopySnippetButton';
-import { getComposition, resolveRef, type SchemaObject } from './schema-utils';
-import { METHOD_STYLES } from '../ui/style-constants';
+} from './components'
+import { Markdown } from './Markdown'
+import { CopySnippetButton } from './CopySnippetButton'
+import { getComposition, resolveRef, type SchemaObject } from './schema-utils'
+import { METHOD_STYLES } from '../ui/style-constants'
 
 interface SearchFilters {
-  path: boolean;
-  description: boolean;
-  operationId: boolean;
-  parameterName: boolean;
-  schemaField: boolean;
-  bodyField: boolean;
+  path: boolean
+  description: boolean
+  operationId: boolean
+  parameterName: boolean
+  schemaField: boolean
+  bodyField: boolean
 }
 
 const DEFAULT_FILTERS: SearchFilters = {
@@ -32,19 +39,20 @@ const DEFAULT_FILTERS: SearchFilters = {
   parameterName: false,
   schemaField: false,
   bodyField: false,
-};
+}
 
 export function DocumentationView() {
-  const parsedSpec = useEditorStore((state) => state.parsedSpec);
-  const isValidating = useEditorStore((state) => state.isValidating);
-  const sourceMap = useEditorStore((state) => state.sourceMap);
-  const goToLine = useEditorStore((state) => state.goToLine);
-  const [filter, setFilter] = useState('');
-  const [headerExpanded, setHeaderExpanded] = useState(true);
-  const [searchFilters, setSearchFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
-  const [showFilterMenu, setShowFilterMenu] = useState(false);
-  const filterMenuRef = useRef<HTMLDivElement>(null);
-  const filterButtonRef = useRef<HTMLButtonElement>(null);
+  const parsedSpec = useEditorStore((state) => state.parsedSpec)
+  const isValidating = useEditorStore((state) => state.isValidating)
+  const sourceMap = useEditorStore((state) => state.sourceMap)
+  const goToLine = useEditorStore((state) => state.goToLine)
+  const [filter, setFilter] = useState('')
+  const [headerExpanded, setHeaderExpanded] = useState(true)
+  const [searchFilters, setSearchFilters] =
+    useState<SearchFilters>(DEFAULT_FILTERS)
+  const [showFilterMenu, setShowFilterMenu] = useState(false)
+  const filterMenuRef = useRef<HTMLDivElement>(null)
+  const filterButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -54,84 +62,120 @@ export function DocumentationView() {
         filterButtonRef.current &&
         !filterButtonRef.current.contains(event.target as Node)
       ) {
-        setShowFilterMenu(false);
+        setShowFilterMenu(false)
       }
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const toggleFilter = useCallback((key: keyof SearchFilters) => {
-    setSearchFilters((prev) => ({ ...prev, [key]: !prev[key] }));
-  }, []);
+    setSearchFilters((prev) => ({ ...prev, [key]: !prev[key] }))
+  }, [])
 
-  const activeFilterCount = Object.values(searchFilters).filter(Boolean).length;
+  const activeFilterCount = Object.values(searchFilters).filter(Boolean).length
 
   const searchPlaceholder = useMemo(() => {
-    if (activeFilterCount === 0) return 'No filters active';
-    const labels: string[] = [];
-    if (searchFilters.path) labels.push('path');
-    if (searchFilters.description) labels.push('description');
-    if (searchFilters.operationId) labels.push('operation ID');
-    if (searchFilters.parameterName) labels.push('parameters');
-    if (searchFilters.schemaField) labels.push('schema fields');
-    if (searchFilters.bodyField) labels.push('body fields');
-    return `Filter by ${labels.join(', ')}...`;
-  }, [searchFilters, activeFilterCount]);
+    if (activeFilterCount === 0) return 'No filters active'
+    const labels: string[] = []
+    if (searchFilters.path) labels.push('path')
+    if (searchFilters.description) labels.push('description')
+    if (searchFilters.operationId) labels.push('operation ID')
+    if (searchFilters.parameterName) labels.push('parameters')
+    if (searchFilters.schemaField) labels.push('schema fields')
+    if (searchFilters.bodyField) labels.push('body fields')
+    return `Filter by ${labels.join(', ')}...`
+  }, [searchFilters, activeFilterCount])
 
-  const navigateToPath = useCallback((path: string) => {
-    const position = sourceMap[path];
-    if (position) {
-      goToLine(position.line, position.column);
-    }
-  }, [sourceMap, goToLine]);
+  const navigateToPath = useCallback(
+    (path: string) => {
+      const position = sourceMap[path]
+      if (position) {
+        goToLine(position.line, position.column)
+      }
+    },
+    [sourceMap, goToLine],
+  )
 
   const filteredPaths = useMemo(() => {
-    if (!parsedSpec?.paths) return [];
-    const entries = Object.entries(parsedSpec.paths);
-    if (!filter) return entries;
+    if (!parsedSpec?.paths) return []
+    const entries = Object.entries(parsedSpec.paths)
+    if (!filter) return entries
 
-    const lowerFilter = filter.toLowerCase();
+    const lowerFilter = filter.toLowerCase()
 
-    const searchSchemaFields = (schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject | undefined): boolean => {
-      if (!schema) return false;
+    const searchSchemaFields = (
+      schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject | undefined,
+    ): boolean => {
+      if (!schema) return false
       if ('$ref' in schema) {
-        const refName = schema.$ref.split('/').pop();
-        return refName?.toLowerCase().includes(lowerFilter) ?? false;
+        const refName = schema.$ref.split('/').pop()
+        return refName?.toLowerCase().includes(lowerFilter) ?? false
       }
       if (schema.properties) {
         for (const propName of Object.keys(schema.properties)) {
-          if (propName.toLowerCase().includes(lowerFilter)) return true;
+          if (propName.toLowerCase().includes(lowerFilter)) return true
         }
       }
       if (schema.type === 'array' && schema.items) {
-        return searchSchemaFields(schema.items);
+        return searchSchemaFields(schema.items)
       }
-      return false;
-    };
+      return false
+    }
 
     return entries.filter(([path, pathItem]) => {
-      if (searchFilters.path && path.toLowerCase().includes(lowerFilter)) return true;
+      if (searchFilters.path && path.toLowerCase().includes(lowerFilter))
+        return true
 
-      const item = pathItem as OpenAPIV3.PathItemObject;
-      const methods = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head'] as const;
+      const item = pathItem as OpenAPIV3.PathItemObject
+      const methods = [
+        'get',
+        'post',
+        'put',
+        'patch',
+        'delete',
+        'options',
+        'head',
+      ] as const
       for (const method of methods) {
-        const operation = (item as Record<string, unknown>)[method] as OpenAPIV3.OperationObject | undefined;
+        const operation = (item as Record<string, unknown>)[method] as
+          | OpenAPIV3.OperationObject
+          | undefined
         if (operation) {
-          if (searchFilters.path && operation.summary?.toLowerCase().includes(lowerFilter)) return true;
-          if (searchFilters.description && operation.description?.toLowerCase().includes(lowerFilter)) return true;
-          if (searchFilters.operationId && operation.operationId?.toLowerCase().includes(lowerFilter)) return true;
+          if (
+            searchFilters.path &&
+            operation.summary?.toLowerCase().includes(lowerFilter)
+          )
+            return true
+          if (
+            searchFilters.description &&
+            operation.description?.toLowerCase().includes(lowerFilter)
+          )
+            return true
+          if (
+            searchFilters.operationId &&
+            operation.operationId?.toLowerCase().includes(lowerFilter)
+          )
+            return true
 
           if (searchFilters.parameterName && operation.parameters) {
             for (const param of operation.parameters) {
-              if (!('$ref' in param) && param.name?.toLowerCase().includes(lowerFilter)) return true;
+              if (
+                !('$ref' in param) &&
+                param.name?.toLowerCase().includes(lowerFilter)
+              )
+                return true
             }
           }
 
-          if (searchFilters.bodyField && operation.requestBody && !('$ref' in operation.requestBody)) {
-            const content = operation.requestBody.content;
+          if (
+            searchFilters.bodyField &&
+            operation.requestBody &&
+            !('$ref' in operation.requestBody)
+          ) {
+            const content = operation.requestBody.content
             for (const mediaType of Object.values(content ?? {})) {
-              if (searchSchemaFields(mediaType.schema)) return true;
+              if (searchSchemaFields(mediaType.schema)) return true
             }
           }
 
@@ -139,47 +183,53 @@ export function DocumentationView() {
             for (const response of Object.values(operation.responses)) {
               if (response && !('$ref' in response) && response.content) {
                 for (const mediaType of Object.values(response.content)) {
-                  if (searchSchemaFields(mediaType.schema)) return true;
+                  if (searchSchemaFields(mediaType.schema)) return true
                 }
               }
             }
           }
         }
       }
-      return false;
-    });
-  }, [parsedSpec, filter, searchFilters]);
+      return false
+    })
+  }, [parsedSpec, filter, searchFilters])
 
   const filteredSchemas = useMemo(() => {
-    if (!parsedSpec?.components?.schemas) return [];
-    const entries = Object.entries(parsedSpec.components.schemas);
-    if (!filter) return entries;
+    if (!parsedSpec?.components?.schemas) return []
+    const entries = Object.entries(parsedSpec.components.schemas)
+    if (!filter) return entries
 
-    const lowerFilter = filter.toLowerCase();
+    const lowerFilter = filter.toLowerCase()
     return entries.filter(([name, schema]) => {
-      if (searchFilters.path && name.toLowerCase().includes(lowerFilter)) return true;
-      const schemaObj = schema as OpenAPIV3.SchemaObject;
-      if (searchFilters.description && schemaObj.description?.toLowerCase().includes(lowerFilter)) return true;
+      if (searchFilters.path && name.toLowerCase().includes(lowerFilter))
+        return true
+      const schemaObj = schema as OpenAPIV3.SchemaObject
+      if (
+        searchFilters.description &&
+        schemaObj.description?.toLowerCase().includes(lowerFilter)
+      )
+        return true
       if (searchFilters.schemaField && schemaObj.properties) {
         for (const propName of Object.keys(schemaObj.properties)) {
-          if (propName.toLowerCase().includes(lowerFilter)) return true;
+          if (propName.toLowerCase().includes(lowerFilter)) return true
         }
       }
-      return false;
-    });
-  }, [parsedSpec, filter, searchFilters]);
+      return false
+    })
+  }, [parsedSpec, filter, searchFilters])
 
   if (!parsedSpec) {
     return (
       <div className="h-full flex items-center justify-center bg-zinc-950 text-zinc-500">
         {isValidating ? 'Loading...' : 'No valid specification to preview'}
       </div>
-    );
+    )
   }
 
-  const hasResults = filteredPaths.length > 0 || filteredSchemas.length > 0;
+  const hasResults = filteredPaths.length > 0 || filteredSchemas.length > 0
 
-  const hasHeaderContent = parsedSpec.info.description || parsedSpec.servers?.[0];
+  const hasHeaderContent =
+    parsedSpec.info.description || parsedSpec.servers?.[0]
 
   return (
     <div className="h-full flex flex-col bg-zinc-950">
@@ -189,12 +239,13 @@ export function DocumentationView() {
             <h1 className="text-lg font-medium text-zinc-100 tracking-tight">
               {parsedSpec.info.title}
             </h1>
-            {new URLSearchParams(window.location.search).get('view') !== 'preview' && (
+            {new URLSearchParams(window.location.search).get('view') !==
+              'preview' && (
               <button
                 onClick={() => {
-                  const url = new URL(window.location.href);
-                  url.searchParams.set('view', 'preview');
-                  window.open(url.toString(), '_blank');
+                  const url = new URL(window.location.href)
+                  url.searchParams.set('view', 'preview')
+                  window.open(url.toString(), '_blank')
                 }}
                 className="p-1 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded transition-colors"
                 aria-label="Open in new tab"
@@ -261,7 +312,8 @@ export function DocumentationView() {
               type="button"
               onClick={() => setShowFilterMenu(!showFilterMenu)}
               className={`p-2 rounded-md border transition-colors ${
-                showFilterMenu || activeFilterCount !== Object.keys(DEFAULT_FILTERS).length
+                showFilterMenu ||
+                activeFilterCount !== Object.keys(DEFAULT_FILTERS).length
                   ? 'bg-purple-500/20 border-purple-500/50 text-purple-400'
                   : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
               }`}
@@ -276,7 +328,9 @@ export function DocumentationView() {
                 className="absolute right-0 top-full mt-1 w-48 bg-zinc-900 border border-zinc-700 rounded-md shadow-xl z-20"
               >
                 <div className="p-2 border-b border-zinc-800">
-                  <span className="text-xs font-medium text-zinc-400">Search in</span>
+                  <span className="text-xs font-medium text-zinc-400">
+                    Search in
+                  </span>
                 </div>
                 <div className="p-1">
                   <FilterCheckbox
@@ -348,7 +402,9 @@ export function DocumentationView() {
                   name={name}
                   schema={schema as OpenAPIV3.SchemaObject}
                   spec={parsedSpec}
-                  onNavigate={() => navigateToPath(`components.schemas.${name}`)}
+                  onNavigate={() =>
+                    navigateToPath(`components.schemas.${name}`)
+                  }
                 />
               ))}
             </div>
@@ -356,7 +412,7 @@ export function DocumentationView() {
         )}
       </main>
     </div>
-  );
+  )
 }
 
 function PathSection({
@@ -365,21 +421,31 @@ function PathSection({
   spec,
   onNavigate,
 }: {
-  path: string;
-  pathItem: OpenAPIV3.PathItemObject;
-  spec: OpenAPIV3.Document;
-  onNavigate: (path: string) => void;
+  path: string
+  pathItem: OpenAPIV3.PathItemObject
+  spec: OpenAPIV3.Document
+  onNavigate: (path: string) => void
 }) {
-  const methods = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head'] as const;
+  const methods = [
+    'get',
+    'post',
+    'put',
+    'patch',
+    'delete',
+    'options',
+    'head',
+  ] as const
 
   const operations = methods
     .filter((method) => (pathItem as Record<string, unknown>)[method])
     .map((method) => ({
       method,
-      operation: (pathItem as Record<string, unknown>)[method] as OpenAPIV3.OperationObject,
-    }));
+      operation: (pathItem as Record<string, unknown>)[
+        method
+      ] as OpenAPIV3.OperationObject,
+    }))
 
-  if (operations.length === 0) return null;
+  if (operations.length === 0) return null
 
   return (
     <div className="rounded border border-zinc-700 overflow-hidden">
@@ -394,7 +460,7 @@ function PathSection({
         />
       ))}
     </div>
-  );
+  )
 }
 
 function OperationCard({
@@ -404,37 +470,40 @@ function OperationCard({
   spec,
   onNavigate,
 }: {
-  method: string;
-  path: string;
-  operation: OpenAPIV3.OperationObject;
-  spec: OpenAPIV3.Document;
-  onNavigate: () => void;
+  method: string
+  path: string
+  operation: OpenAPIV3.OperationObject
+  spec: OpenAPIV3.Document
+  onNavigate: () => void
 }) {
-  const style = METHOD_STYLES[method] ?? METHOD_STYLES.get;
-  const [copied, setCopied] = useState(false);
+  const style = METHOD_STYLES[method] ?? METHOD_STYLES.get
+  const [copied, setCopied] = useState(false)
 
-  const copyPath = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(path);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  }, [path]);
+  const copyPath = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      navigator.clipboard.writeText(path)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    },
+    [path],
+  )
 
   // Resolve parameter $refs
   const parameters = useMemo(() => {
-    if (!operation.parameters) return [];
+    if (!operation.parameters) return []
     return operation.parameters
       .map((param) => {
         if ('$ref' in param) {
-          const resolved = resolveRef(param as SchemaObject, spec);
-          return resolved?.schema as OpenAPIV3.ParameterObject | undefined;
+          const resolved = resolveRef(param as SchemaObject, spec)
+          return resolved?.schema as OpenAPIV3.ParameterObject | undefined
         }
-        return param as OpenAPIV3.ParameterObject;
+        return param as OpenAPIV3.ParameterObject
       })
-      .filter((p): p is OpenAPIV3.ParameterObject => p !== undefined);
-  }, [operation.parameters, spec]);
+      .filter((p): p is OpenAPIV3.ParameterObject => p !== undefined)
+  }, [operation.parameters, spec])
 
-  const hasParameters = parameters.length > 0;
+  const hasParameters = parameters.length > 0
 
   return (
     <div
@@ -449,18 +518,18 @@ function OperationCard({
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            onNavigate();
+            e.preventDefault()
+            onNavigate()
           }
         }}
       >
         <div className="flex items-center gap-3">
-          <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${style.bg} ${style.text}`}>
+          <span
+            className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${style.bg} ${style.text}`}
+          >
             {method}
           </span>
-          <code className="text-sm text-zinc-200 font-mono">
-            {path}
-          </code>
+          <code className="text-sm text-zinc-200 font-mono">{path}</code>
           <button
             type="button"
             onClick={copyPath}
@@ -473,7 +542,12 @@ function OperationCard({
               <Copy className="w-3.5 h-3.5" />
             )}
           </button>
-          <CopySnippetButton method={method} path={path} operation={operation} spec={spec} />
+          <CopySnippetButton
+            method={method}
+            path={path}
+            operation={operation}
+            spec={spec}
+          />
           {operation.deprecated && (
             <span className="px-1.5 py-0.5 bg-red-900/50 text-red-400 text-xs rounded">
               Deprecated
@@ -482,9 +556,7 @@ function OperationCard({
         </div>
 
         {operation.summary && (
-          <p className="mt-2 text-sm text-zinc-200">
-            {operation.summary}
-          </p>
+          <p className="mt-2 text-sm text-zinc-200">{operation.summary}</p>
         )}
 
         {operation.description && (
@@ -507,7 +579,11 @@ function OperationCard({
         >
           <div className="bg-zinc-800/50 rounded p-2">
             {parameters.map((param) => (
-              <ParameterRow key={`${param.in}-${param.name}`} param={param} spec={spec} />
+              <ParameterRow
+                key={`${param.in}-${param.name}`}
+                param={param}
+                spec={spec}
+              />
             ))}
           </div>
         </CollapsibleSection>
@@ -535,7 +611,7 @@ function OperationCard({
         />
       )}
     </div>
-  );
+  )
 }
 
 function SchemaCard({
@@ -544,17 +620,15 @@ function SchemaCard({
   spec,
   onNavigate,
 }: {
-  name: string;
-  schema: OpenAPIV3.SchemaObject;
-  spec: OpenAPIV3.Document;
-  onNavigate: () => void;
+  name: string
+  schema: OpenAPIV3.SchemaObject
+  spec: OpenAPIV3.Document
+  onNavigate: () => void
 }) {
-  const properties = schema.properties ? Object.entries(schema.properties) : [];
-  const required = schema.required ?? [];
-  const composition = getComposition(schema);
-  const schemaType = composition
-    ? composition.type
-    : (schema.type ?? 'object');
+  const properties = schema.properties ? Object.entries(schema.properties) : []
+  const required = schema.required ?? []
+  const composition = getComposition(schema)
+  const schemaType = composition ? composition.type : (schema.type ?? 'object')
 
   return (
     <div className="rounded border border-zinc-700 overflow-hidden">
@@ -565,17 +639,19 @@ function SchemaCard({
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            onNavigate();
+            e.preventDefault()
+            onNavigate()
           }
         }}
       >
         <div className="flex items-center gap-2">
           <span className="font-medium text-zinc-200">{name}</span>
-          <span className="text-xs text-zinc-500">
-            {schemaType}
-          </span>
-          <CopyAsTypeScript schema={schema as SchemaObject} spec={spec} name={name} />
+          <span className="text-xs text-zinc-500">{schemaType}</span>
+          <CopyAsTypeScript
+            schema={schema as SchemaObject}
+            spec={spec}
+            name={name}
+          />
         </div>
 
         {schema.description && (
@@ -597,12 +673,14 @@ function SchemaCard({
           )}
           {properties.length > 0 && !composition && (
             <>
-              <div className="text-xs text-zinc-500 mb-2">Properties ({properties.length})</div>
+              <div className="text-xs text-zinc-500 mb-2">
+                Properties ({properties.length})
+              </div>
               <div className="space-y-2">
                 {properties.map(([propName, propSchema]) => {
-                  const propObj = propSchema as OpenAPIV3.SchemaObject;
-                  const isRequired = required.includes(propName);
-                  const type = getPropertyType(propObj, spec);
+                  const propObj = propSchema as OpenAPIV3.SchemaObject
+                  const isRequired = required.includes(propName)
+                  const type = getPropertyType(propObj, spec)
 
                   return (
                     <div key={propName} className="flex items-start gap-2">
@@ -617,7 +695,7 @@ function SchemaCard({
                         </span>
                       )}
                     </div>
-                  );
+                  )
                 })}
               </div>
             </>
@@ -625,42 +703,54 @@ function SchemaCard({
         </div>
       )}
     </div>
-  );
+  )
 }
 
-function getPropertyType(schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject, spec: OpenAPIV3.Document): string {
+function getPropertyType(
+  schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
+  spec: OpenAPIV3.Document,
+): string {
   if ('$ref' in schema) {
-    const refPath = schema.$ref;
-    const parts = refPath.split('/');
-    return parts[parts.length - 1];
+    const refPath = schema.$ref
+    const parts = refPath.split('/')
+    return parts[parts.length - 1]
   }
 
   if (schema.type === 'array' && schema.items) {
-    const itemType = getPropertyType(schema.items as OpenAPIV3.SchemaObject, spec);
-    return `array<${itemType}>`;
+    const itemType = getPropertyType(
+      schema.items as OpenAPIV3.SchemaObject,
+      spec,
+    )
+    return `array<${itemType}>`
   }
 
   if (schema.allOf) {
-    const types = schema.allOf.map((s) => getPropertyType(s as OpenAPIV3.SchemaObject, spec));
-    return types.join(' & ');
+    const types = schema.allOf.map((s) =>
+      getPropertyType(s as OpenAPIV3.SchemaObject, spec),
+    )
+    return types.join(' & ')
   }
 
   if (schema.oneOf) {
-    const types = schema.oneOf.map((s) => getPropertyType(s as OpenAPIV3.SchemaObject, spec));
-    return types.join(' | ');
+    const types = schema.oneOf.map((s) =>
+      getPropertyType(s as OpenAPIV3.SchemaObject, spec),
+    )
+    return types.join(' | ')
   }
 
   if (schema.anyOf) {
-    const types = schema.anyOf.map((s) => getPropertyType(s as OpenAPIV3.SchemaObject, spec));
-    return types.join(' | ');
+    const types = schema.anyOf.map((s) =>
+      getPropertyType(s as OpenAPIV3.SchemaObject, spec),
+    )
+    return types.join(' | ')
   }
 
-  const baseType = schema.type ?? 'object';
+  const baseType = schema.type ?? 'object'
   if (schema.format) {
-    return `${baseType} (${schema.format})`;
+    return `${baseType} (${schema.format})`
   }
 
-  return baseType as string;
+  return baseType as string
 }
 
 function FilterCheckbox({
@@ -668,9 +758,9 @@ function FilterCheckbox({
   checked,
   onChange,
 }: {
-  label: string;
-  checked: boolean;
-  onChange: () => void;
+  label: string
+  checked: boolean
+  onChange: () => void
 }) {
   return (
     <label className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-zinc-800 cursor-pointer transition-colors">
@@ -682,5 +772,5 @@ function FilterCheckbox({
       />
       <span className="text-sm text-zinc-300">{label}</span>
     </label>
-  );
+  )
 }

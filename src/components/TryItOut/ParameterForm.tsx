@@ -1,24 +1,24 @@
-import { useMemo } from 'react';
-import type { OpenAPIV3 } from 'openapi-types';
-import { useEditorStore } from '../../store';
-import { resolveRef } from '../Preview/schema-utils';
+import { useMemo } from 'react'
+import type { OpenAPIV3 } from 'openapi-types'
+import { useEditorStore } from '../../store'
+import { resolveRef } from '../Preview/schema-utils'
 
 interface ParameterFormProps {
-  operation: OpenAPIV3.OperationObject;
-  pathItem: OpenAPIV3.PathItemObject;
-  spec: OpenAPIV3.Document;
+  operation: OpenAPIV3.OperationObject
+  pathItem: OpenAPIV3.PathItemObject
+  spec: OpenAPIV3.Document
 }
 
-type ParameterLocation = 'path' | 'query' | 'header' | 'cookie';
+type ParameterLocation = 'path' | 'query' | 'header' | 'cookie'
 
 interface ResolvedParameter {
-  name: string;
-  in: ParameterLocation;
-  required: boolean;
-  description?: string;
-  schema?: OpenAPIV3.SchemaObject;
-  example?: unknown;
-  enum?: unknown[];
+  name: string
+  in: ParameterLocation
+  required: boolean
+  description?: string
+  schema?: OpenAPIV3.SchemaObject
+  example?: unknown
+  enum?: unknown[]
 }
 
 const LOCATION_LABELS: Record<ParameterLocation, string> = {
@@ -26,27 +26,36 @@ const LOCATION_LABELS: Record<ParameterLocation, string> = {
   query: 'Query Parameters',
   header: 'Headers',
   cookie: 'Cookies',
-};
+}
 
-const LOCATION_ORDER: ParameterLocation[] = ['path', 'query', 'header', 'cookie'];
+const LOCATION_ORDER: ParameterLocation[] = [
+  'path',
+  'query',
+  'header',
+  'cookie',
+]
 
-export function ParameterForm({ operation, pathItem, spec }: ParameterFormProps) {
-  const parameterValues = useEditorStore((state) => state.tryIt.parameterValues);
-  const setTryItParameter = useEditorStore((state) => state.setTryItParameter);
+export function ParameterForm({
+  operation,
+  pathItem,
+  spec,
+}: ParameterFormProps) {
+  const parameterValues = useEditorStore((state) => state.tryIt.parameterValues)
+  const setTryItParameter = useEditorStore((state) => state.setTryItParameter)
 
   const parameters = useMemo(() => {
-    const allParams: OpenAPIV3.ParameterObject[] = [];
+    const allParams: OpenAPIV3.ParameterObject[] = []
 
     // Collect parameters from path item (common to all operations)
     if (pathItem.parameters) {
       for (const param of pathItem.parameters) {
         if ('$ref' in param) {
-          const resolved = resolveRef(param as OpenAPIV3.ReferenceObject, spec);
+          const resolved = resolveRef(param as OpenAPIV3.ReferenceObject, spec)
           if (resolved?.schema) {
-            allParams.push(resolved.schema as OpenAPIV3.ParameterObject);
+            allParams.push(resolved.schema as OpenAPIV3.ParameterObject)
           }
         } else {
-          allParams.push(param);
+          allParams.push(param)
         }
       }
     }
@@ -55,27 +64,27 @@ export function ParameterForm({ operation, pathItem, spec }: ParameterFormProps)
     if (operation.parameters) {
       for (const param of operation.parameters) {
         if ('$ref' in param) {
-          const resolved = resolveRef(param as OpenAPIV3.ReferenceObject, spec);
+          const resolved = resolveRef(param as OpenAPIV3.ReferenceObject, spec)
           if (resolved?.schema) {
-            allParams.push(resolved.schema as OpenAPIV3.ParameterObject);
+            allParams.push(resolved.schema as OpenAPIV3.ParameterObject)
           }
         } else {
-          allParams.push(param);
+          allParams.push(param)
         }
       }
     }
 
     // Deduplicate by name+in (operation params take precedence)
-    const seen = new Map<string, OpenAPIV3.ParameterObject>();
+    const seen = new Map<string, OpenAPIV3.ParameterObject>()
     for (const param of allParams) {
-      const key = `${param.in}.${param.name}`;
-      seen.set(key, param);
+      const key = `${param.in}.${param.name}`
+      seen.set(key, param)
     }
 
     // Convert to resolved parameters
-    const resolved: ResolvedParameter[] = [];
+    const resolved: ResolvedParameter[] = []
     for (const param of seen.values()) {
-      const schema = param.schema as OpenAPIV3.SchemaObject | undefined;
+      const schema = param.schema as OpenAPIV3.SchemaObject | undefined
       resolved.push({
         name: param.name,
         in: param.in as ParameterLocation,
@@ -84,11 +93,11 @@ export function ParameterForm({ operation, pathItem, spec }: ParameterFormProps)
         schema,
         example: param.example ?? schema?.example,
         enum: schema?.enum,
-      });
+      })
     }
 
-    return resolved;
-  }, [operation.parameters, pathItem.parameters, spec]);
+    return resolved
+  }, [operation.parameters, pathItem.parameters, spec])
 
   const groupedParameters = useMemo(() => {
     const groups: Record<ParameterLocation, ResolvedParameter[]> = {
@@ -96,26 +105,26 @@ export function ParameterForm({ operation, pathItem, spec }: ParameterFormProps)
       query: [],
       header: [],
       cookie: [],
-    };
-
-    for (const param of parameters) {
-      groups[param.in].push(param);
     }
 
-    return groups;
-  }, [parameters]);
+    for (const param of parameters) {
+      groups[param.in].push(param)
+    }
 
-  const hasParameters = parameters.length > 0;
+    return groups
+  }, [parameters])
+
+  const hasParameters = parameters.length > 0
 
   if (!hasParameters) {
-    return null;
+    return null
   }
 
   return (
     <div className="space-y-4">
       {LOCATION_ORDER.map((location) => {
-        const params = groupedParameters[location];
-        if (params.length === 0) return null;
+        const params = groupedParameters[location]
+        if (params.length === 0) return null
 
         return (
           <div key={location}>
@@ -128,35 +137,37 @@ export function ParameterForm({ operation, pathItem, spec }: ParameterFormProps)
                   key={`${param.in}.${param.name}`}
                   parameter={param}
                   value={parameterValues[`${param.in}.${param.name}`] ?? ''}
-                  onChange={(value) => setTryItParameter(`${param.in}.${param.name}`, value)}
+                  onChange={(value) =>
+                    setTryItParameter(`${param.in}.${param.name}`, value)
+                  }
                 />
               ))}
             </div>
           </div>
-        );
+        )
       })}
     </div>
-  );
+  )
 }
 
 interface ParameterInputProps {
-  parameter: ResolvedParameter;
-  value: string;
-  onChange: (value: string) => void;
+  parameter: ResolvedParameter
+  value: string
+  onChange: (value: string) => void
 }
 
 function ParameterInput({ parameter, value, onChange }: ParameterInputProps) {
   const placeholder = useMemo(() => {
     if (parameter.example !== undefined) {
-      return String(parameter.example);
+      return String(parameter.example)
     }
     if (parameter.schema?.type) {
-      return parameter.schema.type;
+      return parameter.schema.type
     }
-    return '';
-  }, [parameter.example, parameter.schema?.type]);
+    return ''
+  }, [parameter.example, parameter.schema?.type])
 
-  const schemaType = parameter.schema?.type ?? 'string';
+  const schemaType = parameter.schema?.type ?? 'string'
 
   // Enum values use a select
   if (parameter.enum && parameter.enum.length > 0) {
@@ -164,9 +175,7 @@ function ParameterInput({ parameter, value, onChange }: ParameterInputProps) {
       <div className="flex items-start gap-3">
         <label className="w-32 flex-shrink-0 pt-2">
           <span className="text-sm text-zinc-300">{parameter.name}</span>
-          {parameter.required && (
-            <span className="text-red-400 ml-0.5">*</span>
-          )}
+          {parameter.required && <span className="text-red-400 ml-0.5">*</span>}
         </label>
         <div className="flex-1">
           <select
@@ -182,11 +191,13 @@ function ParameterInput({ parameter, value, onChange }: ParameterInputProps) {
             ))}
           </select>
           {parameter.description && (
-            <p className="text-xs text-zinc-500 mt-1">{parameter.description}</p>
+            <p className="text-xs text-zinc-500 mt-1">
+              {parameter.description}
+            </p>
           )}
         </div>
       </div>
-    );
+    )
   }
 
   // Boolean uses a checkbox-style toggle
@@ -195,9 +206,7 @@ function ParameterInput({ parameter, value, onChange }: ParameterInputProps) {
       <div className="flex items-start gap-3">
         <label className="w-32 flex-shrink-0 pt-2">
           <span className="text-sm text-zinc-300">{parameter.name}</span>
-          {parameter.required && (
-            <span className="text-red-400 ml-0.5">*</span>
-          )}
+          {parameter.required && <span className="text-red-400 ml-0.5">*</span>}
         </label>
         <div className="flex-1">
           <select
@@ -210,11 +219,13 @@ function ParameterInput({ parameter, value, onChange }: ParameterInputProps) {
             <option value="false">false</option>
           </select>
           {parameter.description && (
-            <p className="text-xs text-zinc-500 mt-1">{parameter.description}</p>
+            <p className="text-xs text-zinc-500 mt-1">
+              {parameter.description}
+            </p>
           )}
         </div>
       </div>
-    );
+    )
   }
 
   // Default text input
@@ -222,13 +233,15 @@ function ParameterInput({ parameter, value, onChange }: ParameterInputProps) {
     <div className="flex items-start gap-3">
       <label className="w-32 flex-shrink-0 pt-2">
         <span className="text-sm text-zinc-300">{parameter.name}</span>
-        {parameter.required && (
-          <span className="text-red-400 ml-0.5">*</span>
-        )}
+        {parameter.required && <span className="text-red-400 ml-0.5">*</span>}
       </label>
       <div className="flex-1">
         <input
-          type={schemaType === 'integer' || schemaType === 'number' ? 'number' : 'text'}
+          type={
+            schemaType === 'integer' || schemaType === 'number'
+              ? 'number'
+              : 'text'
+          }
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
@@ -239,5 +252,5 @@ function ParameterInput({ parameter, value, onChange }: ParameterInputProps) {
         )}
       </div>
     </div>
-  );
+  )
 }

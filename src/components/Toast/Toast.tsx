@@ -1,36 +1,36 @@
-import { useEffect } from 'react';
-import { CheckCircle, AlertCircle, Info, X } from 'lucide-react';
-import { useEditorStore, type Toast as ToastType } from '../../store';
+import { useEffect } from 'react'
+import { CheckCircle, AlertCircle, Info, X } from 'lucide-react'
+import { useEditorStore, type Toast as ToastType } from '../../store'
 
 const ICON_MAP = {
   success: CheckCircle,
   error: AlertCircle,
   info: Info,
-};
+}
 
 const STYLE_MAP = {
   success: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
   error: 'bg-red-500/20 text-red-400 border-red-500/30',
   info: 'bg-zinc-800 text-zinc-300 border-zinc-700',
-};
+}
 
 interface ToastItemProps {
-  toast: ToastType;
-  onDismiss: (id: string) => void;
+  toast: ToastType
+  onDismiss: (id: string) => void
 }
 
 function ToastItem({ toast, onDismiss }: ToastItemProps) {
-  const Icon = ICON_MAP[toast.type];
+  const Icon = ICON_MAP[toast.type]
 
   useEffect(() => {
-    if (toast.duration === 0) return;
+    if (toast.duration === 0) return
 
     const timer = setTimeout(() => {
-      onDismiss(toast.id);
-    }, toast.duration);
+      onDismiss(toast.id)
+    }, toast.duration)
 
-    return () => clearTimeout(timer);
-  }, [toast.id, toast.duration, onDismiss]);
+    return () => clearTimeout(timer)
+  }, [toast.id, toast.duration, onDismiss])
 
   return (
     <div
@@ -48,14 +48,14 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
         <X className="w-3.5 h-3.5" aria-hidden="true" />
       </button>
     </div>
-  );
+  )
 }
 
 export function ToastContainer() {
-  const toasts = useEditorStore((state) => state.toasts);
-  const dismissToast = useEditorStore((state) => state.dismissToast);
+  const toasts = useEditorStore((state) => state.toasts)
+  const dismissToast = useEditorStore((state) => state.dismissToast)
 
-  if (toasts.length === 0) return null;
+  if (toasts.length === 0) return null
 
   return (
     <div
@@ -66,5 +66,5 @@ export function ToastContainer() {
         <ToastItem key={toast.id} toast={toast} onDismiss={dismissToast} />
       ))}
     </div>
-  );
+  )
 }
