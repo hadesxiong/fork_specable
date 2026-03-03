@@ -1,18 +1,10 @@
-import { useMemo, useState, useRef, useEffect } from 'react'
+import { useMemo, useState, useRef, useEffect, useCallback } from 'react'
 import { ChevronDown, Search } from 'lucide-react'
 import Fuse from 'fuse.js'
 import type { OpenAPIV3 } from 'openapi-types'
 import { useEditorStore } from '../../store'
-
-const METHOD_STYLES: Record<string, { bg: string; text: string }> = {
-  get: { bg: 'bg-emerald-500/15', text: 'text-emerald-400' },
-  post: { bg: 'bg-purple-500/15', text: 'text-purple-400' },
-  put: { bg: 'bg-amber-500/15', text: 'text-amber-400' },
-  patch: { bg: 'bg-yellow-500/15', text: 'text-yellow-400' },
-  delete: { bg: 'bg-red-500/15', text: 'text-red-400' },
-  options: { bg: 'bg-zinc-500/15', text: 'text-zinc-400' },
-  head: { bg: 'bg-zinc-500/15', text: 'text-zinc-400' },
-}
+import { useClickOutside } from '../../hooks/useClickOutside'
+import { METHOD_STYLES } from '../ui/style-constants'
 
 const HTTP_METHODS = [
   'get',
@@ -92,19 +84,7 @@ export function OperationSelector({ spec }: OperationSelectorProps) {
     return operations.find((op) => op.id === selectedOperationId)
   }, [operations, selectedOperationId])
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+  useClickOutside(dropdownRef, useCallback(() => setIsOpen(false), []))
 
   useEffect(() => {
     if (isOpen && inputRef.current) {

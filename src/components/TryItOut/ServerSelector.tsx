@@ -1,7 +1,8 @@
-import { useMemo, useState, useRef, useEffect } from 'react'
+import { useMemo, useState, useRef, useCallback } from 'react'
 import { ChevronDown, Globe, Edit3 } from 'lucide-react'
 import type { OpenAPIV3 } from 'openapi-types'
 import { useEditorStore } from '../../store'
+import { useClickOutside } from '../../hooks/useClickOutside'
 
 interface ServerSelectorProps {
   spec: OpenAPIV3.Document
@@ -34,19 +35,7 @@ export function ServerSelector({ spec }: ServerSelectorProps) {
     return servers[0]?.url ?? 'No server defined'
   }, [selectedServer, customServerUrl, servers, isCustom])
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+  useClickOutside(dropdownRef, useCallback(() => setIsOpen(false), []))
 
   const handleSelectServer = (url: string | null) => {
     setTryItServer(url)

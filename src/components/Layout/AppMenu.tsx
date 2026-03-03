@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { Menu, Check } from 'lucide-react'
 import { useEditorStore, type RightPanelView } from '../../store'
+import { useClickOutside } from '../../hooks/useClickOutside'
 
 type MenuItemType = 'action' | 'toggle' | 'radio'
 
@@ -415,18 +416,7 @@ export function AppMenu({
     [close],
   )
 
-  useEffect(() => {
-    if (!isOpen) return
-
-    function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        close()
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [isOpen, close])
+  useClickOutside(menuRef, close, isOpen)
 
   useEffect(() => {
     if (!isOpen) return

@@ -1,11 +1,11 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
-import { Code, Check } from 'lucide-react'
-import type { OpenAPIV3 } from 'openapi-types'
+import { useState, useCallback, useRef } from 'react'
+import { Code, Check, ChevronDown } from 'lucide-react'
 import {
   generateSnippet,
-  buildSnippetFromOperation,
+  type SnippetRequest,
   type SnippetFormat,
 } from '../../services/code-snippet-generator'
+import { useClickOutside } from '../../hooks/useClickOutside'
 
 const FORMATS: { id: SnippetFormat; label: string }[] = [
   { id: 'curl', label: 'cURL' },
@@ -14,41 +14,29 @@ const FORMATS: { id: SnippetFormat; label: string }[] = [
 ]
 
 interface CopySnippetButtonProps {
-  method: string
-  path: string
-  operation: OpenAPIV3.OperationObject
-  spec: OpenAPIV3.Document
+  buildRequest: () => SnippetRequest
+  /** 'icon' renders a compact icon button (used in docs preview).
+   *  'button' renders a larger button with chevron (used in TryItOut). */
+  variant?: 'icon' | 'button'
 }
 
 export function CopySnippetButton({
-  method,
-  path,
-  operation,
-  spec,
+  buildRequest,
+  variant = 'icon',
 }: CopySnippetButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [copied, setCopied] = useState<SnippetFormat | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target as Node) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+  useClickOutside(
+    [menuRef, buttonRef],
+    useCallback(() => setIsOpen(false), []),
+  )
 
   const handleCopy = useCallback(
     (format: SnippetFormat) => {
-      const request = buildSnippetFromOperation(method, path, operation, spec)
+      const request = buildRequest()
       const snippet = generateSnippet(request, format)
       navigator.clipboard.writeText(snippet)
       setCopied(format)
@@ -57,8 +45,10 @@ export function CopySnippetButton({
         setIsOpen(false)
       }, 1200)
     },
-    [method, path, operation, spec],
+    [buildRequest],
   )
+
+  const isIcon = variant === 'icon'
 
   return (
     <div className="relative">
@@ -66,25 +56,40 @@ export function CopySnippetButton({
         ref={buttonRef}
         type="button"
         onClick={(e) => {
-          e.stopPropagation()
+          if (isIcon) e.stopPropagation()
           setIsOpen(!isOpen)
         }}
-        className="p-1 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-700 rounded transition-colors"
+        className={
+          isIcon
+            ? 'p-1 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-700 rounded transition-colors'
+            : 'flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium rounded-md bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors'
+        }
         aria-label="Copy as code snippet"
-        title="Copy as code snippet"
+        title={isIcon ? 'Copy as code snippet' : undefined}
         aria-expanded={isOpen}
       >
-        {copied ? (
-          <Check className="w-3.5 h-3.5 text-emerald-400" />
+        {isIcon ? (
+          copied ? (
+            <Check className="w-3.5 h-3.5 text-emerald-400" />
+          ) : (
+            <Code className="w-3.5 h-3.5" />
+          )
         ) : (
-          <Code className="w-3.5 h-3.5" />
+          <>
+            <Code className="w-4 h-4" />
+            <ChevronDown className="w-3 h-3" />
+          </>
         )}
       </button>
       {isOpen && (
         <div
           ref={menuRef}
-          className="absolute top-full mt-1 right-0 w-36 bg-zinc-900 border border-zinc-700 rounded-md shadow-xl z-20"
-          onClick={(e) => e.stopPropagation()}
+          className={
+            isIcon
+              ? 'absolute top-full mt-1 right-0 w-36 bg-zinc-900 border border-zinc-700 rounded-md shadow-xl z-20'
+              : 'absolute bottom-full mb-1 left-0 w-36 bg-zinc-900 border border-zinc-700 rounded-md shadow-xl z-20'
+          }
+          onClick={isIcon ? (e) => e.stopPropagation() : undefined}
         >
           <div className="p-1">
             {FORMATS.map(({ id, label }) => (

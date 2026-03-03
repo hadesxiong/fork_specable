@@ -1,4 +1,4 @@
-import { useCallback, useState, useMemo, useRef, useEffect } from 'react'
+import { useCallback, useState, useMemo, useRef } from 'react'
 import {
   ChevronDown,
   ChevronUp,
@@ -19,9 +19,11 @@ import {
   CopyAsTypeScript,
 } from './components'
 import { Markdown } from './Markdown'
-import { CopySnippetButton } from './CopySnippetButton'
+import { CopySnippetButton } from '../ui/CopySnippetButton'
+import { buildSnippetFromOperation } from '../../services/code-snippet-generator'
 import { getComposition, resolveRef, type SchemaObject } from './schema-utils'
 import { METHOD_STYLES } from '../ui/style-constants'
+import { useClickOutside } from '../../hooks/useClickOutside'
 
 interface SearchFilters {
   path: boolean
@@ -54,20 +56,10 @@ export function DocumentationView() {
   const filterMenuRef = useRef<HTMLDivElement>(null)
   const filterButtonRef = useRef<HTMLButtonElement>(null)
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        filterMenuRef.current &&
-        !filterMenuRef.current.contains(event.target as Node) &&
-        filterButtonRef.current &&
-        !filterButtonRef.current.contains(event.target as Node)
-      ) {
-        setShowFilterMenu(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+  useClickOutside(
+    [filterMenuRef, filterButtonRef],
+    useCallback(() => setShowFilterMenu(false), []),
+  )
 
   const toggleFilter = useCallback((key: keyof SearchFilters) => {
     setSearchFilters((prev) => ({ ...prev, [key]: !prev[key] }))
@@ -543,10 +535,9 @@ function OperationCard({
             )}
           </button>
           <CopySnippetButton
-            method={method}
-            path={path}
-            operation={operation}
-            spec={spec}
+            buildRequest={() =>
+              buildSnippetFromOperation(method, path, operation, spec)
+            }
           />
           {operation.deprecated && (
             <span className="px-1.5 py-0.5 bg-red-900/50 text-red-400 text-xs rounded">
