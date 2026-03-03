@@ -8,7 +8,8 @@ import { ParameterForm } from './ParameterForm'
 import { AuthConfig } from './AuthConfig'
 import { RequestBodyEditor } from './RequestBodyEditor'
 import { ResponseDisplay } from './ResponseDisplay'
-import { CopySnippetButton } from './CopySnippetButton'
+import { CopySnippetButton } from '../ui/CopySnippetButton'
+import { buildSnippetFromTryIt } from '../../services/code-snippet-generator'
 import { executeRequest } from './request-execution'
 
 export function TryItOutView() {
@@ -177,9 +178,18 @@ export function TryItOutView() {
             </button>
             {selectedOperation && (
               <CopySnippetButton
-                method={selectedOperation.method}
-                path={selectedOperation.path}
-                serverUrl={serverUrl}
+                variant="button"
+                buildRequest={() =>
+                  buildSnippetFromTryIt({
+                    method: selectedOperation.method,
+                    baseUrl: serverUrl,
+                    path: selectedOperation.path,
+                    parameterValues: tryIt.parameterValues,
+                    body: tryIt.requestBody || undefined,
+                    contentType: tryIt.requestContentType,
+                    auth: tryIt.authConfig,
+                  })
+                }
               />
             )}
           </div>
