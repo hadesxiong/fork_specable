@@ -264,12 +264,15 @@ components:
             id:
               type: string
               format: uuid
+              description: Unique identifier assigned to the book on creation
             createdAt:
               type: string
               format: date-time
+              description: Timestamp when the book record was created
             updatedAt:
               type: string
               format: date-time
+              description: Timestamp when the book record was last modified
 
     BookInput:
       type: object
@@ -279,22 +282,29 @@ components:
           type: string
           minLength: 1
           maxLength: 200
+          description: Full title of the book
           example: The Great Gatsby
         authorId:
           type: string
           format: uuid
+          description: Reference to the author of the book
         genre:
+          description: Literary genre classification
           $ref: '#/components/schemas/Genre'
         price:
+          description: Retail price of the book
           $ref: '#/components/schemas/Money'
         isbn:
           type: string
           pattern: ^\\d{13}$
+          description: 13-digit International Standard Book Number (ISBN-13)
         publishedDate:
           type: string
           format: date
+          description: Date the book was first published
         description:
           type: string
+          description: Brief summary or blurb about the book
 
     Author:
       type: object
@@ -303,31 +313,39 @@ components:
         id:
           type: string
           format: uuid
+          description: Unique identifier for the author
         name:
           type: string
+          description: Full name of the author
         biography:
           type: string
+          description: Short biographical note about the author
         books:
           type: array
+          description: List of books written by this author
           items:
             $ref: '#/components/schemas/Book'
 
     Genre:
       type: string
+      description: Literary genre used to classify books in the inventory
       enum: [fiction, non-fiction, mystery, sci-fi, fantasy, biography, history]
 
     Money:
       type: object
+      description: Monetary value with currency
       required: [amount, currency]
       properties:
         amount:
           type: number
           minimum: 0
+          description: Decimal monetary amount
           example: 19.99
         currency:
           type: string
           enum: [USD, EUR, GBP]
           default: USD
+          description: ISO 4217 currency code
 
     OrderInput:
       type: object
@@ -336,9 +354,11 @@ components:
         items:
           type: array
           minItems: 1
+          description: List of books and quantities to order
           items:
             $ref: '#/components/schemas/OrderItem'
         shippingAddress:
+          description: Delivery address for the order
           $ref: '#/components/schemas/Address'
 
     OrderItem:
@@ -348,9 +368,11 @@ components:
         bookId:
           type: string
           format: uuid
+          description: Identifier of the book being ordered
         quantity:
           type: integer
           minimum: 1
+          description: Number of copies to order
 
     Order:
       type: object
@@ -359,61 +381,83 @@ components:
         id:
           type: string
           format: uuid
+          description: Unique identifier for the order
         status:
           type: string
           enum: [pending, confirmed, shipped, delivered, cancelled]
+          description: Current fulfilment status of the order
         items:
           type: array
+          description: Line items included in the order
           items:
             $ref: '#/components/schemas/OrderItem'
         total:
+          description: Total cost of the order including all items
           $ref: '#/components/schemas/Money'
         shippingAddress:
+          description: Delivery address for the order
           $ref: '#/components/schemas/Address'
         createdAt:
           type: string
           format: date-time
+          description: Timestamp when the order was placed
 
     Address:
       type: object
+      description: Physical mailing address
       required: [street, city, country]
       properties:
         street:
           type: string
+          description: Street name and number
         city:
           type: string
+          description: City or town name
         postcode:
           type: string
+          description: Postal or ZIP code
         country:
           type: string
+          description: ISO 3166-1 country name or code
 
     Pagination:
       type: object
+      description: Metadata for paginated list responses
       properties:
         total:
           type: integer
+          description: Total number of records available
         limit:
           type: integer
+          description: Maximum number of records returned per page
         offset:
           type: integer
+          description: Number of records skipped from the start
         hasMore:
           type: boolean
+          description: Whether additional pages of results exist
 
     Error:
       type: object
+      description: Standard error response returned for failed requests
       required: [code, message]
       properties:
         code:
           type: string
+          description: Machine-readable error code
         message:
           type: string
+          description: Human-readable error message
         details:
           type: array
+          description: Field-level validation errors, if applicable
           items:
             type: object
             properties:
               field:
                 type: string
+                description: Path to the field that caused the error
               reason:
                 type: string
+                description: Explanation of why the field is invalid
 `
