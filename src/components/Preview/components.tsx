@@ -18,6 +18,29 @@ import {
   type DiscriminatorInfo,
 } from './schema-utils'
 import { LOCATION_STYLES } from '../ui/style-constants'
+import type { ExtensionTag } from './extension-utils'
+
+interface ExtensionBadgesProps {
+  extensions: ExtensionTag[]
+}
+
+export function ExtensionBadges({ extensions }: ExtensionBadgesProps) {
+  if (extensions.length === 0) return null
+
+  return (
+    <>
+      {extensions.map((ext) => (
+        <span
+          key={ext.key}
+          className="px-1.5 py-0.5 bg-blue-900/50 text-blue-400 text-xs rounded"
+          title={ext.key}
+        >
+          {ext.value === true ? ext.label : `${ext.label}: ${ext.value}`}
+        </span>
+      ))}
+    </>
+  )
+}
 
 interface CollapsibleSectionProps {
   title: string

@@ -17,12 +17,14 @@ import {
   SecuritySection,
   SchemaDisplay,
   CopyAsTypeScript,
+  ExtensionBadges,
 } from './components'
 import { Markdown } from './Markdown'
 import { CopySnippetButton } from '../ui/CopySnippetButton'
 import { buildSnippetFromOperation } from '../../services/code-snippet-generator'
 import { getComposition, resolveRef, type SchemaObject } from './schema-utils'
 import { METHOD_STYLES } from '../ui/style-constants'
+import { extractExtensions } from './extension-utils'
 import { useClickOutside } from '../../hooks/useClickOutside'
 
 interface SearchFilters {
@@ -481,6 +483,11 @@ function OperationCard({
     [path],
   )
 
+  const extensions = useMemo(
+    () => extractExtensions(operation as unknown as Record<string, unknown>),
+    [operation],
+  )
+
   // Resolve parameter $refs
   const parameters = useMemo(() => {
     if (!operation.parameters) return []
@@ -515,7 +522,7 @@ function OperationCard({
           }
         }}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <span
             className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${style.bg} ${style.text}`}
           >
@@ -544,6 +551,7 @@ function OperationCard({
               Deprecated
             </span>
           )}
+          <ExtensionBadges extensions={extensions} />
         </div>
 
         {operation.summary && (
