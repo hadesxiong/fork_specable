@@ -29,9 +29,16 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "preview": "vite preview",
+    "start": "node server/index.mjs",
+    "serve": "pnpm build && node server/index.mjs",
+    "dev:server": "node server/index.mjs",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:server": "node --test \"server/**/*.test.mjs\""
+  },
+  "engines": {
+    "node": ">=20"
   },
   "dependencies": {
     "@readme/openapi-parser": "^6.0.0",

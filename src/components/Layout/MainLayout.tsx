@@ -24,6 +24,8 @@ import { shareSpec } from '../../services/share'
 import { useFileSystem } from '../../hooks/useFileSystem'
 import { useVersionHistory } from '../../hooks/useVersionHistory'
 import { useViewport } from '../../hooks/useViewport'
+import { setServerToken } from '../../services/api'
+import { FilesPanel } from '../Files/FilesPanel'
 import { formatEditorContent } from '../../utils/format'
 import { sortEditorContent } from '../../utils/sort'
 
@@ -61,11 +63,15 @@ export function MainLayout() {
 
   const {
     openFile,
+    openLocalFile,
+    openServerFile,
     importFromFile,
     importFromUrl,
     saveFile,
     saveFileAs,
+    saveToServer,
     newFile,
+    deleteServerFile,
     exportAsJson,
     exportAsYaml,
   } = useFileSystem()
@@ -74,6 +80,20 @@ export function MainLayout() {
 
   const file = useEditorStore((state) => state.file)
   const showToast = useEditorStore((state) => state.showToast)
+  const isFilesPanelOpen = useEditorStore((state) => state.isFilesPanelOpen)
+  const setFilesPanelOpen = useEditorStore((state) => state.setFilesPanelOpen)
+
+  const handleCreateSnapshot = useCallback(() => {
+    const current = useEditorStore.getState().file
+    if (current?.source !== 'server') {
+      showToast(
+        'info',
+        'Save the file to the server to enable version history',
+      )
+      return
+    }
+    createSnapshot('Manual snapshot')
+  }, [createSnapshot, showToast])
 
   const handleShare = useCallback(async () => {
     if (!file) {
@@ -112,6 +132,12 @@ export function MainLayout() {
         action: openFile,
       },
       {
+        id: 'file.openLocal',
+        label: 'Open Local File...',
+        category: 'file',
+        action: openLocalFile,
+      },
+      {
         id: 'file.importFile',
         label: 'Import from File...',
         category: 'file',
@@ -140,6 +166,40 @@ export function MainLayout() {
         shortcut: 'Ctrl+Shift+S',
         category: 'file',
         action: saveFileAs,
+      },
+      {
+        id: 'file.saveToServer',
+        label: 'Save to Server',
+        category: 'file',
+        action: saveToServer,
+        when: () => useEditorStore.getState().file?.source !== 'server',
+      },
+      {
+        id: 'file.delete',
+        label: 'Delete File',
+        category: 'file',
+        action: () => {
+          const current = useEditorStore.getState().file
+          if (current?.source === 'server') {
+            deleteServerFile(current.id)
+          }
+        },
+        when: () => useEditorStore.getState().file?.source === 'server',
+      },
+      {
+        id: 'file.setToken',
+        label: 'Set Server Token...',
+        category: 'file',
+        action: () => {
+          const token = prompt('Enter the server token:') ?? ''
+          setServerToken(token.trim() || null)
+          showToast(
+            token.trim()
+              ? 'success'
+              : 'info',
+            token.trim() ? 'Server token saved' : 'Server token cleared',
+          )
+        },
       },
       {
         id: 'file.exportJson',
@@ -174,25 +234,27 @@ export function MainLayout() {
         id: 'history.createSnapshot',
         label: 'Create Snapshot',
         category: 'edit',
-        action: () => {
-          createSnapshot('Manual snapshot')
-        },
+        action: handleCreateSnapshot,
       },
     ],
     [
       newFile,
       openFile,
+      openLocalFile,
       importFromFile,
       importFromUrl,
       saveFile,
       saveFileAs,
+      saveToServer,
+      deleteServerFile,
       exportAsJson,
       exportAsYaml,
       handleShare,
+      handleCreateSnapshot,
       setRightPanelView,
       showPreview,
       togglePreview,
-      createSnapshot,
+      showToast,
     ],
   )
 
@@ -367,6 +429,15 @@ export function MainLayout() {
           onClose={closeCommandPalette}
           commands={commands}
         />
+        <FilesPanel
+          isOpen={isFilesPanelOpen}
+          onClose={() => setFilesPanelOpen(false)}
+          onOpenServerFile={openServerFile}
+          onOpenLocalFile={openLocalFile}
+          onImportUrl={importFromUrl}
+          onNewFile={newFile}
+          onDeleteServerFile={deleteServerFile}
+        />
         <AboutModal isOpen={showAbout} onClose={() => setShowAbout(false)} />
         <ToastContainer />
       </>
@@ -392,16 +463,22 @@ export function MainLayout() {
         <AppMenu
           onNewFile={newFile}
           onOpenFile={openFile}
+          onOpenLocalFile={openLocalFile}
           onImportFile={() => importFromFile()}
           onImportUrl={() => importFromUrl()}
           onSave={saveFile}
           onSaveAs={saveFileAs}
+          onSaveToServer={saveToServer}
+          onDeleteFile={() => {
+            const current = useEditorStore.getState().file
+            if (current?.source === 'server') deleteServerFile(current.id)
+          }}
           onShare={handleShare}
           onExportJson={exportAsJson}
           onExportYaml={exportAsYaml}
           onFormatDocument={formatEditorContent}
           onSortContent={sortEditorContent}
-          onCreateSnapshot={() => createSnapshot('Manual snapshot')}
+          onCreateSnapshot={handleCreateSnapshot}
           onToggleOutline={toggleOutline}
           onTogglePreview={togglePreview}
           onShowKeyboardShortcuts={() => setShowKeyboardShortcuts(true)}
@@ -477,6 +554,16 @@ export function MainLayout() {
         isOpen={isCommandPaletteOpen}
         onClose={closeCommandPalette}
         commands={commands}
+      />
+
+      <FilesPanel
+        isOpen={isFilesPanelOpen}
+        onClose={() => setFilesPanelOpen(false)}
+        onOpenServerFile={openServerFile}
+        onOpenLocalFile={openLocalFile}
+        onImportUrl={importFromUrl}
+        onNewFile={newFile}
+        onDeleteServerFile={deleteServerFile}
       />
 
       <KeyboardShortcutsModal

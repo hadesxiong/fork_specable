@@ -15,7 +15,7 @@ export function useVersionHistory() {
 
   // Load history when file changes
   useEffect(() => {
-    if (!file?.id) {
+    if (!file?.id || file.source !== 'server') {
       setVersionHistory([])
       return
     }
@@ -35,12 +35,25 @@ export function useVersionHistory() {
     }
 
     loadHistory()
-  }, [file?.id, setVersionHistory, setHistoryLoading])
+  }, [
+    file?.id,
+    file?.source,
+    setVersionHistory,
+    setHistoryLoading,
+  ])
 
   // Create snapshot function (manual only)
   const createSnapshot = useCallback(
     async (label?: string) => {
       if (!file?.id || !file?.content) return null
+
+      if (file.source !== 'server') {
+        showToast(
+          'info',
+          'Save the file to the server to enable version history',
+        )
+        return null
+      }
 
       try {
         await dbRef.current.init()
@@ -67,7 +80,7 @@ export function useVersionHistory() {
         return null
       }
     },
-    [file?.id, file?.name, file?.content, addSnapshot, showToast],
+    [file?.id, file?.name, file?.content, file?.source, addSnapshot, showToast],
   )
 
   // Delete snapshot

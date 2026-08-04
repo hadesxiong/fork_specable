@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { DocumentationView } from './DocumentationView'
 import { useValidation } from '../../hooks/useValidation'
-import { useStorageSync } from '../../hooks/useStorageSync'
 import { useEditorStore } from '../../store'
 
 export function FullscreenPreview() {
@@ -9,7 +8,6 @@ export function FullscreenPreview() {
   const specTitle = useEditorStore((state) => state.parsedSpec?.info?.title)
 
   useValidation()
-  useStorageSync()
 
   useEffect(() => {
     document.title = specTitle ? `${specTitle} - Preview` : 'Specable Preview'

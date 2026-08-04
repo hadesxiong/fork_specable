@@ -49,6 +49,20 @@ export function HistoryView() {
     )
   }
 
+  if (file.source !== 'server') {
+    return (
+      <div className="h-full flex flex-col items-center justify-center bg-zinc-950 text-zinc-500 p-6 text-center">
+        <Clock className="w-12 h-12 mb-4 text-zinc-600" />
+        <p className="text-sm">
+          Version history is only available for server files
+        </p>
+        <p className="text-xs text-zinc-600 mt-1">
+          Save the file to the server to enable version history
+        </p>
+      </div>
+    )
+  }
+
   if (isHistoryLoading) {
     return (
       <div className="h-full flex items-center justify-center bg-zinc-950">

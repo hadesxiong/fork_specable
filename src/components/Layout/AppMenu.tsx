@@ -22,10 +22,13 @@ interface MenuSectionDef {
 interface AppMenuProps {
   onNewFile: () => void
   onOpenFile: () => void
+  onOpenLocalFile: () => void
   onImportFile: () => void
   onImportUrl: () => void
   onSave: () => void
   onSaveAs: () => void
+  onSaveToServer: () => void
+  onDeleteFile: () => void
   onShare: () => void
   onExportJson: () => void
   onExportYaml: () => void
@@ -42,10 +45,13 @@ interface AppMenuProps {
 export function AppMenu({
   onNewFile,
   onOpenFile,
+  onOpenLocalFile,
   onImportFile,
   onImportUrl,
   onSave,
   onSaveAs,
+  onSaveToServer,
+  onDeleteFile,
   onShare,
   onExportJson,
   onExportYaml,
@@ -69,6 +75,7 @@ export function AppMenu({
   const toggleMinimap = useEditorStore((state) => state.toggleMinimap)
   const rightPanelView = useEditorStore((state) => state.rightPanelView)
   const editorView = useEditorStore((state) => state.editorView)
+  const currentFileSource = useEditorStore((state) => state.file?.source)
 
   const setViewAndOpen = useCallback(
     (view: RightPanelView) => {
@@ -115,6 +122,12 @@ export function AppMenu({
               action: onOpenFile,
             },
             {
+              id: 'file.openLocal',
+              label: 'Open Local File...',
+              type: 'action' as const,
+              action: onOpenLocalFile,
+            },
+            {
               id: 'file.importFile',
               label: 'Import from File...',
               type: 'action' as const,
@@ -142,6 +155,26 @@ export function AppMenu({
               type: 'action' as const,
               action: onSaveAs,
             },
+            ...(currentFileSource !== 'server'
+              ? [
+                  {
+                    id: 'file.saveToServer',
+                    label: 'Save to Server',
+                    type: 'action' as const,
+                    action: onSaveToServer,
+                  } as const,
+                ]
+              : []),
+            ...(currentFileSource === 'server'
+              ? [
+                  {
+                    id: 'file.delete',
+                    label: 'Delete File',
+                    type: 'action' as const,
+                    action: onDeleteFile,
+                  } as const,
+                ]
+              : []),
           ],
           [
             {
@@ -375,10 +408,13 @@ export function AppMenu({
     [
       onNewFile,
       onOpenFile,
+      onOpenLocalFile,
       onImportFile,
       onImportUrl,
       onSave,
       onSaveAs,
+      onSaveToServer,
+      onDeleteFile,
       onShare,
       onExportJson,
       onExportYaml,
@@ -397,6 +433,7 @@ export function AppMenu({
       setViewAndOpen,
       onOpenCommandPalette,
       onShowKeyboardShortcuts,
+      currentFileSource,
     ],
   )
 

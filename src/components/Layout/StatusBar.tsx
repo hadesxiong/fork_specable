@@ -15,6 +15,7 @@ export function StatusBar({ onDiagnosticsClick }: StatusBarProps) {
   const cursorLine = useEditorStore((state) => state.cursorLine)
   const cursorColumn = useEditorStore((state) => state.cursorColumn)
   const parsedSpec = useEditorStore((state) => state.parsedSpec)
+  const serverConnected = useEditorStore((state) => state.serverConnected)
 
   const errorCount = errors.length
   const warningCount = warnings.length
@@ -100,6 +101,29 @@ export function StatusBar({ onDiagnosticsClick }: StatusBarProps) {
 
       {/* Right section */}
       <div className="flex items-center gap-4">
+        {/* Server status */}
+        <span
+          className={`flex items-center gap-1.5 ${
+            serverConnected ? 'text-zinc-500' : 'text-amber-500'
+          }`}
+          aria-label={serverConnected ? 'Server connected' : 'Server offline'}
+          title={
+            serverConnected
+              ? 'Connected to server'
+              : 'Server unreachable - local mode'
+          }
+        >
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${
+              serverConnected
+                ? 'bg-emerald-500'
+                : 'bg-amber-500'
+            }`}
+            aria-hidden="true"
+          />
+          {serverConnected ? 'Server' : 'Offline'}
+        </span>
+
         {/* Language */}
         <span
           className="uppercase tracking-wide"

@@ -45,6 +45,38 @@ export interface EditorFile {
   path?: string
   isDirty: boolean
   language: 'yaml' | 'json'
+  source?: 'server' | 'local'
+}
+
+export interface FileSummary {
+  id: string
+  name: string
+  language: 'yaml' | 'json'
+  createdAt: number
+  updatedAt: number
+}
+
+export interface ServerPreferences {
+  [key: string]: unknown
+}
+
+interface PersistedState {
+  showPreview: boolean
+  showOutline: boolean
+  showMinimap: boolean
+  rightPanelView: RightPanelView
+  graphFilter: GraphFilter
+  diffFilter: DiffFilter
+  lastFileId: string | null
+  tryIt: {
+    selectedServer: string | null
+    customServerUrl: string
+    authConfig: {
+      type: AuthType
+      apiKeyLocation: 'header' | 'query'
+    }
+    requestContentType: string
+  }
 }
 
 export type RightPanelView = 'preview' | 'graph' | 'diff' | 'tryit' | 'history'
@@ -94,6 +126,11 @@ export interface TryItState {
 
 interface EditorState {
   file: EditorFile | null
+  files: FileSummary[]
+  isHydrated: boolean
+  serverConnected: boolean
+  lastFileId: string | null
+  isFilesPanelOpen: boolean
   parsedSpec: OpenAPIV3.Document | null
   sourceMap: SourceMap
   isValidating: boolean
@@ -125,10 +162,17 @@ interface EditorState {
 
 interface EditorActions {
   setFile: (file: EditorFile | null) => void
-  syncFileFromTab: (file: EditorFile) => void
   updateContent: (content: string) => void
   markClean: () => void
   updateFileIdentity: (file: EditorFile) => void
+  setFiles: (files: FileSummary[]) => void
+  upsertFileInList: (file: FileSummary) => void
+  removeFileFromList: (id: string) => void
+  setHydrated: (hydrated: boolean) => void
+  setServerConnected: (connected: boolean) => void
+  setLastFileId: (id: string | null) => void
+  setFilesPanelOpen: (open: boolean) => void
+  applyServerPreferences: (prefs: ServerPreferences) => void
   setParsedSpec: (spec: OpenAPIV3.Document | null, sourceMap: SourceMap) => void
   setValidating: (isValidating: boolean) => void
   setValidationResult: (result: {
@@ -203,6 +247,11 @@ export const useEditorStore = create<EditorStore>()(
         isDirty: false,
         language: 'yaml',
       },
+      files: [],
+      isHydrated: false,
+      serverConnected: true,
+      lastFileId: null,
+      isFilesPanelOpen: false,
       parsedSpec: null,
       sourceMap: {},
       isValidating: false,
@@ -252,21 +301,6 @@ export const useEditorStore = create<EditorStore>()(
       setFile: (file) =>
         set({ file, ...FILE_RESET_STATE }),
 
-      syncFileFromTab: (file) =>
-        set((state) => {
-          if (
-            state.file?.id === file.id &&
-            state.file?.content === file.content
-          ) {
-            return {}
-          }
-          const isSameFile = state.file?.id === file.id
-          return {
-            file,
-            ...(isSameFile ? {} : FILE_RESET_STATE),
-          }
-        }),
-
       updateContent: (content) =>
         set((state) => {
           if (!state.file) return { file: null }
@@ -282,6 +316,85 @@ export const useEditorStore = create<EditorStore>()(
         })),
 
       updateFileIdentity: (file) => set({ file }),
+
+      setFiles: (files) => set({ files }),
+
+      upsertFileInList: (file) =>
+        set((state) => {
+          const exists = state.files.some((f) => f.id === file.id)
+          const files = exists
+            ? state.files.map((f) => (f.id === file.id ? file : f))
+            : [...state.files, file].sort((a, b) =>
+                a.name.localeCompare(b.name),
+              )
+          return { files }
+        }),
+
+      removeFileFromList: (id) =>
+        set((state) => ({
+          files: state.files.filter((f) => f.id !== id),
+        })),
+
+      setHydrated: (hydrated) => set({ isHydrated: hydrated }),
+
+      setServerConnected: (connected) => set({ serverConnected: connected }),
+
+      setLastFileId: (id) => set({ lastFileId: id }),
+
+      setFilesPanelOpen: (open) => set({ isFilesPanelOpen: open }),
+
+      applyServerPreferences: (prefs) =>
+        set((state) => ({
+          showPreview:
+            typeof prefs.showPreview === 'boolean'
+              ? prefs.showPreview
+              : state.showPreview,
+          showOutline:
+            typeof prefs.showOutline === 'boolean'
+              ? prefs.showOutline
+              : state.showOutline,
+          showMinimap:
+            typeof prefs.showMinimap === 'boolean'
+              ? prefs.showMinimap
+              : state.showMinimap,
+          rightPanelView:
+            typeof prefs.rightPanelView === 'string'
+              ? (prefs.rightPanelView as RightPanelView)
+              : state.rightPanelView,
+          graphFilter:
+            typeof prefs.graphFilter === 'string'
+              ? (prefs.graphFilter as GraphFilter)
+              : state.graphFilter,
+          diffFilter:
+            typeof prefs.diffFilter === 'string'
+              ? (prefs.diffFilter as DiffFilter)
+              : state.diffFilter,
+          lastFileId:
+            typeof prefs.lastFileId === 'string' ? prefs.lastFileId : null,
+          tryIt: prefs.tryIt
+            ? {
+                ...state.tryIt,
+                selectedServer:
+                  typeof (prefs.tryIt as { selectedServer?: unknown })
+                    .selectedServer === 'string'
+                    ? (prefs.tryIt as { selectedServer: string }).selectedServer
+                    : state.tryIt.selectedServer,
+                customServerUrl:
+                  typeof (prefs.tryIt as { customServerUrl?: unknown })
+                    .customServerUrl === 'string'
+                    ? (prefs.tryIt as { customServerUrl: string })
+                        .customServerUrl
+                    : state.tryIt.customServerUrl,
+                requestContentType:
+                  typeof (prefs.tryIt as { requestContentType?: unknown })
+                    .requestContentType === 'string'
+                    ? (prefs.tryIt as { requestContentType: string })
+                        .requestContentType
+                    : state.tryIt.requestContentType,
+              }
+            : state.tryIt,
+        })),
+
       setParsedSpec: (spec, sourceMap) => set({ parsedSpec: spec, sourceMap }),
       setValidating: (isValidating) => set({ isValidating }),
 
@@ -433,14 +546,15 @@ export const useEditorStore = create<EditorStore>()(
     }),
     {
       name: 'specable-editor',
-      partialize: (state) => ({
+      version: 1,
+      partialize: (state): PersistedState => ({
         showPreview: state.showPreview,
         showOutline: state.showOutline,
         showMinimap: state.showMinimap,
         rightPanelView: state.rightPanelView,
         graphFilter: state.graphFilter,
         diffFilter: state.diffFilter,
-        file: state.file,
+        lastFileId: state.lastFileId,
         // Persist TryIt preferences but NOT sensitive credentials
         tryIt: {
           selectedServer: state.tryIt.selectedServer,
@@ -452,6 +566,20 @@ export const useEditorStore = create<EditorStore>()(
           requestContentType: state.tryIt.requestContentType,
         },
       }),
+      migrate: (persistedState): PersistedState => {
+        // Drop the legacy file field that used to hold full spec content
+        const state = (persistedState ?? {}) as Record<string, unknown>
+        const rest = { ...state }
+        delete rest.file
+        return rest as unknown as PersistedState
+      },
+      merge: (persistedState, currentState) => {
+        // Defensively drop any legacy file field from storage
+        const persisted = (persistedState ?? {}) as Record<string, unknown>
+        const rest = { ...persisted }
+        delete rest.file
+        return { ...currentState, ...rest }
+      },
     },
   ),
 )

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
 import { useEditorStore } from '../../store'
 import type {
   DiffWorkerApi,
@@ -11,6 +11,7 @@ import { DiffSummary } from './DiffSummary'
 import { DiffList } from './DiffList'
 import { createLazyWorker } from '../../services/worker-factory'
 import { getValidatorWorker } from '../../services/shared-workers'
+import { getFile } from '../../services/api'
 
 const getDiffWorker = createLazyWorker<DiffWorkerApi>(
   () =>
@@ -33,6 +34,8 @@ export function DiffView() {
   const goToLine = useEditorStore((state) => state.goToLine)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const files = useEditorStore((state) => state.files)
+  const [selectedComparisonFileId, setSelectedComparisonFileId] = useState('')
 
   const handleFileSelect = useCallback(
     async (file: File) => {
@@ -62,6 +65,35 @@ export function DiffView() {
     },
     [setComparisonSpec, setDiffLoading],
   )
+
+  const handleServerFileSelect = useCallback(async () => {
+    if (!selectedComparisonFileId) return
+    setDiffLoading(true)
+
+    try {
+      const serverFile = await getFile(selectedComparisonFileId)
+      const validator = getValidatorWorker()
+      const result: ValidationResult = await validator.validate(
+        serverFile.content,
+      )
+
+      if (!result.syntaxValid || !result.parsedSpec) {
+        throw new Error('Invalid OpenAPI specification')
+      }
+
+      setComparisonSpec({
+        content: serverFile.content,
+        parsed: result.parsedSpec,
+        sourceMap: result.sourceMap,
+        name: serverFile.name,
+      })
+    } catch (error) {
+      console.error('Failed to load comparison file:', error)
+      setComparisonSpec(null)
+    } finally {
+      setDiffLoading(false)
+    }
+  }, [selectedComparisonFileId, setComparisonSpec, setDiffLoading])
 
   const handleFileInputChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -183,6 +215,36 @@ export function DiffView() {
               <p className="text-xs text-zinc-600 mt-1">
                 Compares against the current specification
               </p>
+              {files.length > 0 && (
+                <div
+                  className="mt-5 flex items-center gap-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <select
+                    value={selectedComparisonFileId}
+                    onChange={(e) =>
+                      setSelectedComparisonFileId(e.target.value)
+                    }
+                    className="px-2 py-1.5 text-xs bg-zinc-800 border border-zinc-700 rounded-md text-zinc-200 outline-none focus:border-purple-500"
+                    aria-label="Choose a server file"
+                  >
+                    <option value="">Server file...</option>
+                    {files.map((f) => (
+                      <option key={f.id} value={f.id}>
+                        {f.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={handleServerFileSelect}
+                    disabled={!selectedComparisonFileId}
+                    className="px-3 py-1.5 text-xs font-medium rounded-md bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors"
+                  >
+                    Compare
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ) : isDiffLoading ? (
